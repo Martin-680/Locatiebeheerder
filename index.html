@@ -462,6 +462,18 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="Preferred">⭐ Preferred</option><option value="Inactive">Inactive</option>
         </select>
       </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Expertise</div>
+        <select class="fsel" id="sel-sup-expertise" onchange="setPage('sup',1);renderSuppliers()">
+          <option value="All">All Expertise</option>
+        </select>
+      </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Sort by Rate</div>
+        <select class="fsel" id="sel-sup-sort" onchange="renderSuppliers()">
+          <option value="none">Default</option>
+          <option value="asc">Rate ↑ Low → High</option>
+          <option value="desc">Rate ↓ High → Low</option>
+        </select>
+      </div>
     </div>
     <div id="sup-list"></div>
   </div>
@@ -1806,13 +1818,40 @@ async function saveBld(){
    SUPPLIERS
 ══════════════════════════════════════════════════════════ */
 function goSupPage(p){setPage('sup',p);renderSuppliers();}
+function populateExpertiseFilter(){
+  const sel=document.getElementById('sel-sup-expertise'); if(!sel) return;
+  const cur=sel.value;
+  // Collect all unique expertise values across all suppliers
+  const all=new Set();
+  DB.suppliers.forEach(s=>{
+    const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
+    exp.forEach(e=>{ if(e) all.add(e); });
+  });
+  const sorted=[...all].sort();
+  sel.innerHTML='<option value="All">All Expertise</option>'+sorted.map(e=>`<option value="${e}">${e}</option>`).join('');
+  if(cur&&cur!=='All'&&all.has(cur)) sel.value=cur;
+}
 function renderSuppliers(){
+  populateExpertiseFilter();
   const q=(document.getElementById('ssearch')?.value||'').toLowerCase();
   const statusVal=document.getElementById('sel-sup-status')?.value||'All';
+  const expertiseVal=document.getElementById('sel-sup-expertise')?.value||'All';
+  const sortVal=document.getElementById('sel-sup-sort')?.value||'none';
   syncSelActive('sel-sup-status');
-  let list=DB.suppliers;
+  syncSelActive('sel-sup-expertise');
+  syncSelActive('sel-sup-sort');
+  let list=[...DB.suppliers];
   if(statusVal!=='All') list=list.filter(s=>s.status===statusVal);
+  if(expertiseVal!=='All'){
+    list=list.filter(s=>{
+      const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
+      return exp.includes(expertiseVal);
+    });
+  }
   if(q) list=list.filter(s=>s.name.toLowerCase().includes(q)||(Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',')).join(' ').toLowerCase().includes(q));
+  // Sort by rate
+  if(sortVal==='asc') list.sort((a,b)=>(a.ratePerHour||0)-(b.ratePerHour||0));
+  if(sortVal==='desc') list.sort((a,b)=>(b.ratePerHour||0)-(a.ratePerHour||0));
   document.getElementById('sup-lbl').textContent=`${list.length} supplier${list.length!==1?'s':''}`;
   const c=document.getElementById('sup-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon">🏭</div><div style="font-size:13px">No suppliers found</div></div>';return;}
@@ -1821,12 +1860,13 @@ function renderSuppliers(){
   const stCol={Active:'var(--green)',Preferred:'var(--amber)',Inactive:'var(--muted)'};
   c.innerHTML=slice.map(s=>{
     const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
+    const activeExp=expertiseVal!=='All'?expertiseVal:null;
     return`<div class="sup-card" onclick="openSupDetail('${s.id}')">
       <div class="sup-hdr">
         <div><div class="sup-name">${s.name}</div><div class="sup-contact">${s.contact||'—'}</div></div>
         <div style="text-align:right"><div class="sup-rate">R${s.ratePerHour}/hr</div><span class="badge" style="background:${stCol[s.status]||'var(--green)'}18;color:${stCol[s.status]||'var(--green)'};margin-top:4px">${s.status}</span></div>
       </div>
-      <div class="sup-tags">${exp.map(e=>`<span class="sup-tag">${e}</span>`).join('')}</div>
+      <div class="sup-tags">${exp.map(e=>`<span class="sup-tag" style="${activeExp===e?'background:#DBEAFE;border-color:#93C5FD;color:var(--blue);font-weight:700':''}">${e}</span>`).join('')}</div>
     </div>`;
   }).join('')+renderPagination('sup',list.length,'goSupPage');
 }
