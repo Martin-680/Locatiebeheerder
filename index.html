@@ -1465,17 +1465,17 @@ function openTixDetail(id){
       </div>
     </div>
     <div style="padding:0 18px">
-      <div class="dr"><span class="dk">🏢 Building</span><span class="dv">${t.building}</span></div>
-      ${t.subdivision?`<div class="dr"><span class="dk">🏠 Floor</span><span class="dv">${t.subdivision}</span></div>`:''}
-      <div class="dr"><span class="dk">📍 Unit / Area</span><span class="dv">${t.unit||'—'}</span></div>
-      <div class="dr"><span class="dk">👤 Assigned To</span><span class="dv">${t.assignedTo||'—'}</span></div>
-      <div class="dr"><span class="dk">📅 Opened</span><span class="dv">${df(t.dateOpened)}</span></div>
-      ${t.status==='Closed'?`<div class="dr"><span class="dk">✅ Closed</span><span class="dv">${df(t.dateClosed)}</span></div>`:`<div class="dr"><span class="dk">⏱ Days Open</span><span class="dv" style="color:var(--amber)">${daysSince(t.dateOpened)} days</span></div>`}
-      <div class="dr"><span class="dk">🔧 Asset</span><span class="dv">${ast?ast.id+' – '+ast.name:'None'}</span></div>
-      <div class="dr"><span class="dk">🏭 Supplier</span><span class="dv">${sup?`<span style="color:var(--pink)">${sup.name}</span> <span style="font-size:11px;color:var(--muted)">(€ ${sup.ratePerHour}/hr)</span>${sup.phone?` <a href="tel:${sup.phone}" style="display:block;font-size:11px;color:var(--blue);margin-top:5px">📞 ${sup.phone}</a>`:''}${sup.email?` <a href="mailto:${sup.email}" style="display:block;font-size:11px;color:var(--blue);margin-top:4px">✉ ${sup.email}</a>`:''}`:'None'}</span></div>
-      <div class="dr"><span class="dk">📢 Reported By</span><span class="dv">${t.reportedBy||'—'}</span></div>
-      <div class="dr"><span class="dk">📝 Notes</span><span class="dv">${t.notes||'—'}</span></div>
-      <div class="dr"><span class="dk">👁 Created By</span><span class="dv">${t.createdBy||'—'}</span></div>
+      <div class="dr"><span class="dk">Building</span><span class="dv">${t.building}</span></div>
+      ${t.subdivision?`<div class="dr"><span class="dk">Floor</span><span class="dv">${t.subdivision}</span></div>`:''}
+      <div class="dr"><span class="dk">Unit / Area</span><span class="dv">${t.unit||'—'}</span></div>
+      <div class="dr"><span class="dk">Assigned To</span><span class="dv">${t.assignedTo||'—'}</span></div>
+      <div class="dr"><span class="dk">Opened</span><span class="dv">${df(t.dateOpened)}</span></div>
+      ${t.status==='Closed'?`<div class="dr"><span class="dk">Closed</span><span class="dv">${df(t.dateClosed)}</span></div>`:`<div class="dr"><span class="dk">Days Open</span><span class="dv" style="color:var(--amber)">${daysSince(t.dateOpened)} days</span></div>`}
+      <div class="dr"><span class="dk">Asset</span><span class="dv">${ast?ast.id+' – '+ast.name:'None'}</span></div>
+      <div class="dr"><span class="dk">Supplier</span><span class="dv">${sup?`<span style="color:var(--pink)">${sup.name}</span> <span style="font-size:11px;color:var(--muted)">(€ ${sup.ratePerHour}/hr)</span>${sup.phone?` <a href="tel:${sup.phone}" style="display:block;font-size:11px;color:var(--blue);margin-top:5px">📞 ${sup.phone}</a>`:''}${sup.email?` <a href="mailto:${sup.email}" style="display:block;font-size:11px;color:var(--blue);margin-top:4px">✉ ${sup.email}</a>`:''}`:'None'}</span></div>
+      <div class="dr"><span class="dk">Reported By</span><span class="dv">${t.reportedBy||'—'}</span></div>
+      <div class="dr"><span class="dk">Notes</span><span class="dv">${t.notes||'—'}</span></div>
+      <div class="dr"><span class="dk">Created By</span><span class="dv">${t.createdBy||'—'}</span></div>
     </div>
     <div style="padding:14px 18px 0;display:flex;gap:9px;flex-wrap:wrap">
       ${can('canCreateTickets')?`<button onclick="editTix('${t.id}')" style="flex:1;min-width:120px;padding:13px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--blue)">✏️ Edit</button>`:''}
@@ -1700,15 +1700,15 @@ function openAstDetail(id){
       <span class="badge" style="background:${sc}18;color:${sc}">${a.status}</span>
     </div>
     <div style="padding:0 18px">
-      <div class="dr"><span class="dk">🏢 Building</span><span class="dv">${a.building}</span></div>
-      ${a.subdivision?`<div class="dr"><span class="dk">🏠 Floor</span><span class="dv">${a.subdivision}</span></div>`:''}
-      <div class="dr"><span class="dk">📍 Location</span><span class="dv">${a.location||'—'}</span></div>
-      <div class="dr"><span class="dk">📁 Category</span><span class="dv">${a.category}</span></div>
-      <div class="dr"><span class="dk">🏭 Manufacturer</span><span class="dv">${a.manufacturer||'—'}</span></div>
-      <div class="dr"><span class="dk">🔢 Model</span><span class="dv">${a.model||'—'}</span></div>
-      <div class="dr"><span class="dk">🛡 Warranty</span><span class="dv">${df(a.warrantyExpiry)}</span></div>
-      <div class="dr"><span class="dk">📅 Purchased</span><span class="dv">${df(a.purchaseDate)}</span></div>
-      <div class="dr"><span class="dk">🔧 Last Serviced</span><span class="dv">${df(a.lastServiced)}</span></div>
+      <div class="dr"><span class="dk">Building</span><span class="dv">${a.building}</span></div>
+      ${a.subdivision?`<div class="dr"><span class="dk">Floor</span><span class="dv">${a.subdivision}</span></div>`:''}
+      <div class="dr"><span class="dk">Location</span><span class="dv">${a.location||'—'}</span></div>
+      <div class="dr"><span class="dk">Category</span><span class="dv">${a.category}</span></div>
+      <div class="dr"><span class="dk">Manufacturer</span><span class="dv">${a.manufacturer||'—'}</span></div>
+      <div class="dr"><span class="dk">Model</span><span class="dv">${a.model||'—'}</span></div>
+      <div class="dr"><span class="dk">Warranty</span><span class="dv">${df(a.warrantyExpiry)}</span></div>
+      <div class="dr"><span class="dk">Purchased</span><span class="dv">${df(a.purchaseDate)}</span></div>
+      <div class="dr"><span class="dk">Last Serviced</span><span class="dv">${df(a.lastServiced)}</span></div>
     </div>
     ${relTix.length?`<div style="padding:14px 18px 0"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Open Tickets (${relTix.length})</div><div class="tlist" style="padding:0">${relTix.map(t=>tixItemHTML(t,true)).join('')}</div></div>`:''}
     <div style="padding:14px 18px 0;display:flex;gap:9px;flex-wrap:wrap">
