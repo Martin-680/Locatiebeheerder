@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <title>PropManager Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -34,7 +34,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 #auth-gate{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:40px;}
 #auth-gate.hidden{display:none;}
 .ag-logo{font-size:56px;margin-bottom:4px;}
-.ag-title{font-family:'Cabinet Grotesk',sans-serif;font-size:28px;font-weight:800;letter-spacing:-.5px;text-align:center;}
+.ag-title{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;letter-spacing:-.5px;text-align:center;}
 .ag-sub{font-size:14px;color:var(--sub);text-align:center;line-height:1.6;max-width:280px;}
 .ag-google-btn{display:flex;align-items:center;gap:12px;padding:14px 28px;background:#fff;border-radius:12px;font-size:15px;font-weight:600;color:#1f1f1f;box-shadow:0 2px 16px rgba(0,0,0,.12);border:1.5px solid var(--border);transition:transform .15s,box-shadow .15s;margin-top:8px;}
 .ag-google-btn:active{transform:scale(.97);}
@@ -48,14 +48,14 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 #access-denied{position:fixed;inset:0;z-index:900;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:16px;text-align:center;}
 #access-denied.show{display:flex;}
 .ad-icon{font-size:52px;}
-.ad-title{font-family:'Cabinet Grotesk',sans-serif;font-size:22px;font-weight:800;}
+.ad-title{font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;}
 .ad-sub{font-size:14px;color:var(--sub);line-height:1.7;max-width:300px;}
 
 /* ── TOPBAR ── */
 .topbar{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,rgba(244,246,250,.98) 0%,rgba(244,246,250,.85) 100%);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:env(safe-area-inset-top,0) 0 0;flex-shrink:0;}
 .topbar-inner{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .topbar-left{display:flex;flex-direction:column;min-width:0;}
-.topbar-title{font-family:'Cabinet Grotesk',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.topbar-title{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .topbar-sub{font-size:11px;color:var(--sub);margin-top:1px;}
 .topbar-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
 .ib{width:36px;height:36px;border-radius:11px;background:#fff;border:1.5px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .15s;color:var(--sub);flex-shrink:0;}
@@ -73,11 +73,11 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .drawer{position:fixed;top:0;right:0;bottom:0;z-index:601;width:min(300px,88vw);background:var(--surface);border-left:1.5px solid var(--border);box-shadow:-8px 0 32px rgba(0,0,0,.1);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);padding-top:env(safe-area-inset-top,0);}
 .drawer.open{transform:translateX(0);}
 .drawer-head{padding:18px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.drawer-logo{font-family:'Cabinet Grotesk',sans-serif;font-size:16px;font-weight:800;}
+.drawer-logo{font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;}
 .drawer-close{width:32px;height:32px;border-radius:9px;background:#F1F5F9;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--muted);}
 .drawer-user{padding:16px 18px;border-bottom:1px solid var(--border);}
 .drawer-avatar{width:46px;height:46px;border-radius:14px;margin-bottom:10px;object-fit:cover;}
-.drawer-avatar-initials{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;font-family:'Cabinet Grotesk',sans-serif;margin-bottom:10px;}
+.drawer-avatar-initials{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;font-family:'Outfit',sans-serif;margin-bottom:10px;}
 .drawer-name{font-size:15px;font-weight:700;}
 .drawer-role{font-size:12px;color:var(--sub);}
 .drawer-email{font-size:11px;color:var(--muted);margin-top:2px;}
@@ -105,7 +105,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
 /* ── SECTION HEADER ── */
 .sh{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 8px;flex-shrink:0;}
-.sh-title{font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--sub);}
+.sh-title{font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--sub);}
 .sh-link{font-size:12px;color:var(--blue);font-weight:600;}
 
 /* ── KPI GRID ── */
@@ -117,7 +117,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .kpi-open::before{background:var(--red);}
 .kpi-prog::before{background:var(--amber);}
 .kpi-closed::before{background:var(--green);}
-.kpi-num{font-family:'Cabinet Grotesk',sans-serif;font-size:32px;font-weight:800;line-height:1;margin-bottom:4px;}
+.kpi-num{font-family:'Outfit',sans-serif;font-size:32px;font-weight:800;line-height:1;margin-bottom:4px;}
 .kpi-lbl{font-size:11px;color:var(--sub);font-weight:500;}
 .kpi-hint{font-size:10px;color:var(--muted);margin-top:6px;}
 
@@ -196,7 +196,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .mo.open{opacity:1;pointer-events:all;}
 .ms{background:var(--surface);border-radius:22px 22px 0 0;border-top:1.5px solid var(--border);box-shadow:0 -8px 40px rgba(0,0,0,.12);max-height:92vh;overflow-y:auto;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px);}
 .mh{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 8px;}
-.mt{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 14px;font-family:'Cabinet Grotesk',sans-serif;font-size:17px;font-weight:800;}
+.mt{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 14px;font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;}
 .mt-close{width:30px;height:30px;border-radius:9px;background:#F1F5F9;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);}
 
 /* ── FORMS ── */
@@ -219,21 +219,25 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
 /* ── TEAM ── */
 .user-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:14px 16px;margin:0 14px 8px;display:flex;align-items:center;gap:13px;cursor:pointer;}
-.uc-av{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;font-family:'Cabinet Grotesk',sans-serif;flex-shrink:0;}
+.uc-av{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;font-family:'Outfit',sans-serif;flex-shrink:0;}
 .uc-name{font-size:14px;font-weight:700;margin-bottom:2px;}
 .uc-sub{font-size:12px;color:var(--muted);}
 
 /* ── BUILDING CARD ── */
 .bc-wrap{background:var(--card);border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);border-radius:var(--r);margin:0 14px 12px;overflow:hidden;}
 .bc-hdr{padding:14px 16px;background:linear-gradient(135deg,rgba(37,99,235,.06),rgba(79,70,229,.04));display:flex;justify-content:space-between;align-items:flex-start;}
-.bc-name{font-family:'Cabinet Grotesk',sans-serif;font-size:16px;font-weight:800;margin-bottom:2px;}
+.bc-name{font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;margin-bottom:2px;}
 .bc-addr{font-size:12px;color:var(--muted);}
 .bc-body{padding:12px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
 .bs{text-align:center;}
-.bs-val{font-family:'Cabinet Grotesk',sans-serif;font-size:20px;font-weight:800;}
+.bs-val{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;}
 .bs-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
 .bc-subs{padding:0 16px 14px;}
 .sub-tag{display:inline-flex;align-items:center;gap:5px;background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:8px;padding:4px 10px;font-size:12px;margin:3px 3px 3px 0;}
+.floors-ms{display:flex;flex-wrap:wrap;gap:8px;padding:6px 0;}
+.floor-chip{padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--sub);transition:all .15s;user-select:none;}
+.floor-chip.selected{background:#2563EB;border-color:#2563EB;color:#fff;}
+.floor-chip:active{transform:scale(.94);}
 
 /* ── SUPPLIER ── */
 .sup-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);margin:0 14px 8px;padding:14px 16px;cursor:pointer;}
@@ -512,7 +516,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="fg"><label>Subject *</label><input class="fi2" id="tf-subj" placeholder="Describe the issue…"/></div>
     <div class="frow2">
       <div class="fg"><label>Building *</label><select class="fs2" id="tf-bldg" onchange="populateSubs('tf-sub','tf-bldg')"><option value="">Select…</option></select></div>
-      <div class="fg"><label>Subdivision</label><select class="fs2" id="tf-sub"><option value="">None</option></select></div>
+      <div class="fg"><label>Floor</label><select class="fs2" id="tf-sub"><option value="">None</option></select></div>
     </div>
     <div class="frow2">
       <div class="fg"><label>Unit / Area</label><input class="fi2" id="tf-unit" placeholder="e.g. Unit 3A"/></div>
@@ -553,7 +557,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="fg"><label>Asset Name *</label><input class="fi2" id="af-name" placeholder="e.g. HVAC Unit A"/></div>
     <div class="frow2">
       <div class="fg"><label>Building</label><select class="fs2" id="af-bldg" onchange="populateSubs('af-sub','af-bldg')"><option value="">Select…</option></select></div>
-      <div class="fg"><label>Subdivision</label><select class="fs2" id="af-sub"><option value="">None</option></select></div>
+      <div class="fg"><label>Floor</label><select class="fs2" id="af-sub"><option value="">None</option></select></div>
     </div>
     <div class="frow2">
       <div class="fg"><label>Location</label><input class="fi2" id="af-loc" placeholder="Floor / Unit"/></div>
@@ -621,8 +625,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fg"><label>Manager</label><select class="fs2" id="bf-mgr"></select></div>
       <div class="fg"><label>Phone</label><input class="fi2" id="bf-phone" placeholder="555-XXXX"/></div>
     </div>
-    <div class="fg"><label>Subdivisions / Wings</label>
-      <input class="fi2" id="bf-subs" placeholder="Wing A, Wing B, Rooftop (comma separated)"/>
+    <div class="fg"><label>Floors</label>
+      <div class="floors-ms" id="bf-floors-ms"></div>
+      <input type="hidden" id="bf-subs"/>
     </div>
     <button class="btn-p" onclick="saveBld()">Save Building</button>
     <button class="btn-s" onclick="closeMo('mo-bld')">Cancel</button>
@@ -886,11 +891,11 @@ function rowsToObjects(rows, cols){
       const idx = header.indexOf(col.toLowerCase());
       let val = idx>=0 ? (r[idx]||'') : '';
       // Parse JSON fields
-      if(val && (col==='expertise'||col==='activity')){
-        try{ val=JSON.parse(val); }catch(e){ val=col==='activity'?[]:val.split(',').map(s=>s.trim()).filter(Boolean); }
+      if(col==='activity' && val){
+        try{ val=JSON.parse(val); }catch(e){ val=[]; }
       }
-      if(col==='subs' && val){
-        // stored as plain "Wing A, Wing B" — just split
+      // subs and expertise stored as plain CSV — just split, strip any stray brackets/quotes
+      if((col==='subs'||col==='expertise') && val){
         if(val.startsWith('[')){ try{ val=JSON.parse(val); }catch(e){ val=val.replace(/[\[\]"]/g,'').split(',').map(s=>s.trim()).filter(Boolean); } }
         else { val=val.split(',').map(s=>s.trim()).filter(Boolean); }
       }
@@ -930,7 +935,11 @@ function objToRow(obj, cols){
     let v = obj[col];
     if(v===undefined||v===null) return '';
     if(typeof v==='boolean') return v?'TRUE':'FALSE';
-    if(Array.isArray(v)) return JSON.stringify(v);
+    // Store subs and expertise as plain CSV — no brackets or quotes
+    if(Array.isArray(v)){
+      if(col==='subs'||col==='expertise') return v.join(', ');
+      return JSON.stringify(v); // activity stays as JSON
+    }
     return String(v);
   });
 }
@@ -1049,12 +1058,29 @@ function parseSubs(raw){
   if(s.startsWith('[')){ try{ return JSON.parse(s).filter(Boolean); }catch(e){} }
   return s.split(',').map(x=>x.trim()).filter(Boolean);
 }
+const FLOOR_OPTIONS = ["-2", "-1", "1e", "2e", "3e", "4e", "dak", "garage"];
+function renderFloorChips(msId, hiddenId, selected){
+  const wrap = document.getElementById(msId); if(!wrap) return;
+  const sel = new Set(Array.isArray(selected)?selected:parseSubs(selected));
+  wrap.innerHTML = FLOOR_OPTIONS.map(f=>
+    `<div class="floor-chip${sel.has(f)?' selected':''}" onclick="toggleFloor(this,'${f}','${hiddenId}')">${f}</div>`
+  ).join('');
+  syncFloorHidden(hiddenId, wrap);
+}
+function toggleFloor(chip, val, hiddenId){
+  chip.classList.toggle('selected');
+  syncFloorHidden(hiddenId, chip.closest('.floors-ms'));
+}
+function syncFloorHidden(hiddenId, wrap){
+  const sel = [...wrap.querySelectorAll('.floor-chip.selected')].map(c=>c.textContent.trim());
+  const el = document.getElementById(hiddenId); if(el) el.value = sel.join(', ');
+}
 function populateSubs(subId,bldId){
   const bldEl=document.getElementById(bldId); if(!bldEl) return;
   const sel=document.getElementById(subId); if(!sel) return;
   const b=DB.buildings.find(x=>x.name===bldEl.value);
   const subs=parseSubs(b?.subs);
-  sel.innerHTML='<option value="">None</option>'+subs.map(s=>`<option value="${s}">${s}</option>`).join('');
+  sel.innerHTML='<option value="">— Select floor —</option>'+subs.map(s=>`<option value="${s}">${s}</option>`).join('');
 }
 function populateAssignSelect(id){
   const el=document.getElementById(id); if(!el) return;
@@ -1296,7 +1322,7 @@ function openTixDetail(id){
   document.getElementById('tix-detail-body').innerHTML=`
     <div style="padding:0 18px 8px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-size:11px;font-family:'Cabinet Grotesk',sans-serif;font-weight:700;color:var(--blue)">${t.id}</span>
+        <span style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--blue)">${t.id}</span>
         <span class="badge ${stCls}">${t.status}</span>
       </div>
       <div style="font-size:18px;font-weight:700;margin-bottom:8px;line-height:1.3">${t.subject}</div>
@@ -1307,7 +1333,7 @@ function openTixDetail(id){
     </div>
     <div style="padding:0 18px">
       <div class="dr"><span class="dk">🏢 Building</span><span class="dv">${t.building}</span></div>
-      ${t.subdivision?`<div class="dr"><span class="dk">🏠 Subdivision</span><span class="dv">${t.subdivision}</span></div>`:''}
+      ${t.subdivision?`<div class="dr"><span class="dk">🏠 Floor</span><span class="dv">${t.subdivision}</span></div>`:''}
       <div class="dr"><span class="dk">📍 Unit / Area</span><span class="dv">${t.unit||'—'}</span></div>
       <div class="dr"><span class="dk">👤 Assigned To</span><span class="dv">${t.assignedTo||'—'}</span></div>
       <div class="dr"><span class="dk">📅 Opened</span><span class="dv">${df(t.dateOpened)}</span></div>
@@ -1496,13 +1522,13 @@ function openAstDetail(id){
   const relTix=DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed');
   document.getElementById('ast-detail-body').innerHTML=`
     <div style="padding:0 18px 8px">
-      <div style="font-size:11px;font-family:'Cabinet Grotesk',sans-serif;font-weight:700;color:var(--teal);margin-bottom:4px">${a.id}</div>
+      <div style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--teal);margin-bottom:4px">${a.id}</div>
       <div style="font-size:20px;font-weight:700;margin-bottom:8px">${a.name}</div>
       <span class="badge" style="background:${sc}18;color:${sc}">${a.status}</span>
     </div>
     <div style="padding:0 18px">
       <div class="dr"><span class="dk">🏢 Building</span><span class="dv">${a.building}</span></div>
-      ${a.subdivision?`<div class="dr"><span class="dk">🏠 Subdivision</span><span class="dv">${a.subdivision}</span></div>`:''}
+      ${a.subdivision?`<div class="dr"><span class="dk">🏠 Floor</span><span class="dv">${a.subdivision}</span></div>`:''}
       <div class="dr"><span class="dk">📍 Location</span><span class="dv">${a.location||'—'}</span></div>
       <div class="dr"><span class="dk">📁 Category</span><span class="dv">${a.category}</span></div>
       <div class="dr"><span class="dk">🏭 Manufacturer</span><span class="dv">${a.manufacturer||'—'}</span></div>
@@ -1641,9 +1667,9 @@ function renderBlds(){
         <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Units</div></div>
         <div class="bs"><div class="bs-val">${openTix}</div><div class="bs-lbl">Open Tix</div></div>
         <div class="bs"><div class="bs-val">${b.yearBuilt||'—'}</div><div class="bs-lbl">Built</div></div>
-        <div class="bs"><div class="bs-val">${subs.length}</div><div class="bs-lbl">Sections</div></div>
+        <div class="bs"><div class="bs-val">${subs.length}</div><div class="bs-lbl">Floors</div></div>
       </div>
-      ${subs.length?`<div class="bc-subs">${subs.map(s=>`<span class="sub-tag">🏠 ${s}</span>`).join('')}</div>`:''}
+      ${subs.length?`<div class="bc-subs">${subs.map(s=>`<span class="sub-tag">🏢 ${s}</span>`).join('')}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -1653,6 +1679,7 @@ function openNewBuilding(){
   document.getElementById('bld-modal-title').textContent='Add Building';
   ['bf-name','bf-addr','bf-units','bf-year','bf-phone','bf-subs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   populateMgrSelect('bf-mgr');
+  renderFloorChips('bf-floors-ms','bf-subs',[]);
   openMo('mo-bld');
 }
 function editBld(id){
@@ -1665,9 +1692,10 @@ function editBld(id){
   document.getElementById('bf-units').value=b.units||'';
   document.getElementById('bf-year').value=b.yearBuilt||'';
   document.getElementById('bf-phone').value=b.phone||'';
-  const subs=parseSubs(b.subs).join(', ');
-  document.getElementById('bf-subs').value=subs;
+  const subs=parseSubs(b.subs);
+  document.getElementById('bf-subs').value=subs.join(', ');
   populateMgrSelect('bf-mgr'); document.getElementById('bf-mgr').value=b.manager||'';
+  renderFloorChips('bf-floors-ms','bf-subs',subs);
   openMo('mo-bld');
 }
 async function saveBld(){
@@ -1694,7 +1722,7 @@ function renderSuppliers(){
   syncSelActive('sel-sup-status');
   let list=DB.suppliers;
   if(statusVal!=='All') list=list.filter(s=>s.status===statusVal);
-  if(q) list=list.filter(s=>s.name.toLowerCase().includes(q)||((s.expertise||[]).join(' ')).toLowerCase().includes(q));
+  if(q) list=list.filter(s=>s.name.toLowerCase().includes(q)||(Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',')).join(' ').toLowerCase().includes(q));
   document.getElementById('sup-lbl').textContent=`${list.length} supplier${list.length!==1?'s':''}`;
   const c=document.getElementById('sup-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon">🏭</div><div style="font-size:13px">No suppliers found</div></div>';return;}
@@ -1702,7 +1730,7 @@ function renderSuppliers(){
   const slice=list.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
   const stCol={Active:'var(--green)',Preferred:'var(--amber)',Inactive:'var(--muted)'};
   c.innerHTML=slice.map(s=>{
-    const exp=Array.isArray(s.expertise)?s.expertise:(typeof s.expertise==='string'?s.expertise.split(',').map(x=>x.trim()).filter(Boolean):[]);
+    const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
     return`<div class="sup-card" onclick="openSupDetail('${s.id}')">
       <div class="sup-hdr">
         <div><div class="sup-name">${s.name}</div><div class="sup-contact">${s.contact||'—'}</div></div>
@@ -1715,7 +1743,7 @@ function renderSuppliers(){
 function openSupDetail(id){
   const s=DB.suppliers.find(x=>x.id===id); if(!s) return;
   const stCol={Active:'var(--green)',Preferred:'var(--amber)',Inactive:'var(--muted)'};
-  const exp=Array.isArray(s.expertise)?s.expertise:(typeof s.expertise==='string'?s.expertise.split(',').map(x=>x.trim()).filter(Boolean):[]);
+  const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
   document.getElementById('sup-detail-body').innerHTML=`
     <div style="padding:0 18px 8px">
       <div style="font-size:20px;font-weight:700;margin-bottom:4px">${s.name}</div>
@@ -1753,7 +1781,7 @@ function editSupplier(id){
   document.getElementById('sup-modal-title').textContent='Edit Supplier';
   document.getElementById('sf-name').value=s.name;
   document.getElementById('sf-contact').value=s.contact||'';
-  const exp=Array.isArray(s.expertise)?s.expertise.join(', '):(s.expertise||'');
+  const exp=Array.isArray(s.expertise)?s.expertise.join(', '):String(s.expertise||'').replace(/[\[\]"]/g,'').trim();
   document.getElementById('sf-expertise').value=exp;
   document.getElementById('sf-rate').value=s.ratePerHour||0;
   document.getElementById('sf-transport').value=s.transportCost||0;
@@ -1769,7 +1797,7 @@ async function saveSupplier(){
   if(!name){toast('Company name required','err');return;}
   const expRaw=document.getElementById('sf-expertise').value;
   const expertise=expRaw?expRaw.split(',').map(s=>s.trim()).filter(Boolean):[];
-  const data={name,contact:document.getElementById('sf-contact').value,expertise:JSON.stringify(expertise),ratePerHour:parseFloat(document.getElementById('sf-rate').value)||0,transportCost:parseFloat(document.getElementById('sf-transport').value)||0,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,address:document.getElementById('sf-address').value,status:document.getElementById('sf-status').value,rating:parseInt(document.getElementById('sf-rating').value)||3};
+  const data={name,contact:document.getElementById('sf-contact').value,expertise,ratePerHour:parseFloat(document.getElementById('sf-rate').value)||0,transportCost:parseFloat(document.getElementById('sf-transport').value)||0,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,address:document.getElementById('sf-address').value,status:document.getElementById('sf-status').value,rating:parseInt(document.getElementById('sf-rating').value)||3};
   if(editingId.sup){ Object.assign(DB.suppliers.find(x=>x.id===editingId.sup),data); }
   else { DB.suppliers.push({id:nextId(DB.suppliers,'SUP'),...data}); }
   closeMo('mo-sup');
