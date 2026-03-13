@@ -647,7 +647,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
 <!-- Asset detail -->
 <div class="mo" id="mo-ast-detail" onclick="mcClick(event,'mo-ast-detail')">
-  <div class="ms"><div class="mh"></div><div id="ast-detail-body"></div></div>
+  <div class="ms"><div class="mh"></div><div class="mt"><span id="ast-detail-title">Asset Detail</span><button class="mt-close" onclick="closeMo('mo-ast-detail')">✕</button></div><div id="ast-detail-body"></div></div>
 </div>
 
 <!-- User form -->
@@ -1713,6 +1713,8 @@ function openAstDetail(id){
   const a=DB.assets.find(x=>x.id===id); if(!a) return;
   const sc={Active:'var(--green)','Under Maintenance':'var(--amber)',Decommissioned:'var(--red)'}[a.status]||'var(--green)';
   const relTix=DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed');
+  const titleEl=document.getElementById('ast-detail-title');
+  if(titleEl) titleEl.textContent=a.id;
   document.getElementById('ast-detail-body').innerHTML=`
     <div style="padding:0 18px 8px">
       <div style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--teal);margin-bottom:4px">${a.id}</div>
