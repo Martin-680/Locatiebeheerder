@@ -1478,12 +1478,16 @@ function openTixDetail(id){
       <div class="dr"><span class="dk">Notes</span><span class="dv">${t.notes||'—'}</span></div>
       <div class="dr"><span class="dk">Created By</span><span class="dv">${t.createdBy||'—'}</span></div>
     </div>
-    <div style="padding:14px 18px 0;display:flex;gap:9px;flex-wrap:wrap">
-      ${can('canCreateTickets')?`<button onclick="editTix('${t.id}')" style="flex:1;min-width:120px;padding:13px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--blue)"> Edit</button>`:''}
-      ${can('canCloseTickets')&&t.status!=='Closed'?`<button onclick="quickCloseTix('${t.id}')" style="flex:1;min-width:120px;padding:13px;background:linear-gradient(135deg,#10B981,#06B6D4);border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Close</button>`:''}
-      ${can('canCloseTickets')&&t.status==='Open'?`<button onclick="quickProgTix('${t.id}')" style="flex:1;min-width:120px;padding:13px;background:linear-gradient(135deg,#F59E0B,#EAB308);border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> In Progress</button>`:''}
+    <div style="padding:14px 18px 0;display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;gap:9px">
+        ${can('canCreateTickets')?`<button onclick="editTix('${t.id}')" style="flex:1;padding:13px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--blue)"> Edit</button>`:''}
+        ${can('canEditAll')?`<button onclick="confirmDelete('ticket','${t.id}')" style="flex:1;padding:13px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--red)"> Delete</button>`:''}
+      </div>
+      ${can('canCloseTickets')&&(t.status==='Open'||t.status!=='Closed')?`<div style="display:flex;gap:9px">
+        ${t.status==='Open'?`<button onclick="quickProgTix('${t.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,#F59E0B,#EAB308);border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> In Progress</button>`:''}
+        ${t.status!=='Closed'?`<button onclick="quickCloseTix('${t.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,#10B981,#06B6D4);border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Close</button>`:''}
+      </div>`:''}
     </div>
-    ${can('canEditAll')?`<button onclick="confirmDelete('ticket','${t.id}')" class="btn-danger" style="margin-top:10px"> Delete Ticket</button>`:''}
     <div style="padding:16px 18px 0">
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Activity Log</div>
       <div id="act-log-${t.id}">${actHTML}</div>
