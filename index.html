@@ -1943,8 +1943,7 @@ function openBldDetail(id){
   // ── Contact / hours block ──
   if(b.daysOpen||b.timeOpen||b.phone){
     let ch='<div style="margin:8px 14px 4px;padding:12px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;gap:5px">';
-    if(b.daysOpen) ch+=`<div style="font-size:12px;color:var(--sub)">Days Open: <strong>${b.daysOpen}</strong></div>`;
-    if(b.timeOpen) ch+=`<div style="font-size:12px;color:var(--sub)">Time Open: <strong>${b.timeOpen}</strong></div>`;
+    if(b.daysOpen||b.timeOpen) ch+=`<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:var(--sub)">${b.daysOpen?`Days Open: <strong>${b.daysOpen}</strong>`:''}</span><span style="font-size:12px;color:var(--sub)">${b.timeOpen?`Time Open: <strong>${b.timeOpen}</strong>`:''}</span></div>`;
     if(b.phone)    ch+=`<div style="font-size:12px;color:var(--sub)">Phone: <a href="tel:${b.phone}" onclick="event.stopPropagation()" style="color:var(--blue);font-weight:700;text-decoration:none">${b.phone}</a></div>`;
     ch+='</div>';
     html+=ch;
