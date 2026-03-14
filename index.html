@@ -683,7 +683,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="fg"><label>Address</label><input class="fi2" id="bf-addr" placeholder="Full address"/></div>
     <div class="frow2">
       <div class="fg"><label>Workspace</label><input class="fi2" type="number" id="bf-units" placeholder="0"/></div>
-      <div class="fg"><label>Year Built</label><input class="fi2" type="number" id="bf-year" placeholder="2000"/></div>
+      <div class="fg"><label>Assets</label><input class="fi2" type="number" id="bf-year" placeholder="0"/></div>
     </div>
     <div class="frow2">
       <div class="fg"><label>Manager</label><select class="fs2" id="bf-mgr"></select></div>
@@ -1933,7 +1933,7 @@ function openBldDetail(id){
       <div class="bs"><div class="bs-val">${subs.length}</div><div class="bs-lbl">Floors</div></div>
       <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
       <div class="bs"><div class="bs-val">${openTix.length}</div><div class="bs-lbl">Open Tix</div></div>
-      <div class="bs"><div class="bs-val">${b.yearBuilt||'—'}</div><div class="bs-lbl">Built</div></div>
+      <div class="bs"><div class="bs-val">${allAsts.length}</div><div class="bs-lbl">Assets</div></div>
     </div>
     ${b.manager?`<div style="margin-top:10px;font-size:12px;color:var(--sub)">Manager: <strong>${b.manager}</strong></div>`:''}
     ${b.phone?`<div style="margin-top:6px;font-size:12px;color:var(--sub)">Phone: <a href="tel:${b.phone}" onclick="event.stopPropagation()" style="color:var(--blue);font-weight:700;text-decoration:none">${b.phone}</a></div>`:''}
@@ -1991,7 +1991,7 @@ function renderBlds(){
         <div class="bs"><div class="bs-val">${subs.length}</div><div class="bs-lbl">Floors</div></div>
         <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
         <div class="bs"><div class="bs-val">${openTix}</div><div class="bs-lbl">Open Tix</div></div>
-        <div class="bs"><div class="bs-val">${b.yearBuilt||'—'}</div><div class="bs-lbl">Built</div></div>
+        <div class="bs"><div class="bs-val">${DB.assets.filter(a=>a.building===b.name).length}</div><div class="bs-lbl">Assets</div></div>
       </div>
       ${subs.length?`<div class="bc-subs">${subs.map(s=>`<span class="sub-tag" style="cursor:pointer" onclick="event.stopPropagation();openFloorView('${b.name}','${b.id}','${encodeURIComponent(s)}')" title="View ${s}">${s}</span>`).join('')}</div>`:''}
     </div>`;
