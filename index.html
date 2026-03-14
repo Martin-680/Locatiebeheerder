@@ -1936,7 +1936,7 @@ function openBldDetail(id){
       <div class="bs"><div class="bs-val">${subs.length}</div><div class="bs-lbl">Floors</div></div>
     </div>
     ${b.manager?`<div style="margin-top:10px;font-size:12px;color:var(--sub)">Manager: <strong>${b.manager}</strong></div>`:''}
-    ${b.phone?`<div style="font-size:12px;color:var(--sub)">Phone: <strong>${b.phone}</strong></div>`:''}
+    ${b.phone?`<div style="margin-top:6px;font-size:12px;color:var(--sub)">Phone: <a href="tel:${b.phone}" onclick="event.stopPropagation()" style="color:var(--blue);font-weight:700;text-decoration:none">${b.phone}</a></div>`:''}
   </div>`;
 
   // ── Floors ──
