@@ -1994,7 +1994,7 @@ function renderBlds(){
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
     return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
       <div class="bc-hdr">
-        <div><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''}</div>
+        <div><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''} ${b.phone?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${b.phone}</div>`:''}</div>
         ${can('canManageBuildings')?`<button onclick="event.stopPropagation();editBld('${b.id}')" style="padding:7px 12px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--blue)">Edit</button>`:''}
       </div>
       <div class="bc-body">
