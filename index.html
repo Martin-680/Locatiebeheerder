@@ -682,7 +682,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="fg"><label>Building Name *</label><input class="fi2" id="bf-name" placeholder="e.g. Maple Tower"/></div>
     <div class="fg"><label>Address</label><input class="fi2" id="bf-addr" placeholder="Full address"/></div>
     <div class="frow2">
-      <div class="fg"><label>Total Units</label><input class="fi2" type="number" id="bf-units" placeholder="0"/></div>
+      <div class="fg"><label>Workspace</label><input class="fi2" type="number" id="bf-units" placeholder="0"/></div>
       <div class="fg"><label>Year Built</label><input class="fi2" type="number" id="bf-year" placeholder="2000"/></div>
     </div>
     <div class="frow2">
@@ -1930,7 +1930,7 @@ function openBldDetail(id){
   // ── Info strip ──
   html+=`<div style="margin:12px 14px 4px;padding:14px 16px;background:linear-gradient(135deg,rgba(37,99,235,.07),rgba(79,70,229,.04));border:1.5px solid var(--border);border-radius:var(--r)">
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px">
-      <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Units</div></div>
+      <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
       <div class="bs"><div class="bs-val">${openTix.length}</div><div class="bs-lbl">Open Tix</div></div>
       <div class="bs"><div class="bs-val">${b.yearBuilt||'—'}</div><div class="bs-lbl">Built</div></div>
       <div class="bs"><div class="bs-val">${subs.length}</div><div class="bs-lbl">Floors</div></div>
@@ -1988,7 +1988,7 @@ function renderBlds(){
         ${can('canManageBuildings')?`<button onclick="event.stopPropagation();editBld('${b.id}')" style="padding:7px 12px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--blue)">Edit</button>`:''}
       </div>
       <div class="bc-body">
-        <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Units</div></div>
+        <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
         <div class="bs"><div class="bs-val">${openTix}</div><div class="bs-lbl">Open Tix</div></div>
         <div class="bs"><div class="bs-val">${b.yearBuilt||'—'}</div><div class="bs-lbl">Built</div></div>
         <div class="bs"><div class="bs-val">${subs.length}</div><div class="bs-lbl">Floors</div></div>
