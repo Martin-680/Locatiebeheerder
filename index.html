@@ -508,6 +508,10 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="desc">Rate ↓ High → Low</option>
         </select>
       </div>
+      <div class="fsel-wrap" style="min-width:auto;justify-content:flex-end;display:flex;flex-direction:column">
+        <div class="fsel-lbl" style="visibility:hidden">Clear</div>
+        <button id="btn-sup-clear" onclick="clearSupFilters()" style="display:none;padding:8px 12px;background:#EFF6FF;border:1.5px solid #93C5FD;border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--blue);white-space:nowrap;height:37px">✕ Clear</button>
+      </div>
     </div>
     <div id="sup-list"></div>
   </div>
@@ -2051,6 +2055,13 @@ async function saveBld(){
    SUPPLIERS
 ══════════════════════════════════════════════════════════ */
 function goSupPage(p){setPage('sup',p);renderSuppliers();}
+function clearSupFilters(){
+  const s=document.getElementById('ssearch'); if(s) s.value='';
+  const st=document.getElementById('sel-sup-status'); if(st) st.value='All';
+  const ex=document.getElementById('sel-sup-expertise'); if(ex) ex.value='All';
+  const so=document.getElementById('sel-sup-sort'); if(so) so.value='none';
+  setPage('sup',1); renderSuppliers();
+}
 function populateExpertiseFilter(){
   const sel=document.getElementById('sel-sup-expertise'); if(!sel) return;
   const cur=sel.value;
@@ -2073,6 +2084,10 @@ function renderSuppliers(){
   syncSelActive('sel-sup-status');
   syncSelActive('sel-sup-expertise');
   syncSelActive('sel-sup-sort');
+  // Show/hide Clear Filters button
+  const hasFilter=q||statusVal!=='All'||expertiseVal!=='All'||sortVal!=='none';
+  const btnClear=document.getElementById('btn-sup-clear');
+  if(btnClear) btnClear.style.display=hasFilter?'block':'none';
   let list=[...DB.suppliers];
   if(statusVal!=='All') list=list.filter(s=>s.status===statusVal);
   if(expertiseVal!=='All'){
@@ -2082,9 +2097,10 @@ function renderSuppliers(){
     });
   }
   if(q) list=list.filter(s=>s.name.toLowerCase().includes(q)||(Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',')).join(' ').toLowerCase().includes(q));
-  // Sort by rate
+  // Sort: by rate if selected, otherwise alphabetical by name
   if(sortVal==='asc') list.sort((a,b)=>(a.ratePerHour||0)-(b.ratePerHour||0));
-  if(sortVal==='desc') list.sort((a,b)=>(b.ratePerHour||0)-(a.ratePerHour||0));
+  else if(sortVal==='desc') list.sort((a,b)=>(b.ratePerHour||0)-(a.ratePerHour||0));
+  else list.sort((a,b)=>a.name.localeCompare(b.name));
   document.getElementById('sup-lbl').textContent=`${list.length} supplier${list.length!==1?'s':''}`;
   const c=document.getElementById('sup-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-6-7 6v3l-4-3v12z"/><path d="M17 20v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/></svg></div><div style="font-size:13px">No suppliers found</div></div>';return;}
