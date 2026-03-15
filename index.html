@@ -508,10 +508,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="desc">Rate ↓ High → Low</option>
         </select>
       </div>
-      <div class="fsel-wrap" style="min-width:auto;justify-content:flex-end;display:flex;flex-direction:column">
-        <div class="fsel-lbl" style="visibility:hidden">Clear</div>
-        <button id="btn-sup-clear" onclick="clearSupFilters()" style="display:none;padding:8px 12px;background:#EFF6FF;border:1.5px solid #93C5FD;border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--blue);white-space:nowrap;height:37px">✕ Clear</button>
-      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:flex-end;padding:0 14px 8px">
+      <button onclick="clearSupFilters()" style="font-size:12px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button>
     </div>
     <div id="sup-list"></div>
   </div>
@@ -2084,10 +2083,6 @@ function renderSuppliers(){
   syncSelActive('sel-sup-status');
   syncSelActive('sel-sup-expertise');
   syncSelActive('sel-sup-sort');
-  // Show/hide Clear Filters button
-  const hasFilter=q||statusVal!=='All'||expertiseVal!=='All'||sortVal!=='none';
-  const btnClear=document.getElementById('btn-sup-clear');
-  if(btnClear) btnClear.style.display=hasFilter?'block':'none';
   let list=[...DB.suppliers];
   if(statusVal!=='All') list=list.filter(s=>s.status===statusVal);
   if(expertiseVal!=='All'){
