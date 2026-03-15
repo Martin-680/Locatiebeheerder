@@ -231,7 +231,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .bc-wrap:active{transform:scale(.98);border-color:var(--blue);}
 .bc-hdr{padding:14px 16px;background:linear-gradient(135deg,rgba(37,99,235,.06),rgba(79,70,229,.04));display:flex;justify-content:space-between;align-items:flex-start;}
 .bc-name{font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;margin-bottom:2px;}
-.bc-addr{font-size:12px;color:var(--muted);}
+.bc-addr{font-size:13px;color:var(--sub);font-weight:500;}
 .bc-body{padding:12px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
 .bs{text-align:center;}
 .bs-val{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;}
@@ -1996,7 +1996,7 @@ function renderBlds(){
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
     return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
       <div class="bc-hdr">
-        <div><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''} ${b.phone?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${b.phone}</div>`:''}</div>
+        <div><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''} ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px">${b.phone}</div>`:''}</div>
       </div>
       <div class="bc-body">
         <div class="bs"><div class="bs-val">${subs.length}</div><div class="bs-lbl">Floors</div></div>
