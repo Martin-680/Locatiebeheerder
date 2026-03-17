@@ -109,7 +109,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .sh-link{font-size:12px;color:var(--blue);font-weight:600;}
 
 /* ── KPI GRID ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px 14px 4px;flex-shrink:0;margin-bottom:10px;}
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:2px 14px 4px;flex-shrink:0;margin-bottom:10px;}
 .kpi{background:var(--card);border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);border-radius:var(--r);padding:16px;cursor:pointer;transition:transform .15s,border-color .15s;position:relative;overflow:hidden;}
 .kpi:active{transform:scale(.97);}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0;}
@@ -349,7 +349,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
     <div id="dash-guest-banner"></div>
     <div id="dash-alerts"></div>
-    <div class="sh"><span class="sh-title">Totals</span></div>
+    <div class="sh fu"><span class="sh-title">Totals</span></div>
     <div class="kpi-grid">
       <div class="kpi kpi-total" onclick="openKpiList('All')"><div class="kpi-num" id="kpi-total">—</div><div class="kpi-lbl">Total Tickets</div><div class="kpi-hint">Tap to view →</div></div>
       <div class="kpi kpi-open" onclick="openKpiList('Open')"><div class="kpi-num" id="kpi-open">—</div><div class="kpi-lbl">Open</div><div class="kpi-hint">Tap to view →</div></div>
