@@ -2126,8 +2126,14 @@ function renderSuppliers(){
       <div class="sup-hdr">
         <div>
           <div class="sup-name">${s.name}</div>
+          ${exp.length?`<div style="font-size:11px;color:var(--sub);margin-top:2px;line-height:1.4">${exp.join(', ')}</div>`:''}
+          <div style="display:flex;gap:16px;margin:6px 0 4px;align-items:flex-end">
+            <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Rate/hr</div><div class="sup-rate">€ ${s.ratePerHour||0}</div></div>
+            <div style="width:1px;height:32px;background:var(--border);flex-shrink:0"></div>
+            <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Transport</div><div style="font-size:13px;font-weight:700;color:var(--sub)">€ ${s.transportCost||0}</div></div>
+          </div>
+          ${s.phone?`<div style="font-size:12px;color:var(--sub);margin-bottom:2px">${s.phone}</div>`:''}
           <div class="sup-contact">${s.contact||'—'}</div>
-          ${exp.length?`<div style="font-size:11px;color:var(--sub);margin-top:3px;line-height:1.4">${exp.join(', ')}</div>`:''}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0" onclick="event.stopPropagation()">
           <span class="badge" style="background:${stCol[s.status]||'var(--green)'}18;color:${stCol[s.status]||'var(--green)'}">${s.status}</span>
@@ -2137,12 +2143,6 @@ function renderSuppliers(){
             <a href="tel:${s.phone}" title="Call" style="width:28px;height:28px;border-radius:8px;background:${stCol[s.status]||'var(--green)'}18;border:1px solid ${stCol[s.status]||'var(--green)'}40;display:flex;align-items:center;justify-content:center;text-decoration:none"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${stCol[s.status]||'var(--green)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12 19.79 19.79 0 0 1 1.97 3.34a2 2 0 0 1 1.94-2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
           </div>`:''}</div>
       </div>
-      <div style="display:flex;gap:16px;margin:6px 0 8px;align-items:flex-end">
-        <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Rate/hr</div><div class="sup-rate">€ ${s.ratePerHour||0}</div></div>
-        <div style="width:1px;height:32px;background:var(--border);flex-shrink:0"></div>
-        <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Transport</div><div style="font-size:13px;font-weight:700;color:var(--sub)">€ ${s.transportCost||0}</div></div>
-      </div>
-      <div class="sup-tags">${exp.map(e=>`<span class="sup-tag" style="${activeExp===e?'background:#DBEAFE;border-color:#93C5FD;color:var(--blue);font-weight:700':''}">${e}</span>`).join('')}</div>
     </div>`;
   }).join('')+renderPagination('sup',list.length,'goSupPage');
 }
