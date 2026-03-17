@@ -117,6 +117,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .kpi-open::before{background:var(--red);}
 .kpi-prog::before{background:var(--amber);}
 .kpi-closed::before{background:var(--green);}
+.kpi-planned::before{background:var(--purple);}
+.kpi-ordered::before{background:var(--teal);}
 .kpi-num{font-family:'Outfit',sans-serif;font-size:32px;font-weight:800;line-height:1;margin-bottom:4px;}
 .kpi-lbl{font-size:11px;color:var(--sub);font-weight:500;}
 .kpi-hint{font-size:10px;color:var(--muted);margin-top:6px;}
@@ -355,6 +357,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="kpi kpi-open" onclick="openKpiList('Open')"><div class="kpi-num" id="kpi-open">—</div><div class="kpi-lbl">Open</div><div class="kpi-hint">Tap to view →</div></div>
       <div class="kpi kpi-prog" onclick="openKpiList('In Progress')"><div class="kpi-num" id="kpi-prog">—</div><div class="kpi-lbl">In Progress</div><div class="kpi-hint">Tap to view →</div></div>
       <div class="kpi kpi-closed" onclick="openKpiList('Closed')"><div class="kpi-num" id="kpi-closed">—</div><div class="kpi-lbl">Closed</div><div class="kpi-hint">Tap to view →</div></div>
+      <div class="kpi kpi-planned" onclick="openKpiList('Planned')"><div class="kpi-num" id="kpi-planned">—</div><div class="kpi-lbl">Planned</div><div class="kpi-hint">Tap to view →</div></div>
+      <div class="kpi kpi-ordered" onclick="openKpiList('Ordered')"><div class="kpi-num" id="kpi-ordered">—</div><div class="kpi-lbl">Ordered</div><div class="kpi-hint">Tap to view →</div></div>
     </div>
     <div class="sh fu"><span class="sh-title">By Building</span></div>
     <div class="card fu" id="bldg-chart"></div>
@@ -1296,10 +1300,14 @@ function renderDash(){
   const open=DB.tickets.filter(t=>t.status==='Open').length;
   const prog=DB.tickets.filter(t=>t.status==='In Progress').length;
   const closed=DB.tickets.filter(t=>t.status==='Closed').length;
+  const planned=DB.tickets.filter(t=>t.status==='Planned').length;
+  const ordered=DB.tickets.filter(t=>t.status==='Ordered').length;
   animCount('kpi-total',DB.tickets.length);
   animCount('kpi-open',open);
   animCount('kpi-prog',prog);
   animCount('kpi-closed',closed);
+  animCount('kpi-planned',planned);
+  animCount('kpi-ordered',ordered);
   const ob=document.getElementById('open-badge');
   if(ob){ if(open>0){ob.textContent=open;ob.style.display='flex';}else ob.style.display='none'; }
   renderAlerts();
