@@ -1454,14 +1454,26 @@ function tixItemHTML(t,clickable=true){
   const pCls={Critical:'p-critical',High:'p-high',Medium:'p-medium',Low:'p-low'}[t.priority]||'p-medium';
   const fn=clickable?`openTixDetail('${t.id}')`:`navTo('tickets')`;
   const urgency = t.status!=='Closed' && daysSince(t.dateOpened)>7 ? ' style="border-left:3px solid var(--amber)"' : t.priority==='Critical'&&t.status!=='Closed' ? ' style="border-left:3px solid var(--red)"' : '';
-  return`<div class="ti" onclick="${fn}"${urgency}>
-    <div class="pdot ${pCls}"></div>
-    <div class="ti-left">
-      <div class="ti-id">${t.id} · ${t.building}${t.subdivision?' · '+t.subdivision:''}</div>
-      <div class="ti-subj">${t.subject}</div>
-      <div class="ti-meta"><span style="display:inline-flex;align-items:center;gap:3px"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>${t.category}</span><span style="display:inline-flex;align-items:center;gap:3px"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${t.assignedTo?t.assignedTo.split(' ')[0]:'<strong style="color:var(--red)">Unassigned</strong>'}</span>${days?`<span style="${daysSince(t.dateOpened)>7?'color:var(--amber);font-weight:700':''}">⏱ ${days}</span>`:''}</div>
+  const assignedVal = t.assignedTo ? t.assignedTo.split(' ')[0] : '—';
+  const assignedColor = !t.assignedTo && t.status!=='Closed' ? 'color:var(--red);' : '';
+  const daysColor = days && daysSince(t.dateOpened)>7 ? 'color:var(--amber);' : '';
+  return`<div class="ti" onclick="${fn}"${urgency} style="padding-bottom:0">
+    <div class="pdot ${pCls}" style="margin-top:4px"></div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div style="min-width:0">
+          <div class="ti-id">${t.id} · ${t.category}</div>
+          <div class="ti-subj">${t.subject}</div>
+        </div>
+        <span class="badge ${stCls}" style="flex-shrink:0;margin-left:8px">${t.status}</span>
+      </div>
+      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;padding-bottom:10px">
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.building}</div><div class="bs-lbl">Building</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${t.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${assignedColor}">${assignedVal}</div><div class="bs-lbl">Assigned</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;${daysColor}">${days||'—'}</div><div class="bs-lbl">Age</div></div>
+      </div>
     </div>
-    <div class="ti-right"><span class="badge ${stCls}">${t.status}</span></div>
   </div>`;
 }
 
