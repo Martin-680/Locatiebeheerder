@@ -1131,7 +1131,7 @@ function navTo(s){
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
   document.getElementById('screen-'+s).classList.add('active');
-  const idx=['dashboard','tickets','assets','users','buildings','suppliers'].indexOf(s);
+  const idx=['dashboard','tickets','assets','buildings','suppliers'].indexOf(s);
   if(idx>=0) document.querySelectorAll('.ni')[idx]?.classList.add('active');
   prevScreen=currentScreen;
   currentScreen=s;
