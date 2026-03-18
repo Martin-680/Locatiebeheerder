@@ -1725,11 +1725,11 @@ function renderAst(){
         ${openTix?`<span style="font-size:10px;font-weight:700;color:var(--amber)">${openTix} open ticket${openTix>1?'s':''}</span>`:''}
       </div>
     </div>
-    <div style="display:flex;align-items:center;font-size:11px;color:var(--sub);overflow:hidden;margin-top:2px;border-top:1px solid var(--border);padding-top:8px">
-      <span style="display:inline-flex;align-items:center;gap:3px;flex-shrink:0;min-width:0"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg> <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px">${a.building}</span></span>
-      ${a.subdivision?`<span style="color:var(--border2);margin:0 4px;flex-shrink:0">·</span><span style="white-space:nowrap;flex-shrink:0">${a.subdivision}</span>`:''}
-      ${a.location?`<span style="color:var(--border2);margin:0 4px;flex-shrink:0">·</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56px;flex-shrink:1">${a.location}</span>`:''}
-      <span style="color:var(--border2);margin:0 4px;flex-shrink:0">·</span><span style="white-space:nowrap;flex-shrink:0">${a.category}</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--sub);border-top:1px solid var(--border);padding-top:8px;margin-top:2px;gap:4px">
+      <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</span>
+      <span style="flex:0 0 auto;white-space:nowrap;color:var(--muted)">${a.subdivision||'—'}</span>
+      <span style="flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px;color:var(--muted)">${a.location||'—'}</span>
+      <span style="flex:0 0 auto;white-space:nowrap">${a.category}</span>
     </div>
   </div>`;
   }).join('')+'</div>'+renderPagination('ast',list.length,'goAstPage');
