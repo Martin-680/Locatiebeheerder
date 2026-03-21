@@ -1833,7 +1833,7 @@ function renderAst(){
     const warnExpired = wExp && wExp < today;
     const warnSoon = wExp && !warnExpired && wExp <= soon;
     const openTix = DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
-    return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer" onclick="openAstDetail('${a.id}')">
+    return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px 0;margin-bottom:8px;cursor:pointer" onclick="openAstDetail('${a.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
       <div style="min-width:0"><div style="font-size:15px;font-weight:700">${a.name}</div></div>
       <span class="badge ${astStCls[a.status]||'b-closed'}" style="flex-shrink:0;margin-left:8px">${a.status}</span>
