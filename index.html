@@ -591,11 +591,11 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="mt"><span id="tix-modal-title">New Ticket</span><button class="mt-close" onclick="closeMo('mo-tix')">✕</button></div>
     <div class="fg"><label>Subject *</label><input class="fi2" id="tf-subj" placeholder="Describe the issue…"/></div>
     <div class="frow2">
-      <div class="fg"><label>Building *</label><select class="fs2" id="tf-bldg" onchange="populateSubs('tf-sub','tf-bldg')"><option value="">Select…</option></select></div>
-      <div class="fg"><label>Floor</label><select class="fs2" id="tf-sub"><option value="">None</option></select></div>
+      <div class="fg"><label>Building *</label><select class="fs2" id="tf-bldg" onchange="tfOnBldgChange()"><option value="">Select…</option></select></div>
+      <div class="fg"><label>Floor</label><select class="fs2" id="tf-sub" onchange="tfOnFloorChange()"><option value="">— Select floor —</option></select></div>
     </div>
     <div class="frow2">
-      <div class="fg"><label>Unit / Area</label><input class="fi2" id="tf-unit" placeholder="e.g. Unit 3A"/></div>
+      <div class="fg"><label>Unit / Area</label><select class="fs2" id="tf-unit" onchange="tfOnUnitChange()"><option value="">— Select unit —</option></select></div>
       <div class="fg"><label>Priority</label>
         <select class="fs2" id="tf-pri"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
       </div>
@@ -610,7 +610,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
     <div class="fg"><label>Assign To</label><select class="fs2" id="tf-assign"><option value="">Unassigned</option></select></div>
     <div class="frow2">
-      <div class="fg"><label>Asset</label><select class="fs2" id="tf-asset"><option value="">None</option></select></div>
+      <div class="fg"><label>Asset</label><select class="fs2" id="tf-asset" onchange="tfOnAssetChange()"><option value="">None</option></select></div>
       <div class="fg"><label>Supplier</label><select class="fs2" id="tf-supplier"><option value="">None</option></select></div>
     </div>
     <div class="fg"><label>Reported By</label><input class="fi2" id="tf-reporter" placeholder="Name of reporter"/></div>
@@ -805,7 +805,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
-  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone','subs'],
+  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone','subs','unitsList'],
   assets:    ['id','name','building','subdivision','location','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','subdivision','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
@@ -1202,6 +1202,84 @@ function populateSubs(subId,bldId){
   const subs=parseSubs(b?.subs);
   sel.innerHTML='<option value="">— Select floor —</option>'+subs.map(s=>`<option value="${s}">${s}</option>`).join('');
 }
+
+/* ── parseUnits: parses "Floor1:Unit1,Unit2|Floor2:Unit3" into a map ── */
+function parseUnits(raw){
+  const map={};
+  if(!raw) return map;
+  String(raw).split('|').forEach(part=>{
+    const [floor,...rest]=part.split(':');
+    const f=floor.trim(); if(!f) return;
+    map[f]=rest.join(':').split(',').map(u=>u.trim()).filter(Boolean);
+  });
+  return map;
+}
+
+/* ── Ticket form cascade functions ── */
+function tfOnBldgChange(){
+  const bldg=document.getElementById('tf-bldg').value;
+  const b=DB.buildings.find(x=>x.name===bldg);
+  // Reset downstream
+  document.getElementById('tf-unit').innerHTML='<option value="">— Select unit —</option>';
+  document.getElementById('tf-asset').innerHTML='<option value="">None</option>';
+  document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
+  // Populate floor
+  const subs=parseSubs(b?.subs);
+  const floorSel=document.getElementById('tf-sub');
+  floorSel.innerHTML='<option value="">— Select floor —</option>'+subs.map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+function tfOnFloorChange(){
+  const bldg=document.getElementById('tf-bldg').value;
+  const floor=document.getElementById('tf-sub').value;
+  const b=DB.buildings.find(x=>x.name===bldg);
+  // Reset downstream
+  document.getElementById('tf-asset').innerHTML='<option value="">None</option>';
+  document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
+  // Populate unit
+  const unitMap=parseUnits(b?.unitsList);
+  const units=floor&&unitMap[floor]?unitMap[floor]:[];
+  const unitSel=document.getElementById('tf-unit');
+  if(units.length){
+    unitSel.innerHTML='<option value="">— Select unit —</option>'+units.map(u=>`<option value="${u}">${u}</option>`).join('');
+  } else {
+    unitSel.innerHTML='<option value="">— None —</option>';
+  }
+}
+function tfOnUnitChange(){
+  const bldg=document.getElementById('tf-bldg').value;
+  const floor=document.getElementById('tf-sub').value;
+  const unit=document.getElementById('tf-unit').value;
+  // Reset downstream
+  document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
+  // Populate assets filtered by building + floor + location
+  const assets=DB.assets.filter(a=>{
+    if(a.building!==bldg) return false;
+    if(floor&&a.subdivision&&a.subdivision!==floor) return false;
+    if(unit&&a.location&&a.location!==unit) return false;
+    return true;
+  });
+  const astSel=document.getElementById('tf-asset');
+  astSel.innerHTML='<option value="">None</option>'+assets.map(a=>`<option value="${a.id}">${a.name}${a.location?' · '+a.location:''}</option>`).join('');
+}
+function tfOnAssetChange(){
+  const assetId=document.getElementById('tf-asset').value;
+  const a=DB.assets.find(x=>x.id===assetId);
+  // Populate suppliers filtered by expertise matching asset category
+  const supSel=document.getElementById('tf-supplier');
+  if(a){
+    const matched=DB.suppliers.filter(s=>{
+      if(s.status==='Inactive') return false;
+      const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').split(',').map(x=>x.trim());
+      return exp.some(e=>e.toLowerCase()===a.category.toLowerCase());
+    });
+    const others=DB.suppliers.filter(s=>s.status!=='Inactive'&&!matched.find(m=>m.id===s.id));
+    supSel.innerHTML='<option value="">None</option>'
+      +(matched.length?'<optgroup label="Matching expertise">'+matched.map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('')+'</optgroup>':'')
+      +(others.length?'<optgroup label="All suppliers">'+others.map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('')+'</optgroup>':'');
+  } else {
+    supSel.innerHTML='<option value="">None</option>'+DB.suppliers.filter(s=>s.status!=='Inactive').map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('');
+  }
+}
 function populateAssignSelect(id){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
@@ -1588,11 +1666,13 @@ function openNewTicket(){
   editingId.tix=null;
   document.getElementById('tix-modal-title').textContent='New Ticket';
   document.getElementById('btn-dup-tix').style.display='none';
-  ['tf-subj','tf-unit','tf-reporter','tf-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['tf-subj','tf-reporter','tf-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('tf-status').value='Open';
   document.getElementById('tf-pri').value='Medium';
-  populateBldSelect('tf-bldg'); populateSubs('tf-sub','tf-bldg');
-  populateAssignSelect('tf-assign'); populateAssetSelect('tf-asset'); populateSupplierSelect('tf-supplier');
+  populateBldSelect('tf-bldg');
+  document.getElementById('tf-bldg').value='';
+  tfOnBldgChange();
+  populateAssignSelect('tf-assign');
   openMo('mo-tix');
 }
 function editTix(id){
@@ -1601,18 +1681,47 @@ function editTix(id){
   editingId.tix=id; closeMo('mo-tix-detail');
   document.getElementById('tix-modal-title').textContent='Edit Ticket';
   document.getElementById('btn-dup-tix').style.display='';
-  populateBldSelect('tf-bldg'); document.getElementById('tf-bldg').value=t.building;
-  populateSubs('tf-sub','tf-bldg'); document.getElementById('tf-sub').value=t.subdivision||'';
   document.getElementById('tf-subj').value=t.subject;
-  document.getElementById('tf-unit').value=t.unit;
   document.getElementById('tf-pri').value=t.priority;
   document.getElementById('tf-cat').value=t.category;
   document.getElementById('tf-status').value=t.status;
-  populateAssignSelect('tf-assign'); document.getElementById('tf-assign').value=t.assignedTo||'';
-  populateAssetSelect('tf-asset'); document.getElementById('tf-asset').value=t.assetId||'';
-  populateSupplierSelect('tf-supplier'); document.getElementById('tf-supplier').value=t.supplierId||'';
   document.getElementById('tf-reporter').value=t.reportedBy||'';
   document.getElementById('tf-notes').value=t.notes||'';
+  // Cascade: building → floor → unit → asset → supplier
+  populateBldSelect('tf-bldg');
+  document.getElementById('tf-bldg').value=t.building;
+  tfOnBldgChange();
+  document.getElementById('tf-sub').value=t.subdivision||'';
+  tfOnFloorChange();
+  // Restore unit value — set after populating
+  const unitSel=document.getElementById('tf-unit');
+  if([...unitSel.options].some(o=>o.value===t.unit)){
+    unitSel.value=t.unit;
+  } else if(t.unit){
+    // unit not in list — add it as an option so it's preserved
+    const opt=document.createElement('option');
+    opt.value=t.unit; opt.textContent=t.unit;
+    unitSel.appendChild(opt);
+    unitSel.value=t.unit;
+  }
+  tfOnUnitChange();
+  // Restore asset
+  const astSel=document.getElementById('tf-asset');
+  if(t.assetId&&![...astSel.options].some(o=>o.value===t.assetId)){
+    const a=DB.assets.find(x=>x.id===t.assetId);
+    if(a){const opt=document.createElement('option');opt.value=a.id;opt.textContent=`${a.name}${a.location?' · '+a.location:''}`;astSel.appendChild(opt);}
+  }
+  astSel.value=t.assetId||'';
+  tfOnAssetChange();
+  // Restore supplier
+  const supSel=document.getElementById('tf-supplier');
+  if(t.supplierId&&![...supSel.options].some(o=>o.value===t.supplierId)){
+    const s=DB.suppliers.find(x=>x.id===t.supplierId);
+    if(s){const opt=document.createElement('option');opt.value=s.id;opt.textContent=`${s.name} (€ ${s.ratePerHour}/hr)`;supSel.appendChild(opt);}
+  }
+  supSel.value=t.supplierId||'';
+  populateAssignSelect('tf-assign');
+  document.getElementById('tf-assign').value=t.assignedTo||'';
   openMo('mo-tix');
 }
 async function saveTix(){
