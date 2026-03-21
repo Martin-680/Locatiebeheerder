@@ -1976,7 +1976,7 @@ function openBldDetail(id){
 
   // ── Assets Affected ──
   const affectedAsts=[...new Map(
-    openTix.filter(t=>t.assetId).map(t=>DB.assets.find(a=>a.id===t.assetId)).filter(Boolean).map(a=>[a.id,a])
+    openTix.filter(t=>t.assetId).map(t=>DB.assets.find(a=>a.id===t.assetId&&a.building===b.name)).filter(Boolean).map(a=>[a.id,a])
   ).values()];
   if(affectedAsts.length){
     html+=`<div class="sh"><span class="sh-title">Assets Affected (${affectedAsts.length})</span></div>`;
