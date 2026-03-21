@@ -178,7 +178,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .p-ordered{background:var(--teal);}
 .ti-left{flex:1;min-width:0;}
 .ti-id{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px;}
-.ti-subj{font-size:14px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ti-subj{font-size:15px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ti-meta{display:flex;gap:10px;flex-wrap:wrap;}
 .ti-meta span{font-size:11px;color:var(--sub);}
 .ti-right{flex-shrink:0;}
@@ -235,7 +235,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .bc-wrap{background:var(--card);border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);border-radius:var(--r);margin:0 14px 12px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s;}
 .bc-wrap:active{transform:scale(.98);border-color:var(--blue);}
 .bc-hdr{padding:14px 16px;background:linear-gradient(135deg,rgba(37,99,235,.06),rgba(79,70,229,.04));display:flex;justify-content:space-between;align-items:flex-start;}
-.bc-name{font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;margin-bottom:2px;}
+.bc-name{font-size:15px;font-weight:700;margin-bottom:2px;}
 .bc-addr{font-size:13px;color:var(--sub);font-weight:500;}
 .bc-body{padding:12px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
 .bs{text-align:center;}
@@ -1731,7 +1731,7 @@ function renderAst(){
     const openTix = DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
     return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer${warnExpired?' border-left:3px solid var(--red)':warnSoon?' border-left:3px solid var(--amber)':''}" onclick="openAstDetail('${a.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-      <div><div style="font-size:10px;color:var(--teal);font-weight:700;margin-bottom:2px">${a.id}</div><div style="font-size:14px;font-weight:700">${a.name}</div></div>
+      <div><div style="font-size:10px;color:var(--teal);font-weight:700;margin-bottom:2px">${a.id}</div><div style="font-size:15px;font-weight:700">${a.name}</div></div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         <span class="badge" style="background:${sc[a.status]||'var(--green)'}18;color:${sc[a.status]||'var(--green)'}">${a.status}</span>
         ${openTix?`<span style="font-size:10px;font-weight:700;color:var(--amber)">${openTix} open ticket${openTix>1?'s':''}</span>`:''}
