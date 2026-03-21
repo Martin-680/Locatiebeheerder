@@ -1451,14 +1451,11 @@ function renderTix(){
 function tixItemHTML(t,clickable=true){
   const days=t.status!=='Closed'?`${daysSince(t.dateOpened)}d open`:'';
   const stCls={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Cancelled:'b-cancel',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
-  const pCls={Critical:'p-critical',High:'p-high',Medium:'p-medium',Low:'p-low'}[t.priority]||'p-medium';
   const fn=clickable?`openTixDetail('${t.id}')`:`navTo('tickets')`;
-  const urgency = t.status!=='Closed' && daysSince(t.dateOpened)>7 ? ' style="border-left:3px solid var(--amber)"' : t.priority==='Critical'&&t.status!=='Closed' ? ' style="border-left:3px solid var(--red)"' : '';
   const assignedVal = t.assignedTo ? t.assignedTo.split(' ')[0] : '—';
   const assignedColor = !t.assignedTo && t.status!=='Closed' ? 'color:var(--red);' : '';
   const daysColor = days && daysSince(t.dateOpened)>7 ? 'color:var(--amber);' : '';
-  return`<div class="ti" onclick="${fn}"${urgency} style="padding-bottom:0">
-    <div class="pdot ${pCls}" style="margin-top:4px"></div>
+  return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <div style="min-width:0">
