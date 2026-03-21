@@ -237,7 +237,10 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .bc-hdr{padding:14px 16px;background:var(--card);display:flex;justify-content:space-between;align-items:flex-start;}
 .bc-name{font-size:15px;font-weight:700;margin-bottom:2px;}
 .bc-addr{font-size:13px;color:var(--sub);font-weight:500;}
-.bc-body{padding:12px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.bc-body{padding:12px 16px;display:flex;}
+.bc-body .bs{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 0;}
+.bc-body .bs+.bs{border-left:1px solid var(--border);}
+.bc-wrap .bc-body{border-top:1px solid var(--border);padding-top:12px;}
 .bs{text-align:center;}
 .bs-val{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;}
 .bs-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
