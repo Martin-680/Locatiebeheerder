@@ -777,11 +777,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
   </div>
 </div>
 
-<!-- Floor view -->
-<div class="mo" id="mo-floor-view" onclick="mcClick(event,'mo-floor-view')">
-  <div class="ms" style="max-height:92vh"><div class="mh"></div><div class="mt"><span id="floor-view-title">Floor</span><button class="mt-close" onclick="closeMo('mo-floor-view')">✕</button></div><div id="floor-view-body" style="padding-bottom:20px"></div></div>
-</div>
-
 <!-- Confirm delete -->
 <div class="mo" id="mo-confirm" onclick="mcClick(event,'mo-confirm')">
   <div class="ms">
@@ -1460,8 +1455,6 @@ function tixItemHTML(t,clickable=true){
   const days=t.status!=='Closed'?`${daysSince(t.dateOpened)} days`:'';
   const stCls={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Cancelled:'b-cancel',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
   const fn=clickable?`openTixDetail('${t.id}')`:`navTo('tickets')`;
-  const assignedVal = t.assignedTo ? t.assignedTo.split(' ')[0] : '—';
-  const assignedColor = !t.assignedTo && t.status!=='Closed' ? 'color:var(--red);' : '';
   const daysColor = days && daysSince(t.dateOpened)>7 ? 'color:var(--amber);' : '';
   return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
@@ -1473,8 +1466,8 @@ function tixItemHTML(t,clickable=true){
       </div>
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.building}</div><div class="bs-lbl">Building</div></div>
-        <div class="bs" ${t.subdivision?`onclick="event.stopPropagation();openFloorModal('${t.building.replace(/'/g,"\\'")}','${t.subdivision.replace(/'/g,"\\'")}')" style="cursor:pointer"`:''}><div class="bs-val" style="font-size:13px;font-weight:700;${t.subdivision?'color:var(--blue)':''}">${t.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${assignedColor}">${assignedVal}</div><div class="bs-lbl">Assigned</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${t.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.unit||'—'}</div><div class="bs-lbl">Location</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;${daysColor}">${days||'—'}</div><div class="bs-lbl">Age</div></div>
       </div>
     </div>
@@ -2270,63 +2263,6 @@ function exportCSV(type){
   const a=document.createElement('a');a.href=url;a.download=`propmanager_${type}_${today.toISOString().split('T')[0]}.csv`;a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
   toast(`${type} exported`);
-}
-
-/* ══════════════════════════════════════════════════════════
-   FLOOR MODAL
-══════════════════════════════════════════════════════════ */
-function openFloorModal(building, floor){
-  document.getElementById('floor-view-title').textContent=`${floor} · ${building}`;
-  const body=document.getElementById('floor-view-body');
-
-  function sectionHTML(bldg, flr, isPrimary){
-    const activeTix=DB.tickets.filter(t=>t.building===bldg&&t.subdivision===flr&&t.status!=='Closed');
-    const flrAssets=DB.assets.filter(a=>a.building===bldg&&a.subdivision===flr);
-    if(!isPrimary && !activeTix.length && !flrAssets.length) return '';
-
-    let html='';
-    if(!isPrimary){
-      html+=`<div style="padding:14px 14px 6px;display:flex;align-items:center;gap:8px">
-        <div style="flex:1;height:1px;background:var(--border)"></div>
-        <div style="font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap">${bldg}</div>
-        <div style="flex:1;height:1px;background:var(--border)"></div>
-      </div>`;
-    }
-
-    // Tickets
-    html+=`<div class="sh" style="padding-top:${isPrimary?'6px':'2px'}"><span class="sh-title">Active Tickets (${activeTix.length})</span></div>`;
-    if(activeTix.length){
-      html+='<div class="tlist">'+activeTix.map(t=>tixItemHTML(t,true)).join('')+'</div>';
-    } else {
-      html+='<div style="padding:4px 14px 10px;font-size:13px;color:var(--muted)">No active tickets</div>';
-    }
-
-    // Assets
-    const sc={'Active':'b-closed','Under Maintenance':'b-prog','Decommissioned':'b-cancel'};
-    html+=`<div class="sh"><span class="sh-title">Assets (${flrAssets.length})</span></div>`;
-    if(flrAssets.length){
-      html+='<div style="padding:0 14px 8px">'+flrAssets.map(a=>`
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.05)" onclick="closeMo('mo-floor-view');setTimeout(()=>openAstDetail('${a.id}'),220)">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="min-width:0"><div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${a.category}${a.location?' · '+a.location:''}</div></div>
-            <span class="badge ${sc[a.status]||'b-closed'}" style="flex-shrink:0;margin-left:8px">${a.status}</span>
-          </div>
-        </div>`).join('')+'</div>';
-    } else {
-      html+='<div style="padding:4px 14px 10px;font-size:13px;color:var(--muted)">No assets</div>';
-    }
-    return html;
-  }
-
-  // Primary building section
-  let html=sectionHTML(building, floor, true);
-
-  // Other buildings sharing the same floor name
-  const others=DB.buildings.filter(b=>b.name!==building&&parseSubs(b.subs).includes(floor));
-  others.forEach(b=>{ html+=sectionHTML(b.name, floor, false); });
-
-  body.innerHTML=html||'<div class="empty"><div style="font-size:13px;color:var(--muted)">Nothing found for this floor</div></div>';
-  openMo('mo-floor-view');
 }
 </script>
 
