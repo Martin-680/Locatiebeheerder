@@ -1812,6 +1812,24 @@ async function saveQuickTicket(){
    ASSETS
 ══════════════════════════════════════════════════════════ */
 function goAstPage(p){setPage('ast',p);renderAst();}
+
+/* ── Shared asset card HTML — used in Assets view, Building view, Floor view ── */
+function astCardHTML(a, onclick){
+  const stCls={'Active':'b-closed','Under Maintenance':'b-prog','Decommissioned':'b-cancel'}[a.status]||'b-closed';
+  return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px 0;margin-bottom:8px;cursor:pointer" onclick="${onclick}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+      <div style="min-width:0"><div style="font-size:15px;font-weight:700">${a.name}</div></div>
+      <span class="badge ${stCls}" style="flex-shrink:0;margin-left:8px">${a.status}</span>
+    </div>
+    <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</div><div class="bs-lbl">Building</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.location||'—'}</div><div class="bs-lbl">Location</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.category}</div><div class="bs-lbl">Category</div></div>
+    </div>
+  </div>`;
+}
+
 function renderAst(){
   const q=(document.getElementById('asearch')?.value||'').toLowerCase();
   const statusVal=document.getElementById('sel-ast-status')?.value||'All';
@@ -1826,26 +1844,7 @@ function renderAst(){
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div style="font-size:13px">No assets found</div></div>';return;}
   const page=pages.ast;
   const slice=list.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
-  const astStCls={'Active':'b-closed','Under Maintenance':'b-prog','Decommissioned':'b-cancel'};
-  const soon=new Date(today); soon.setDate(soon.getDate()+30);
-  c.innerHTML='<div style="padding:0 14px 8px">'+slice.map(a=>{
-    const wExp = a.warrantyExpiry ? new Date(a.warrantyExpiry) : null;
-    const warnExpired = wExp && wExp < today;
-    const warnSoon = wExp && !warnExpired && wExp <= soon;
-    const openTix = DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
-    return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px 0;margin-bottom:8px;cursor:pointer" onclick="openAstDetail('${a.id}')">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-      <div style="min-width:0"><div style="font-size:15px;font-weight:700">${a.name}</div></div>
-      <span class="badge ${astStCls[a.status]||'b-closed'}" style="flex-shrink:0;margin-left:8px">${a.status}</span>
-    </div>
-    <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</div><div class="bs-lbl">Building</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.location||'—'}</div><div class="bs-lbl">Location</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.category}</div><div class="bs-lbl">Category</div></div>
-    </div>
-  </div>`;
-  }).join('')+'</div>'+renderPagination('ast',list.length,'goAstPage');
+  c.innerHTML='<div style="padding:0 14px 8px">'+slice.map(a=>astCardHTML(a,`openAstDetail('${a.id}')`)).join('')+'</div>'+renderPagination('ast',list.length,'goAstPage');
 }
 function openAstDetail(id){
   const a=DB.assets.find(x=>x.id===id); if(!a) return;
@@ -2013,16 +2012,9 @@ function openFloorView(buildingName, buildingId, floorEnc){
   }
 
   // ── Assets ──
-  const sc={Active:'var(--green)','Under Maintenance':'var(--amber)',Decommissioned:'var(--red)'};
   html += `<div class="sh"><span class="sh-title">Assets (${assets.length})</span><span class="sh-link" onclick="navTo('assets')">All →</span></div>`;
   if(assets.length){
-    html += '<div style="padding:0 14px 8px">' + assets.map(a=>`
-      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.05)" onclick="closeMo('mo-ast-detail');openAstDetail('${a.id}')">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div><div style="font-size:10px;color:var(--teal);font-weight:700">${a.id}</div><div style="font-size:14px;font-weight:700">${a.name}</div><div style="font-size:11px;color:var(--sub);margin-top:2px;display:flex;align-items:center;gap:3px"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> ${a.category}</div></div>
-          <span class="badge" style="background:${sc[a.status]||'var(--green)'}18;color:${sc[a.status]||'var(--green)'}">${a.status}</span>
-        </div>
-      </div>`).join('') + '</div>';
+    html += '<div style="padding:0 14px 8px">' + assets.map(a=>astCardHTML(a,`openAstDetail('${a.id}')`)).join('') + '</div>';
   } else {
     html += '<div class="empty" style="padding:20px 24px"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div style="font-size:12px">No assets for this floor</div></div>';
   }
@@ -2089,13 +2081,7 @@ function openBldDetail(id){
   ).values()];
   if(affectedAsts.length){
     html+=`<div class="sh"><span class="sh-title">Assets Affected (${affectedAsts.length})</span></div>`;
-    html+='<div style="padding:0 14px 8px">'+affectedAsts.map(a=>`
-      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.05)" onclick="openAstDetail('${a.id}')">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div style="min-width:0"><div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${a.category}${a.subdivision?' · '+a.subdivision:''}</div></div>
-          <span class="badge ${{'Active':'b-closed','Under Maintenance':'b-prog','Decommissioned':'b-cancel'}[a.status]||'b-closed'}" style="flex-shrink:0;margin-left:8px">${a.status}</span>
-        </div>
-      </div>`).join('')+'</div>';
+    html+='<div style="padding:0 14px 8px">'+affectedAsts.map(a=>astCardHTML(a,`openAstDetail('${a.id}')`)).join('')+'</div>';
   }
 
   // ── Open Tickets ──
@@ -2109,13 +2095,7 @@ function openBldDetail(id){
   // ── Assets ──
   html+=`<div class="sh"><span class="sh-title">Assets (${allAsts.length})</span><span class="sh-link" onclick="navTo('assets')">All →</span></div>`;
   if(allAsts.length){
-    html+='<div style="padding:0 14px 8px">'+allAsts.map(a=>`
-      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.05)" onclick="openAstDetail('${a.id}')">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div><div style="font-size:10px;color:var(--teal);font-weight:700">${a.id}</div><div style="font-size:14px;font-weight:700">${a.name}</div><div style="font-size:11px;color:var(--sub);margin-top:2px">${a.category}${a.subdivision?' · '+a.subdivision:''}</div></div>
-          <span class="badge" style="background:${sc[a.status]||'var(--green)'}18;color:${sc[a.status]||'var(--green)'}">${a.status}</span>
-        </div>
-      </div>`).join('')+'</div>';
+    html+='<div style="padding:0 14px 8px">'+allAsts.map(a=>astCardHTML(a,`openAstDetail('${a.id}')`)).join('')+'</div>';
   } else {
     html+='<div class="empty" style="padding:20px 24px"><div style="font-size:12px;color:var(--muted)">No assets for this building</div></div>';
   }
