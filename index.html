@@ -1452,7 +1452,7 @@ function renderTix(){
 }
 
 function tixItemHTML(t,clickable=true){
-  const days=t.status!=='Closed'?`${daysSince(t.dateOpened)}d open`:'';
+  const days=t.status!=='Closed'?`${daysSince(t.dateOpened)} days`:'';
   const stCls={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Cancelled:'b-cancel',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
   const fn=clickable?`openTixDetail('${t.id}')`:`navTo('tickets')`;
   const assignedVal = t.assignedTo ? t.assignedTo.split(' ')[0] : '—';
