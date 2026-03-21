@@ -1457,14 +1457,13 @@ function tixItemHTML(t,clickable=true){
   const daysColor = days && daysSince(t.dateOpened)>7 ? 'color:var(--amber);' : '';
   return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
         <div style="min-width:0">
-          <div class="ti-id">${t.id} · ${t.category}</div>
           <div class="ti-subj">${t.subject}</div>
         </div>
         <span class="badge ${stCls}" style="flex-shrink:0;margin-left:8px">${t.status}</span>
       </div>
-      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;padding-bottom:10px">
+      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.building}</div><div class="bs-lbl">Building</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${t.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${assignedColor}">${assignedVal}</div><div class="bs-lbl">Assigned</div></div>
@@ -1726,15 +1725,12 @@ function renderAst(){
     const warrantyColor = warnExpired ? 'var(--red)' : warnSoon ? 'var(--amber)' : 'var(--sub)';
     const warrantyLabel = warnExpired ? `Expired ${df(a.warrantyExpiry)}` : warnSoon ? `Expiring ${df(a.warrantyExpiry)}` : a.warrantyExpiry ? `Warranty ${df(a.warrantyExpiry)}` : '';
     const openTix = DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
-    return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer${warnExpired?' border-left:3px solid var(--red)':warnSoon?' border-left:3px solid var(--amber)':''}" onclick="openAstDetail('${a.id}')">
+    return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer" onclick="openAstDetail('${a.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-      <div><div style="font-size:10px;color:var(--teal);font-weight:700;margin-bottom:2px">${a.id}</div><div style="font-size:15px;font-weight:700">${a.name}</div></div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
-        <span class="badge" style="background:${sc[a.status]||'var(--green)'}18;color:${sc[a.status]||'var(--green)'}">${a.status}</span>
-        ${openTix?`<span style="font-size:10px;font-weight:700;color:var(--amber)">${openTix} open ticket${openTix>1?'s':''}</span>`:''}
-      </div>
+      <div style="min-width:0"><div style="font-size:15px;font-weight:700">${a.name}</div></div>
+      <span class="badge" style="background:${sc[a.status]||'var(--green)'}18;color:${sc[a.status]||'var(--green)'};flex-shrink:0;margin-left:8px">${a.status}</span>
     </div>
-    <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px">
+    <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</div><div class="bs-lbl">Building</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.location||'—'}</div><div class="bs-lbl">Location</div></div>
