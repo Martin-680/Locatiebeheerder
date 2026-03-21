@@ -1974,6 +1974,21 @@ function openBldDetail(id){
     </div>
   </div>`;
 
+  // ── Assets Affected ──
+  const affectedAsts=[...new Map(
+    openTix.filter(t=>t.assetId).map(t=>DB.assets.find(a=>a.id===t.assetId)).filter(Boolean).map(a=>[a.id,a])
+  ).values()];
+  if(affectedAsts.length){
+    html+=`<div class="sh"><span class="sh-title">Assets Affected (${affectedAsts.length})</span></div>`;
+    html+='<div style="padding:0 14px 8px">'+affectedAsts.map(a=>`
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.05)" onclick="openAstDetail('${a.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="min-width:0"><div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${a.category}${a.subdivision?' · '+a.subdivision:''}</div></div>
+          <span class="badge ${{'Active':'b-closed','Under Maintenance':'b-prog','Decommissioned':'b-cancel'}[a.status]||'b-closed'}" style="flex-shrink:0;margin-left:8px">${a.status}</span>
+        </div>
+      </div>`).join('')+'</div>';
+  }
+
   // ── Open Tickets ──
   html+=`<div class="sh"><span class="sh-title">Open Tickets (${openTix.length})</span><span class="sh-link" onclick="navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-bldg').value='${b.name}';renderTix();},150)">All →</span></div>`;
   if(openTix.length){
