@@ -1719,19 +1719,17 @@ function renderAst(){
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div style="font-size:13px">No assets found</div></div>';return;}
   const page=pages.ast;
   const slice=list.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
-  const sc={Active:'var(--green)','Under Maintenance':'var(--amber)',Decommissioned:'var(--red)'};
+  const astStCls={'Active':'b-closed','Under Maintenance':'b-prog','Decommissioned':'b-cancel'};
   const soon=new Date(today); soon.setDate(soon.getDate()+30);
   c.innerHTML='<div style="padding:0 14px 8px">'+slice.map(a=>{
     const wExp = a.warrantyExpiry ? new Date(a.warrantyExpiry) : null;
     const warnExpired = wExp && wExp < today;
     const warnSoon = wExp && !warnExpired && wExp <= soon;
-    const warrantyColor = warnExpired ? 'var(--red)' : warnSoon ? 'var(--amber)' : 'var(--sub)';
-    const warrantyLabel = warnExpired ? `Expired ${df(a.warrantyExpiry)}` : warnSoon ? `Expiring ${df(a.warrantyExpiry)}` : a.warrantyExpiry ? `Warranty ${df(a.warrantyExpiry)}` : '';
     const openTix = DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
     return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer" onclick="openAstDetail('${a.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
       <div style="min-width:0"><div style="font-size:15px;font-weight:700">${a.name}</div></div>
-      <span class="badge" style="background:${sc[a.status]||'var(--green)'}18;color:${sc[a.status]||'var(--green)'};flex-shrink:0;margin-left:8px">${a.status}</span>
+      <span class="badge ${astStCls[a.status]||'b-closed'}" style="flex-shrink:0;margin-left:8px">${a.status}</span>
     </div>
     <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</div><div class="bs-lbl">Building</div></div>
@@ -1977,14 +1975,6 @@ function openBldDetail(id){
       <div class="bs"><div class="bs-val">${allAsts.length}</div><div class="bs-lbl">Assets</div></div>
     </div>
   </div>`;
-
-  // ── Floors ──
-  if(subs.length){
-    html+=`<div class="sh"><span class="sh-title">Floors (${subs.length})</span></div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px">
-      ${subs.map(s=>`<span class="sub-tag" style="cursor:pointer" onclick="openFloorView('${b.name}','${b.id}','${encodeURIComponent(s)}')">${s}</span>`).join('')}
-    </div>`;
-  }
 
   // ── Open Tickets ──
   html+=`<div class="sh"><span class="sh-title">Open Tickets (${openTix.length})</span><span class="sh-link" onclick="navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-bldg').value='${b.name}';renderTix();},150)">All →</span></div>`;
