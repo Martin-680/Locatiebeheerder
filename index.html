@@ -2605,8 +2605,8 @@ function inspRoundItemHTML(item, idx){
             <div style="font-size:15px;font-weight:700">${item.label}</div>
           </div>
           ${isDone
-            ? `<span class="insp-done-chip ${isAppr ? 'insp-chip-ok' : 'insp-chip-fail'}">${isAppr ? '✓ Approved' : '✕ Failed'}</span>`
-            : `<span class="badge b-open">Open</span>`
+            ? `<span id="insp-chip-${idx}" class="insp-done-chip ${isAppr ? 'insp-chip-ok' : 'insp-chip-fail'}">${isAppr ? '✓ Approved' : '✕ Failed'}</span>`
+            : `<span id="insp-chip-${idx}" class="badge b-open">Open</span>`
           }
         </div>
         <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
@@ -2664,7 +2664,7 @@ function setInspResult(idx, result){
   if(failBtn)    failBtn.classList.toggle('selected',    item.result === 'Failed');
 
   // Update the status chip
-  const chip = document.querySelector(`#insp-item-${idx} .badge, #insp-item-${idx} .insp-done-chip`);
+  const chip = document.getElementById('insp-chip-' + idx);
   if(chip){
     if(item.result === 'Approved'){
       chip.className = 'insp-done-chip insp-chip-ok';
