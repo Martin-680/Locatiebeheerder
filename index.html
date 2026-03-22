@@ -2766,6 +2766,7 @@ async function saveInspectionRound(){
   });
 
   const allChecked = activeRound.items.every(i => i.result !== 'Open');
+  const itemsJSON = JSON.stringify(activeRound.items);
   const newInsp = {
     id          : activeRound.inspId,
     building    : activeRound.building,
@@ -2774,7 +2775,7 @@ async function saveInspectionRound(){
     date        : today.toISOString().split('T')[0],
     inspector   : currentUser.name,
     status      : allChecked ? 'Completed' : 'In Progress',
-    items       : JSON.stringify(activeRound.items),
+    items       : activeRound.items,   // keep as array in DB (for rendering)
     notes       : ''
   };
 
