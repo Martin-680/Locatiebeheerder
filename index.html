@@ -293,6 +293,44 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .gb-icon{font-size:18px;flex-shrink:0;}
 .gb-text{flex:1;color:var(--sub);}
 .gb-btn{font-size:12px;font-weight:700;color:var(--blue);flex-shrink:0;}
+
+/* ── INSPECTION ROUND SCREEN ── */
+#screen-insp-round{background:var(--bg);}
+.insp-progress-bar-wrap{height:4px;background:var(--border);flex-shrink:0;}
+.insp-progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--indigo));transition:width .35s ease;border-radius:0 2px 2px 0;}
+.insp-counter{font-size:12px;color:var(--sub);font-weight:600;padding:8px 16px 4px;flex-shrink:0;}
+.insp-card-wrap{flex:1;overflow-y:auto;padding:0 14px 16px;}
+.insp-asset-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.07);border-radius:var(--r);overflow:hidden;margin-bottom:12px;}
+.insp-result-bar{padding:14px 16px;border-top:1.5px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+.insp-action-row{display:flex;gap:10px;}
+.insp-btn{flex:1;padding:13px 10px;border-radius:var(--rs);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;border:2px solid transparent;}
+.insp-btn:active{transform:scale(.96);}
+.insp-btn-approve{background:rgba(5,150,105,.1);border-color:rgba(5,150,105,.35);color:var(--green);}
+.insp-btn-approve.selected{background:var(--green);border-color:var(--green);color:#fff;}
+.insp-btn-fail{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.25);color:var(--red);}
+.insp-btn-fail.selected{background:var(--red);border-color:var(--red);color:#fff;}
+.insp-note-wrap{display:none;flex-direction:column;gap:8px;}
+.insp-note-wrap.show{display:flex;}
+.insp-note-inp{background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 13px;font-size:13px;color:var(--text);outline:none;width:100%;resize:none;min-height:64px;font-family:inherit;transition:border-color .15s;}
+.insp-note-inp:focus{border-color:var(--red);}
+.insp-save-item-btn{padding:11px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:13px;font-weight:700;color:#fff;width:100%;transition:opacity .15s;}
+.insp-save-item-btn:disabled{opacity:.4;pointer-events:none;}
+.insp-done-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+.insp-chip-ok{background:rgba(5,150,105,.12);color:var(--green);}
+.insp-chip-fail{background:rgba(220,38,38,.1);color:var(--red);}
+
+/* ── INSPECTION LIST CARD ── */
+.insp-list-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);margin:0 14px 10px;padding:14px 16px;cursor:pointer;transition:border-color .15s;}
+.insp-list-card:active{border-color:var(--border2);}
+.insp-list-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.insp-list-title{font-size:15px;font-weight:700;}
+.insp-list-sub{font-size:12px;color:var(--sub);margin-top:2px;}
+.insp-progress-pill{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:#EEF2FF;color:var(--indigo);flex-shrink:0;}
+.insp-stat-row{display:flex;gap:0;border-top:1px solid var(--border);margin:0 -16px -14px;border-radius:0 0 var(--r) var(--r);overflow:hidden;}
+.insp-stat{flex:1;padding:9px 6px;text-align:center;border-right:1px solid var(--border);}
+.insp-stat:last-child{border-right:none;}
+.insp-stat-val{font-size:13px;font-weight:800;}
+.insp-stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
 </style>
 </head>
 <body>
@@ -488,6 +526,55 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="bld-list"></div>
   </div>
 
+  <!-- ═══════ INSPECTIONS ═══════ -->
+  <div id="screen-inspections" class="screen">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left"><div class="topbar-title">Inspections</div><div class="topbar-sub" id="insp-lbl"></div></div>
+        <div class="topbar-actions">
+          <button class="ib" onclick="openStartInspection()" id="btn-new-insp" style="display:none" title="Start Round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
+        </div>
+      </div>
+    </div>
+    <div class="fbar">
+      <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
+        <select class="fsel" id="sel-insp-status" onchange="renderInspections()">
+          <option value="All">All</option><option value="In Progress">In Progress</option><option value="Completed">Completed</option>
+        </select>
+      </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
+        <select class="fsel" id="sel-insp-bldg" onchange="renderInspections()">
+          <option value="All">All Buildings</option>
+        </select>
+      </div>
+    </div>
+    <div id="insp-list"></div>
+  </div>
+
+  <!-- ═══════ INSPECTION ROUND (full-screen, no nav) ═══════ -->
+  <div id="screen-insp-round" class="screen">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left">
+          <div class="topbar-title" id="insp-round-title">Inspection Round</div>
+          <div class="topbar-sub" id="insp-round-sub"></div>
+        </div>
+        <div class="topbar-actions">
+          <button class="ib" onclick="finishInspectionRound()" id="btn-finish-round" title="Finish Round" style="background:linear-gradient(135deg,var(--green),var(--teal));border-color:transparent;color:#fff">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
+        </div>
+      </div>
+    </div>
+    <div class="insp-progress-bar-wrap"><div class="insp-progress-bar-fill" id="insp-round-progbar" style="width:0%"></div></div>
+    <div class="insp-counter" id="insp-round-counter"></div>
+    <div class="insp-card-wrap" id="insp-round-body"></div>
+  </div>
+
   <!-- ═══════ SUPPLIERS ═══════ -->
   <div id="screen-suppliers" class="screen">
     <div class="topbar">
@@ -544,11 +631,12 @@ input,select,textarea{font-family:inherit;color:var(--text);}
   </div>
 
   <!-- ═══════ NAV ═══════ -->
-  <nav class="bottom-nav" style="grid-template-columns:repeat(5,1fr)">
+  <nav class="bottom-nav" style="grid-template-columns:repeat(6,1fr)">
     <button class="ni active" onclick="navTo('dashboard')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dash</button>
     <button class="ni" onclick="navTo('tickets')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M2 9a2 2 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2 2 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/><line x1="9" y1="9" x2="9" y2="15"/></svg></span>Tickets<span class="ni-badge" id="open-badge" style="display:none"></span></button>
     <button class="ni" onclick="navTo('assets')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>Assets</button>
     <button class="ni" onclick="navTo('buildings')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></span>Buildings</button>
+    <button class="ni" onclick="navTo('inspections')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Inspect</button>
     <button class="ni" onclick="navTo('suppliers')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-6-7 6v3l-4-3v12z"/><path d="M17 20v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/></svg></span>Suppliers</button>
   </nav>
 
@@ -800,7 +888,7 @@ const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.go
 const DISCOVERY   = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
 
 /* Sheet tab names — must match exactly what you created */
-const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers' };
+const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections' };
 
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
@@ -809,17 +897,18 @@ const COLS = {
   assets:    ['id','name','building','subdivision','location','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','subdivision','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
+  inspections: ['id','building','subdivision','category','date','inspector','status','items','notes'],
 };
 
 /* ══════════════════════════════════════════════════════════
    ROLES & PERMISSIONS
 ══════════════════════════════════════════════════════════ */
 const ROLES = {
-  'Property Manager': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:true,  canEditAll:true  },
-  'Supervisor':       { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:false, canManageBuildings:false, canManageSuppliers:true,  canEditAll:false },
-  'Maintenance Tech': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false },
-  'Admin':            { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:false, canEditAll:false },
-  'Contractor':       { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false },
+  'Property Manager': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:true,  canEditAll:true,  canStartInspection:true  },
+  'Supervisor':       { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:false, canManageBuildings:false, canManageSuppliers:true,  canEditAll:false, canStartInspection:true  },
+  'Maintenance Tech': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false, canStartInspection:true  },
+  'Admin':            { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:false, canEditAll:false, canStartInspection:false },
+  'Contractor':       { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false, canStartInspection:false },
 };
 const ROLE_COLORS = {'Property Manager':'#8B5CF6','Supervisor':'#06B6D4','Maintenance Tech':'#3B82F6','Admin':'#F59E0B','Contractor':'#64748B'};
 const ROLE_CLASS  = {'Property Manager':'rb-manager','Supervisor':'rb-supervisor','Maintenance Tech':'rb-tech','Admin':'rb-admin','Contractor':'rb-contractor'};
@@ -829,11 +918,11 @@ function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
    STATE
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
-let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[] };
+let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[] };
 let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
-const pages = { tix:1, ast:1, usr:1, bld:1, sup:1 };
+const pages = { tix:1, ast:1, usr:1, bld:1, sup:1, insp:1 };
 const today = new Date();
 const d=(n)=>{const x=new Date(today);x.setDate(x.getDate()-n);return x.toISOString().split('T')[0];};
 const df=(s)=>s?new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
@@ -1014,18 +1103,24 @@ function rowsToObjects(rows, cols){
 }
 
 async function loadAllData(){
-  const [users,buildings,assets,tickets,suppliers] = await Promise.all([
+  const [users,buildings,assets,tickets,suppliers,inspections] = await Promise.all([
     sheetsGet(`${TABS.users}!A:Z`),
     sheetsGet(`${TABS.buildings}!A:Z`),
     sheetsGet(`${TABS.assets}!A:Z`),
     sheetsGet(`${TABS.tickets}!A:Z`),
     sheetsGet(`${TABS.suppliers}!A:Z`),
+    sheetsGet(`${TABS.inspections}!A:Z`),
   ]);
   DB.users     = rowsToObjects(users,     COLS.users);
   DB.buildings = rowsToObjects(buildings, COLS.buildings);
   DB.assets    = rowsToObjects(assets,    COLS.assets);
   DB.tickets   = rowsToObjects(tickets,   COLS.tickets);
   DB.suppliers = rowsToObjects(suppliers, COLS.suppliers);
+  DB.inspections = rowsToObjects(inspections, COLS.inspections).map(r=>{
+    try{ r.items = typeof r.items==='string' ? JSON.parse(r.items) : (r.items||[]); }
+    catch(e){ r.items=[]; }
+    return r;
+  });
 }
 
 async function loadSheet(key){
@@ -1134,20 +1229,23 @@ function navTo(s){
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
   document.getElementById('screen-'+s).classList.add('active');
-  const idx=['dashboard','tickets','assets','buildings','suppliers'].indexOf(s);
+  const idx=['dashboard','tickets','assets','buildings','inspections','suppliers'].indexOf(s);
   if(idx>=0) document.querySelectorAll('.ni')[idx]?.classList.add('active');
   prevScreen=currentScreen;
   currentScreen=s;
   document.getElementById('screen-'+s).scrollTop=0;
-  if(s==='dashboard') renderDash();
-  if(s==='tickets')   renderTix();
-  if(s==='assets')    renderAst();
-  if(s==='users')     renderUsers();
-  if(s==='buildings') renderBlds();
-  if(s==='suppliers') renderSuppliers();
+  if(s==='dashboard')   renderDash();
+  if(s==='tickets')     renderTix();
+  if(s==='assets')      renderAst();
+  if(s==='users')       renderUsers();
+  if(s==='buildings')   renderBlds();
+  if(s==='suppliers')   renderSuppliers();
+  if(s==='inspections') renderInspections();
 }
 function navBack(){
-  navTo(prevScreen==='floor'?'buildings':prevScreen);
+  if(prevScreen==='insp-round') navTo('inspections');
+  else if(prevScreen==='floor') navTo('buildings');
+  else navTo(prevScreen);
 }
 
 function applyPermUI(){
@@ -1158,6 +1256,7 @@ function applyPermUI(){
   show('btn-new-usr',p.canManageUsers);
   show('btn-new-bld',p.canManageBuildings);
   show('btn-new-sup',p.canManageSuppliers);
+  show('btn-new-insp',p.canStartInspection);
   const fab=document.getElementById('fab-quick');
   if(fab) fab.style.display=p.canCreateTickets?'flex':'none';
 }
@@ -2318,20 +2417,542 @@ async function saveSupplier(){
 }
 
 /* ══════════════════════════════════════════════════════════
+   INSPECTIONS
+══════════════════════════════════════════════════════════ */
+
+/* ── State for the active round ── */
+let activeRound = null; // { inspId, building, subdivision, category, items:[{assetId,label,category,result,note}] }
+
+/* ── List view ── */
+function goInspPage(p){ setPage('insp',p); renderInspections(); }
+
+function renderInspections(){
+  // Populate building filter
+  const bldSel = document.getElementById('sel-insp-bldg');
+  if(bldSel){
+    const cur = bldSel.value;
+    bldSel.innerHTML = '<option value="All">All Buildings</option>' +
+      DB.buildings.map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+    if(cur) bldSel.value = cur;
+  }
+
+  const statusVal = document.getElementById('sel-insp-status')?.value || 'All';
+  const bldgVal   = document.getElementById('sel-insp-bldg')?.value   || 'All';
+
+  let list = [...DB.inspections].sort((a,b)=> b.date > a.date ? 1 : -1);
+  if(statusVal !== 'All') list = list.filter(r => r.status === statusVal);
+  if(bldgVal   !== 'All') list = list.filter(r => r.building === bldgVal);
+
+  const lbl = document.getElementById('insp-lbl');
+  if(lbl) lbl.textContent = `${list.length} round${list.length!==1?'s':''}`;
+
+  const c = document.getElementById('insp-list');
+  if(!list.length){
+    c.innerHTML = `<div class="empty">
+      <div class="empty-icon" style="font-size:0;color:var(--muted)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="opacity:.4">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+      </div>
+      <div style="font-size:13px">No inspection rounds yet</div>
+      ${can('canStartInspection') ? `<button onclick="openStartInspection()" style="margin-top:8px;padding:10px 20px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:13px;font-weight:700;color:#fff"> Start First Round</button>` : ''}
+    </div>`;
+    return;
+  }
+
+  const page  = pages.insp;
+  const slice = list.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
+  c.innerHTML = slice.map(r => inspListCardHTML(r)).join('') + renderPagination('insp', list.length, 'goInspPage');
+}
+
+function inspListCardHTML(r){
+  const items   = Array.isArray(r.items) ? r.items : [];
+  const total   = items.length;
+  const checked = items.filter(i => i.result === 'Approved' || i.result === 'Failed').length;
+  const approved= items.filter(i => i.result === 'Approved').length;
+  const failed  = items.filter(i => i.result === 'Failed').length;
+  const stColor = r.status === 'Completed'
+    ? (failed > 0 ? 'var(--red)' : 'var(--green)')
+    : 'var(--amber)';
+  const stLabel = r.status === 'Completed'
+    ? (failed > 0 ? `${failed} Failed` : 'All Clear')
+    : 'In Progress';
+  const stBg    = r.status === 'Completed'
+    ? (failed > 0 ? 'rgba(220,38,38,.1)' : 'rgba(5,150,105,.1)')
+    : 'rgba(217,119,6,.1)';
+  return `<div class="insp-list-card" onclick="openInspDetail('${r.id}')">
+    <div class="insp-list-hdr">
+      <div>
+        <div class="insp-list-title">${r.building}${r.subdivision ? ' · ' + r.subdivision : ''}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
+        <div class="insp-list-sub">${df(r.date)} · ${r.inspector}</div>
+      </div>
+      <span class="badge" style="background:${stBg};color:${stColor};flex-shrink:0">${stLabel}</span>
+    </div>
+    <div style="margin-bottom:12px">
+      <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${total?Math.round(checked/total*100):0}%;background:linear-gradient(90deg,var(--blue),var(--indigo));border-radius:3px;transition:width .3s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:500">${checked} / ${total} checked</div>
+    </div>
+    <div class="insp-stat-row">
+      <div class="insp-stat"><div class="insp-stat-val">${total}</div><div class="insp-stat-lbl">Total</div></div>
+      <div class="insp-stat"><div class="insp-stat-val" style="color:var(--green)">${approved}</div><div class="insp-stat-lbl">Approved</div></div>
+      <div class="insp-stat"><div class="insp-stat-val" style="color:var(--red)">${failed}</div><div class="insp-stat-lbl">Failed</div></div>
+      <div class="insp-stat"><div class="insp-stat-val" style="color:var(--muted)">${total - checked}</div><div class="insp-stat-lbl">Pending</div></div>
+    </div>
+  </div>`;
+}
+
+/* ── Start-round modal ── */
+function openStartInspection(){
+  if(!can('canStartInspection')){ toast('No permission to start inspections','err'); return; }
+  populateBldSelect('insp-bldg');
+  document.getElementById('insp-floor').innerHTML = '<option value="">All floors</option>';
+  document.getElementById('insp-cat').value = 'All';
+  document.getElementById('insp-asset-preview').textContent = 'Select a building to preview assets';
+  openMo('mo-insp-start');
+}
+
+function inspOnBldgChange(){
+  const bldg = document.getElementById('insp-bldg').value;
+  const b    = DB.buildings.find(x => x.name === bldg);
+  const subs = parseSubs(b?.subs);
+  const fl   = document.getElementById('insp-floor');
+  fl.innerHTML = '<option value="">All floors</option>' + subs.map(s=>`<option value="${s}">${s}</option>`).join('');
+  updateInspPreview();
+}
+
+function updateInspPreview(){
+  const bldg = document.getElementById('insp-bldg').value;
+  const floor= document.getElementById('insp-floor').value;
+  const cat  = document.getElementById('insp-cat').value;
+  const prev = document.getElementById('insp-asset-preview');
+  if(!bldg){ prev.textContent = 'Select a building to preview assets'; return; }
+  const assets = getInspAssets(bldg, floor, cat);
+  if(!assets.length){
+    prev.innerHTML = `<span style="color:var(--red)">No assets match this selection.</span>`;
+  } else {
+    prev.innerHTML = `<span style="color:var(--green);font-weight:700">${assets.length} asset${assets.length!==1?'s':''}</span> <span style="color:var(--sub)">will be included in this round.</span>`;
+  }
+}
+
+function getInspAssets(bldg, floor, cat){
+  return DB.assets.filter(a => {
+    if(a.building !== bldg) return false;
+    if(floor && a.subdivision && a.subdivision !== floor) return false;
+    if(cat && cat !== 'All' && a.category !== cat) return false;
+    return true;
+  });
+}
+
+/* ── Launch the round (full-screen checklist) ── */
+function launchInspectionRound(){
+  const bldg  = document.getElementById('insp-bldg').value;
+  const floor = document.getElementById('insp-floor').value;
+  const cat   = document.getElementById('insp-cat').value;
+  if(!bldg){ toast('Select a building','err'); return; }
+  const assets = getInspAssets(bldg, floor, cat);
+  if(!assets.length){ toast('No assets match this selection','err'); return; }
+
+  const inspId = nextId(DB.inspections, 'INS');
+  activeRound = {
+    inspId,
+    building   : bldg,
+    subdivision: floor,
+    category   : cat,
+    items      : assets.map(a => ({ assetId: a.id, label: a.name, category: a.category, location: a.location||'', subdivision: a.subdivision||'', result: 'Open', note: '' }))
+  };
+
+  closeMo('mo-insp-start');
+
+  // Set header
+  document.getElementById('insp-round-title').textContent = bldg + (floor ? ' · ' + floor : '');
+  document.getElementById('insp-round-sub').textContent   = (cat !== 'All' ? cat + ' · ' : '') + assets.length + ' items';
+
+  renderRound();
+  navTo('insp-round');
+}
+
+/* ── Render the full checklist ── */
+function renderRound(){
+  if(!activeRound) return;
+  const items  = activeRound.items;
+  const checked= items.filter(i => i.result !== 'Open').length;
+  const total  = items.length;
+  const pct    = total ? Math.round(checked / total * 100) : 0;
+
+  document.getElementById('insp-round-progbar').style.width = pct + '%';
+  document.getElementById('insp-round-counter').textContent = `${checked} of ${total} checked · ${pct}%`;
+
+  const body = document.getElementById('insp-round-body');
+  body.innerHTML = items.map((item, idx) => inspRoundItemHTML(item, idx)).join('');
+}
+
+function inspRoundItemHTML(item, idx){
+  const a      = DB.assets.find(x => x.id === item.assetId);
+  const stCls  = { Active:'b-closed', 'Under Maintenance':'b-prog', Decommissioned:'b-cancel' }[a?.status||'Active'] || 'b-closed';
+  const isDone = item.result !== 'Open';
+  const isAppr = item.result === 'Approved';
+  const isFail = item.result === 'Failed';
+
+  // Asset card (mirrors astCardHTML)
+  const cardTop = `
+    <div class="insp-asset-card" id="insp-item-${idx}">
+      <div style="padding:13px 14px 0">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div style="min-width:0">
+            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">${a ? a.id : item.assetId}</div>
+            <div style="font-size:15px;font-weight:700">${item.label}</div>
+          </div>
+          ${isDone
+            ? `<span class="insp-done-chip ${isAppr ? 'insp-chip-ok' : 'insp-chip-fail'}">${isAppr ? '✓ Approved' : '✕ Failed'}</span>`
+            : `<span class="badge b-open">Open</span>`
+          }
+        </div>
+        <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
+          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${activeRound.building}</div><div class="bs-lbl">Building</div></div>
+          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
+          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.location||'—'}</div><div class="bs-lbl">Location</div></div>
+          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.category}</div><div class="bs-lbl">Category</div></div>
+        </div>
+      </div>`;
+
+  // Result bar
+  const resultBar = `
+      <div class="insp-result-bar">
+        <div class="insp-action-row">
+          <button class="insp-btn insp-btn-approve${isAppr?' selected':''}" onclick="setInspResult(${idx},'Approved')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Approved
+          </button>
+          <button class="insp-btn insp-btn-fail${isFail?' selected':''}" onclick="setInspResult(${idx},'Failed')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Failed
+          </button>
+        </div>
+        <div class="insp-note-wrap${isFail?' show':''}" id="insp-note-wrap-${idx}">
+          <textarea class="insp-note-inp" id="insp-note-${idx}" placeholder="Describe the issue (required for failures)…" oninput="onInspNoteInput(${idx})">${item.note||''}</textarea>
+          ${can('canCreateTickets') && isFail ? `
+          <button onclick="createTicketFromFailure(${idx})" style="padding:9px 14px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--red);display:flex;align-items:center;gap:6px;width:100%;justify-content:center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Create Ticket for this Failure
+          </button>` : ''}
+        </div>
+      </div>
+    </div>`;
+
+  return cardTop + resultBar;
+}
+
+/* ── Set result on a checklist item ── */
+function setInspResult(idx, result){
+  if(!activeRound) return;
+  const item = activeRound.items[idx];
+  const prev = item.result;
+
+  // Toggle off if clicking same button again
+  item.result = (prev === result) ? 'Open' : result;
+
+  // Show/hide note area
+  const noteWrap = document.getElementById('insp-note-wrap-' + idx);
+  if(noteWrap) noteWrap.classList.toggle('show', item.result === 'Failed');
+
+  // Update approve button style
+  const approveBtn = document.querySelector(`#insp-item-${idx} .insp-btn-approve`);
+  const failBtn    = document.querySelector(`#insp-item-${idx} .insp-btn-fail`);
+  if(approveBtn) approveBtn.classList.toggle('selected', item.result === 'Approved');
+  if(failBtn)    failBtn.classList.toggle('selected',    item.result === 'Failed');
+
+  // Update the status chip
+  const chip = document.querySelector(`#insp-item-${idx} .badge, #insp-item-${idx} .insp-done-chip`);
+  if(chip){
+    if(item.result === 'Approved'){
+      chip.className = 'insp-done-chip insp-chip-ok';
+      chip.innerHTML = '✓ Approved';
+    } else if(item.result === 'Failed'){
+      chip.className = 'insp-done-chip insp-chip-fail';
+      chip.innerHTML = '✕ Failed';
+    } else {
+      chip.className = 'badge b-open';
+      chip.innerHTML = 'Open';
+    }
+  }
+
+  // Refresh create-ticket button visibility inside note area
+  if(item.result === 'Failed' && can('canCreateTickets') && noteWrap){
+    if(!noteWrap.querySelector('.insp-create-tix-btn')){
+      const createBtn = document.createElement('button');
+      createBtn.className = 'insp-create-tix-btn';
+      createBtn.style.cssText = 'padding:9px 14px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--red);display:flex;align-items:center;gap:6px;width:100%;justify-content:center;font-family:inherit;cursor:pointer;margin-top:4px';
+      createBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Create Ticket for this Failure`;
+      createBtn.onclick = () => createTicketFromFailure(idx);
+      noteWrap.appendChild(createBtn);
+    }
+  }
+
+  // Update progress bar
+  const items   = activeRound.items;
+  const checked = items.filter(i => i.result !== 'Open').length;
+  const total   = items.length;
+  const pct     = total ? Math.round(checked / total * 100) : 0;
+  const bar = document.getElementById('insp-round-progbar');
+  if(bar) bar.style.width = pct + '%';
+  const counter = document.getElementById('insp-round-counter');
+  if(counter) counter.textContent = `${checked} of ${total} checked · ${pct}%`;
+}
+
+/* ── Sync note text back to state on every keystroke ── */
+function onInspNoteInput(idx){
+  if(!activeRound) return;
+  const el = document.getElementById('insp-note-' + idx);
+  if(el) activeRound.items[idx].note = el.value;
+}
+
+/* ── Finish button → summary modal ── */
+function finishInspectionRound(){
+  if(!activeRound) return;
+
+  // Sync all note textareas to state before showing summary
+  activeRound.items.forEach((item, idx) => {
+    const el = document.getElementById('insp-note-' + idx);
+    if(el) item.note = el.value;
+  });
+
+  // Validate: any Failed items must have a note
+  const missingNote = activeRound.items.findIndex(i => i.result === 'Failed' && !i.note.trim());
+  if(missingNote >= 0){
+    toast('Add a note for every failed item first', 'err');
+    // Scroll to the offending card
+    document.getElementById('insp-item-' + missingNote)?.scrollIntoView({ behavior:'smooth', block:'center' });
+    const inp = document.getElementById('insp-note-' + missingNote);
+    if(inp){ inp.focus(); inp.style.borderColor = 'var(--red)'; }
+    return;
+  }
+
+  const items    = activeRound.items;
+  const total    = items.length;
+  const approved = items.filter(i => i.result === 'Approved').length;
+  const failed   = items.filter(i => i.result === 'Failed').length;
+  const pending  = items.filter(i => i.result === 'Open').length;
+
+  const failedItems = items.filter(i => i.result === 'Failed');
+
+  const summaryEl = document.getElementById('insp-summary-body');
+  summaryEl.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">
+      <div style="text-align:center;padding:14px;background:#F0FDF4;border:1.5px solid rgba(5,150,105,.2);border-radius:var(--rs)">
+        <div style="font-size:28px;font-weight:800;font-family:'Outfit',sans-serif;color:var(--green)">${approved}</div>
+        <div style="font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;font-weight:600">Approved</div>
+      </div>
+      <div style="text-align:center;padding:14px;background:#FEF2F2;border:1.5px solid rgba(220,38,38,.2);border-radius:var(--rs)">
+        <div style="font-size:28px;font-weight:800;font-family:'Outfit',sans-serif;color:var(--red)">${failed}</div>
+        <div style="font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;font-weight:600">Failed</div>
+      </div>
+      <div style="text-align:center;padding:14px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs)">
+        <div style="font-size:28px;font-weight:800;font-family:'Outfit',sans-serif;color:var(--muted)">${pending}</div>
+        <div style="font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;font-weight:600">Skipped</div>
+      </div>
+    </div>
+    ${failedItems.length ? `
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Failed Items</div>
+    ${failedItems.map((item, i) => `
+      <div style="background:#FEF2F2;border:1px solid rgba(220,38,38,.18);border-radius:var(--rs);padding:11px 14px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:3px">${item.label}</div>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${item.category}${item.location?' · '+item.location:''}</div>
+        <div style="font-size:12px;color:var(--text);background:#fff;border-radius:6px;padding:8px 10px;border:1px solid rgba(220,38,38,.15)">${item.note}</div>
+        ${can('canCreateTickets') ? `<button onclick="createTicketFromFailure_summary(${activeRound.items.indexOf(item)})" style="margin-top:8px;width:100%;padding:9px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--red);font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create Ticket
+        </button>` : ''}
+      </div>`).join('')}` : `
+    <div style="text-align:center;padding:20px;background:#F0FDF4;border-radius:var(--rs);margin-bottom:12px">
+      <div style="font-size:28px;margin-bottom:6px">✅</div>
+      <div style="font-size:14px;font-weight:700;color:var(--green)">All Clear!</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:4px">No failures in this round.</div>
+    </div>`}
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px">${total} item${total!==1?'s':''} · ${activeRound.building} · ${df(today.toISOString().split('T')[0])}</div>
+  `;
+
+  openMo('mo-insp-summary');
+}
+
+/* ── Save the completed round to DB + Sheets ── */
+async function saveInspectionRound(){
+  if(!activeRound) return;
+
+  // Final sync of note fields
+  activeRound.items.forEach((item, idx) => {
+    const el = document.getElementById('insp-note-' + idx);
+    if(el) item.note = el.value;
+  });
+
+  const allChecked = activeRound.items.every(i => i.result !== 'Open');
+  const newInsp = {
+    id          : activeRound.inspId,
+    building    : activeRound.building,
+    subdivision : activeRound.subdivision,
+    category    : activeRound.category,
+    date        : today.toISOString().split('T')[0],
+    inspector   : currentUser.name,
+    status      : allChecked ? 'Completed' : 'In Progress',
+    items       : JSON.stringify(activeRound.items),
+    notes       : ''
+  };
+
+  DB.inspections.unshift(newInsp);
+  closeMo('mo-insp-summary');
+
+  try {
+    await writeSheet('inspections');
+    toast('Inspection round saved');
+  } catch(e){
+    toast('Save failed – check Sheets permissions','err');
+    DB.inspections.shift(); // rollback
+    return;
+  }
+
+  activeRound = null;
+  navTo('inspections');
+}
+
+/* ── Create a ticket from a failure (called from round screen) ── */
+function createTicketFromFailure(idx){
+  if(!activeRound || !can('canCreateTickets')) return;
+  const item = activeRound.items[idx];
+  // Sync note first
+  const noteEl = document.getElementById('insp-note-' + idx);
+  if(noteEl) item.note = noteEl.value;
+  if(!item.note.trim()){ toast('Add a note describing the failure first','err'); noteEl?.focus(); return; }
+  _prefillTicketFromFailure(item);
+}
+
+function createTicketFromFailure_summary(idx){
+  if(!activeRound || !can('canCreateTickets')) return;
+  const item = activeRound.items[idx];
+  closeMo('mo-insp-summary');
+  _prefillTicketFromFailure(item);
+}
+
+function _prefillTicketFromFailure(item){
+  // Pre-fill the ticket form with failure details
+  editingId.tix = null;
+  document.getElementById('tix-modal-title').textContent = 'New Ticket from Inspection';
+  document.getElementById('btn-dup-tix').style.display   = 'none';
+  document.getElementById('tf-subj').value    = `[Inspection Failure] ${item.label}`;
+  document.getElementById('tf-notes').value   = item.note;
+  document.getElementById('tf-status').value  = 'Open';
+  document.getElementById('tf-pri').value     = 'High';
+
+  // Set category to match asset category if it maps to a ticket category
+  const catMap = { HVAC:'HVAC', Electrical:'Electrical', Plumbing:'Plumbing', Security:'Security', Safety:'Safety', Structural:'Structural' };
+  const tfCat  = document.getElementById('tf-cat');
+  if(tfCat) tfCat.value = catMap[item.category] || 'General';
+
+  populateBldSelect('tf-bldg');
+  document.getElementById('tf-bldg').value = activeRound.building;
+  tfOnBldgChange();
+
+  // Restore floor
+  const floorSel = document.getElementById('tf-sub');
+  if(item.subdivision && [...floorSel.options].some(o => o.value === item.subdivision)){
+    floorSel.value = item.subdivision;
+    tfOnFloorChange();
+  }
+
+  // Restore asset link
+  populateAssignSelect('tf-assign');
+  const astSel = document.getElementById('tf-asset');
+  if(item.assetId && astSel){
+    const a = DB.assets.find(x => x.id === item.assetId);
+    if(a){
+      if(![...astSel.options].some(o => o.value === item.assetId)){
+        const opt = document.createElement('option');
+        opt.value = a.id; opt.textContent = `${a.name}${a.location?' · '+a.location:''}`;
+        astSel.appendChild(opt);
+      }
+      astSel.value = item.assetId;
+      tfOnAssetChange();
+    }
+  }
+
+  document.getElementById('tf-reporter').value = currentUser.name;
+  openMo('mo-tix');
+}
+
+/* ── Inspection detail modal (history view) ── */
+function openInspDetail(id){
+  const r = DB.inspections.find(x => x.id === id); if(!r) return;
+  const items    = Array.isArray(r.items) ? r.items : [];
+  const approved = items.filter(i => i.result === 'Approved').length;
+  const failed   = items.filter(i => i.result === 'Failed').length;
+  const pending  = items.filter(i => i.result === 'Open').length;
+  const stColor  = r.status === 'Completed' ? (failed > 0 ? 'var(--red)' : 'var(--green)') : 'var(--amber)';
+  const stBg     = r.status === 'Completed' ? (failed > 0 ? 'rgba(220,38,38,.1)' : 'rgba(5,150,105,.1)') : 'rgba(217,119,6,.1)';
+
+  document.getElementById('insp-detail-title').textContent = r.id;
+  document.getElementById('insp-detail-body').innerHTML = `
+    <div style="padding:0 18px 8px">
+      <div style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--teal);margin-bottom:4px">${r.id}</div>
+      <div style="font-size:19px;font-weight:700;margin-bottom:6px">${r.building}${r.subdivision?' · '+r.subdivision:''}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+        <span class="badge" style="background:${stBg};color:${stColor}">${r.status}</span>
+        ${r.category && r.category !== 'All' ? `<span class="badge" style="background:rgba(99,102,241,.12);color:#818CF8">${r.category}</span>` : ''}
+      </div>
+    </div>
+    <div style="padding:0 18px">
+      <div class="dr"><span class="dk">Date</span><span class="dv">${df(r.date)}</span></div>
+      <div class="dr"><span class="dk">Inspector</span><span class="dv">${r.inspector}</span></div>
+      <div class="dr"><span class="dk">Items</span><span class="dv">${items.length}</span></div>
+      <div class="dr"><span class="dk">Approved</span><span class="dv" style="color:var(--green);font-weight:700">${approved}</span></div>
+      <div class="dr"><span class="dk">Failed</span><span class="dv" style="color:var(--red);font-weight:700">${failed}</span></div>
+      ${pending ? `<div class="dr"><span class="dk">Skipped</span><span class="dv" style="color:var(--muted)">${pending}</span></div>` : ''}
+    </div>
+    ${items.length ? `
+    <div style="padding:14px 18px 0">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Checklist</div>
+      ${items.map(item => `
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+            background:${item.result==='Approved'?'rgba(5,150,105,.12)':item.result==='Failed'?'rgba(220,38,38,.1)':'rgba(148,163,184,.1)'};
+            color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">
+            ${item.result==='Approved'
+              ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+              : item.result==='Failed'
+              ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+              : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
+            }
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600">${item.label}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px">${item.category}${item.location?' · '+item.location:''}</div>
+            ${item.note ? `<div style="font-size:12px;color:var(--sub);margin-top:5px;background:#F8FAFF;border-radius:6px;padding:6px 8px;border:1px solid var(--border)">${item.note}</div>` : ''}
+          </div>
+          <span style="font-size:11px;font-weight:700;flex-shrink:0;color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">${item.result}</span>
+        </div>`).join('')}
+    </div>` : ''}
+    ${can('canEditAll') ? `
+    <div style="padding:16px 18px 0;display:flex;gap:9px">
+      <button onclick="confirmDelete('inspection','${r.id}')" style="flex:1;padding:13px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--red)"> Delete</button>
+    </div>` : ''}
+    <div style="height:24px"></div>`;
+  openMo('mo-insp-detail');
+}
+
+/* ══════════════════════════════════════════════════════════
    DELETE
 ══════════════════════════════════════════════════════════ */
 function confirmDelete(type,id){
   if(!can('canEditAll')) return;
   pendingDelete={type,id};
-  const names={ticket:'ticket',asset:'asset',supplier:'supplier',user:'user',building:'building'};
+  const names={ticket:'ticket',asset:'asset',supplier:'supplier',user:'user',building:'building',inspection:'inspection round'};
   document.getElementById('confirm-msg').textContent=`Are you sure you want to permanently delete this ${names[type]||type}? This cannot be undone.`;
-  closeMo('mo-tix-detail'); closeMo('mo-ast-detail'); closeMo('mo-sup-detail');
+  closeMo('mo-tix-detail'); closeMo('mo-ast-detail'); closeMo('mo-sup-detail'); closeMo('mo-insp-detail');
   openMo('mo-confirm');
 }
 async function doConfirmedDelete(){
   if(!pendingDelete) return;
   const {type,id}=pendingDelete;
-  const map={ticket:'tickets',asset:'assets',supplier:'suppliers',user:'users',building:'buildings'};
+  const map={ticket:'tickets',asset:'assets',supplier:'suppliers',user:'users',building:'buildings',inspection:'inspections'};
   const key=map[type];
   if(key) DB[key]=DB[key].filter(x=>x.id!==id);
   closeMo('mo-confirm');
@@ -2342,6 +2963,7 @@ async function doConfirmedDelete(){
   if(currentScreen==='suppliers') renderSuppliers();
   if(currentScreen==='users') renderUsers();
   if(currentScreen==='dashboard') renderDash();
+  if(currentScreen==='inspections') renderInspections();
   pendingDelete=null;
 }
 
@@ -2369,6 +2991,47 @@ function exportCSV(type){
   toast(`${type} exported`);
 }
 </script>
+
+<!-- ═══════ INSPECTION MODALS ═══════ -->
+
+<!-- Start Inspection Round -->
+<div class="mo" id="mo-insp-start" onclick="mcClick(event,'mo-insp-start')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt"><span>Start Inspection Round</span><button class="mt-close" onclick="closeMo('mo-insp-start')">✕</button></div>
+    <div class="fg"><label>Building *</label><select class="fs2" id="insp-bldg" onchange="inspOnBldgChange()"><option value="">Select building…</option></select></div>
+    <div class="fg"><label>Floor (optional)</label><select class="fs2" id="insp-floor" onchange="updateInspPreview()"><option value="">All floors</option></select></div>
+    <div class="fg"><label>Category filter</label>
+      <select class="fs2" id="insp-cat" onchange="updateInspPreview()">
+        <option value="All">All Categories</option><option>HVAC</option><option>Electrical</option><option>Plumbing</option><option>Security</option><option>Safety</option><option>Structural</option><option>Equipment</option><option>Tools</option><option>General</option>
+      </select>
+    </div>
+    <div id="insp-asset-preview" style="margin:0 18px 12px;padding:12px 14px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--sub)">Select a building to preview assets</div>
+    <button class="btn-p" onclick="launchInspectionRound()">Start Round →</button>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+<!-- Inspection Round Summary -->
+<div class="mo" id="mo-insp-summary" onclick="mcClick(event,'mo-insp-summary')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt"><span>Round Complete</span><button class="mt-close" onclick="closeMo('mo-insp-summary')">✕</button></div>
+    <div id="insp-summary-body" style="padding:0 18px 12px"></div>
+    <button class="btn-p" id="insp-save-btn" onclick="saveInspectionRound()">Save Round</button>
+    <button class="btn-s" onclick="closeMo('mo-insp-summary')">Keep Reviewing</button>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+<!-- Inspection Detail -->
+<div class="mo" id="mo-insp-detail" onclick="mcClick(event,'mo-insp-detail')">
+  <div class="ms" style="max-height:88vh">
+    <div class="mh"></div>
+    <div class="mt"><span id="insp-detail-title">Inspection</span><button class="mt-close" onclick="closeMo('mo-insp-detail')">✕</button></div>
+    <div id="insp-detail-body" style="overflow-y:auto;padding-bottom:24px"></div>
+  </div>
+</div>
 
 <!-- Google Identity Services + GAPI -->
 <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
