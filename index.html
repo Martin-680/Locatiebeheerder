@@ -2506,7 +2506,10 @@ function inspListCardHTML(r){
 /* ── Start-round modal ── */
 function openStartInspection(){
   if(!can('canStartInspection')){ toast('No permission to start inspections','err'); return; }
+  const bldEl = document.getElementById('insp-bldg');
+  if(bldEl) bldEl.value = '';
   populateBldSelect('insp-bldg');
+  document.getElementById('insp-bldg').value = '';
   document.getElementById('insp-floor').innerHTML = '<option value="">All floors</option>';
   document.getElementById('insp-cat').value = 'All';
   document.getElementById('insp-asset-preview').textContent = 'Select a building to preview assets';
