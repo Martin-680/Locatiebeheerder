@@ -2632,11 +2632,6 @@ function inspRoundItemHTML(item, idx){
         </div>
         <div class="insp-note-wrap${isFail?' show':''}" id="insp-note-wrap-${idx}">
           <textarea class="insp-note-inp" id="insp-note-${idx}" placeholder="Describe the issue (required for failures)…" oninput="onInspNoteInput(${idx})">${item.note||''}</textarea>
-          ${can('canCreateTickets') && isFail ? `
-          <button onclick="createTicketFromFailure(${idx})" style="padding:9px 14px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--red);display:flex;align-items:center;gap:6px;width:100%;justify-content:center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Create Ticket for this Failure
-          </button>` : ''}
         </div>
       </div>
     </div>`;
@@ -2675,18 +2670,6 @@ function setInspResult(idx, result){
     } else {
       chip.className = 'badge b-open';
       chip.innerHTML = 'Open';
-    }
-  }
-
-  // Refresh create-ticket button visibility inside note area
-  if(item.result === 'Failed' && can('canCreateTickets') && noteWrap){
-    if(!noteWrap.querySelector('.insp-create-tix-btn')){
-      const createBtn = document.createElement('button');
-      createBtn.className = 'insp-create-tix-btn';
-      createBtn.style.cssText = 'padding:9px 14px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--red);display:flex;align-items:center;gap:6px;width:100%;justify-content:center;font-family:inherit;cursor:pointer;margin-top:4px';
-      createBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Create Ticket for this Failure`;
-      createBtn.onclick = () => createTicketFromFailure(idx);
-      noteWrap.appendChild(createBtn);
     }
   }
 
@@ -2760,10 +2743,6 @@ function finishInspectionRound(){
         <div style="font-size:13px;font-weight:700;margin-bottom:3px">${item.label}</div>
         <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${item.category}${item.location?' · '+item.location:''}</div>
         <div style="font-size:12px;color:var(--text);background:#fff;border-radius:6px;padding:8px 10px;border:1px solid rgba(220,38,38,.15)">${item.note}</div>
-        ${can('canCreateTickets') ? `<button onclick="createTicketFromFailure_summary(${activeRound.items.indexOf(item)})" style="margin-top:8px;width:100%;padding:9px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--red);font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Create Ticket
-        </button>` : ''}
       </div>`).join('')}` : `
     <div style="text-align:center;padding:20px;background:#F0FDF4;border-radius:var(--rs);margin-bottom:12px">
       <div style="font-size:28px;margin-bottom:6px">✅</div>
