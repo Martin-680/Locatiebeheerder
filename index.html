@@ -886,7 +886,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
-  assets:    ['id','name','building','floor','location','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
+  assets:    ['id','name','building','floor','unit','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
@@ -1321,11 +1321,11 @@ function tfOnUnitChange(){
   const assets=DB.assets.filter(a=>{
     if(a.building!==bldg) return false;
     if(floorLabel&&a.floor&&a.floor!==floorLabel) return false;
-    if(unit&&a.location&&a.location!==unit) return false;
+    if(unit&&a.unit&&a.unit!==unit) return false;
     return true;
   });
   const astSel=document.getElementById('tf-asset');
-  astSel.innerHTML='<option value="">None</option>'+assets.map(a=>`<option value="${a.id}">${a.name}${a.location?' · '+a.location:''}</option>`).join('');
+  astSel.innerHTML='<option value="">None</option>'+assets.map(a=>`<option value="${a.id}">${a.name}${a.unit?' · '+a.unit:''}</option>`).join('');
 }
 function tfOnAssetChange(){
   const assetId=document.getElementById('tf-asset').value;
@@ -1775,7 +1775,7 @@ function editTix(id){
   const astSel=document.getElementById('tf-asset');
   if(t.assetId&&![...astSel.options].some(o=>o.value===t.assetId)){
     const a=DB.assets.find(x=>x.id===t.assetId);
-    if(a){const opt=document.createElement('option');opt.value=a.id;opt.textContent=`${a.name}${a.location?' · '+a.location:''}`;astSel.appendChild(opt);}
+    if(a){const opt=document.createElement('option');opt.value=a.id;opt.textContent=`${a.name}${a.unit?' · '+a.unit:''}`;astSel.appendChild(opt);}
   }
   astSel.value=t.assetId||'';
   tfOnAssetChange();
@@ -1890,7 +1890,7 @@ function astCardHTML(a, onclick){
     <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</div><div class="bs-lbl">Building</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.location||'—'}</div><div class="bs-lbl">Location</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.category}</div><div class="bs-lbl">Category</div></div>
     </div>
   </div>`;
@@ -1927,7 +1927,7 @@ function openAstDetail(id){
     <div style="padding:0 18px">
       <div class="dr"><span class="dk">Building</span><span class="dv">${a.building}</span></div>
       ${a.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${a.floor}</span></div>`:''}
-      <div class="dr"><span class="dk">Location</span><span class="dv">${a.location||'—'}</span></div>
+      <div class="dr"><span class="dk">Unit</span><span class="dv">${a.unit||'—'}</span></div>
       <div class="dr"><span class="dk">Category</span><span class="dv">${a.category}</span></div>
       <div class="dr"><span class="dk">Manufacturer</span><span class="dv">${a.manufacturer||'—'}</span></div>
       <div class="dr"><span class="dk">Model</span><span class="dv">${a.model||'—'}</span></div>
@@ -1960,7 +1960,7 @@ function editAst(id){
   document.getElementById('af-name').value=a.name;
   populateBldSelect('af-bldg'); document.getElementById('af-bldg').value=a.building;
   populateSubs('af-sub','af-bldg'); document.getElementById('af-sub').value=a.floor||'';
-  document.getElementById('af-loc').value=a.location||'';
+  document.getElementById('af-loc').value=a.unit||'';
   document.getElementById('af-cat').value=a.category||'General';
   document.getElementById('af-status').value=a.status||'Active';
   document.getElementById('af-mfr').value=a.manufacturer||'';
@@ -1973,7 +1973,7 @@ function editAst(id){
 async function saveAst(){
   const name=document.getElementById('af-name').value.trim();
   if(!name){toast('Asset name required','err');return;}
-  const data={name,building:document.getElementById('af-bldg').value,floor:document.getElementById('af-sub').value,location:document.getElementById('af-loc').value,category:document.getElementById('af-cat').value,status:document.getElementById('af-status').value,manufacturer:document.getElementById('af-mfr').value,model:document.getElementById('af-model').value,warrantyExpiry:document.getElementById('af-warr').value,purchaseDate:document.getElementById('af-pdate').value,lastServiced:document.getElementById('af-lsvc').value};
+  const data={name,building:document.getElementById('af-bldg').value,floor:document.getElementById('af-sub').value,unit:document.getElementById('af-loc').value,category:document.getElementById('af-cat').value,status:document.getElementById('af-status').value,manufacturer:document.getElementById('af-mfr').value,model:document.getElementById('af-model').value,warrantyExpiry:document.getElementById('af-warr').value,purchaseDate:document.getElementById('af-pdate').value,lastServiced:document.getElementById('af-lsvc').value};
   if(editingId.ast){ Object.assign(DB.assets.find(x=>x.id===editingId.ast),data); }
   else { DB.assets.push({id:nextId(DB.assets,'AST'),...data}); }
   closeMo('mo-ast');
@@ -2523,7 +2523,7 @@ function launchInspectionRound(){
     building   : bldg,
     floor      : floor,
     category   : cat,
-    items      : assets.map(a => ({ assetId: a.id, label: a.name, category: a.category, location: a.location||'', floor: a.floor||'', result: 'Open', note: '' }))
+    items      : assets.map(a => ({ assetId: a.id, label: a.name, category: a.category, unit: a.unit||'', floor: a.floor||'', result: 'Open', note: '' }))
   };
 
   closeMo('mo-insp-start');
@@ -2575,7 +2575,7 @@ function inspRoundItemHTML(item, idx){
         <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
           <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${activeRound.building}</div><div class="bs-lbl">Building</div></div>
           <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
-          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.location||'—'}</div><div class="bs-lbl">Location</div></div>
+          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
           <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.category}</div><div class="bs-lbl">Category</div></div>
         </div>
       </div>`;
@@ -2704,7 +2704,7 @@ function finishInspectionRound(){
     ${failedItems.map((item, i) => `
       <div style="background:#FEF2F2;border:1px solid rgba(220,38,38,.18);border-radius:var(--rs);padding:11px 14px;margin-bottom:8px">
         <div style="font-size:13px;font-weight:700;margin-bottom:3px">${item.label}</div>
-        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${item.category}${item.location?' · '+item.location:''}</div>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${item.category}${item.unit?' · '+item.unit:''}</div>
         <div style="font-size:12px;color:var(--text);background:#fff;border-radius:6px;padding:8px 10px;border:1px solid rgba(220,38,38,.15)">${item.note}</div>
       </div>`).join('')}` : `
     <div style="text-align:center;padding:20px;background:#F0FDF4;border-radius:var(--rs);margin-bottom:12px">
@@ -2810,7 +2810,7 @@ function _prefillTicketFromFailure(item){
     if(a){
       if(![...astSel.options].some(o => o.value === item.assetId)){
         const opt = document.createElement('option');
-        opt.value = a.id; opt.textContent = `${a.name}${a.location?' · '+a.location:''}`;
+        opt.value = a.id; opt.textContent = `${a.name}${a.unit?' · '+a.unit:''}`;
         astSel.appendChild(opt);
       }
       astSel.value = item.assetId;
@@ -2867,7 +2867,7 @@ function openInspDetail(id){
           </div>
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:600">${item.label}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">${item.category}${item.location?' · '+item.location:''}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px">${item.category}${item.unit?' · '+item.unit:''}</div>
             ${item.note ? `<div style="font-size:12px;color:var(--sub);margin-top:5px;background:#F8FAFF;border-radius:6px;padding:6px 8px;border:1px solid var(--border)">${item.note}</div>` : ''}
           </div>
           <span style="font-size:11px;font-weight:700;flex-shrink:0;color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">${item.result}</span>
