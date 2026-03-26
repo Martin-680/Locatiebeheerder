@@ -246,10 +246,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .bs-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
 .bc-subs{padding:0 16px 14px;}
 .sub-tag{display:inline-flex;align-items:center;gap:5px;background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:8px;padding:4px 10px;font-size:12px;margin:3px 3px 3px 0;}
-.floors-ms{display:flex;flex-wrap:wrap;gap:8px;padding:6px 0;}
-.floor-chip{padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--sub);transition:all .15s;user-select:none;}
-.floor-chip.selected{background:#2563EB;border-color:#2563EB;color:#fff;}
-.floor-chip:active{transform:scale(.94);}
 
 /* ── SUPPLIER ── */
 .sup-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);margin:0 14px 8px;padding:14px 16px;cursor:pointer;}
@@ -792,10 +788,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fg"><label>Manager</label><select class="fs2" id="bf-mgr"></select></div>
       <div class="fg"><label>Phone</label><input class="fi2" id="bf-phone" placeholder="555-XXXX"/></div>
     </div>
-    <div class="fg"><label>Floors</label>
-      <div class="floors-ms" id="bf-floors-ms"></div>
-      <input type="hidden" id="bf-subs"/>
-    </div>
     <button class="btn-p" onclick="saveBld()">Save Building</button>
     <button class="btn-s" onclick="closeMo('mo-bld')">Cancel</button>
   </div>
@@ -888,16 +880,18 @@ const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.go
 const DISCOVERY   = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
 
 /* Sheet tab names — must match exactly what you created */
-const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections' };
+const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', floors:'Floors', units:'Units' };
 
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
-  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone','subs','unitsList'],
+  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
   assets:    ['id','name','building','subdivision','location','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','subdivision','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections: ['id','building','subdivision','category','date','inspector','status','items','notes'],
+  floors:    ['id','buildingId','label','sortOrder'],
+  units:     ['id','floorId','buildingId','label'],
 };
 
 /* ══════════════════════════════════════════════════════════
@@ -918,7 +912,7 @@ function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
    STATE
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
-let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[] };
+let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], floors:[], units:[] };
 let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
@@ -1103,13 +1097,15 @@ function rowsToObjects(rows, cols){
 }
 
 async function loadAllData(){
-  const [users,buildings,assets,tickets,suppliers,inspections] = await Promise.all([
+  const [users,buildings,assets,tickets,suppliers,inspections,floors,units] = await Promise.all([
     sheetsGet(`${TABS.users}!A:Z`),
     sheetsGet(`${TABS.buildings}!A:Z`),
     sheetsGet(`${TABS.assets}!A:Z`),
     sheetsGet(`${TABS.tickets}!A:Z`),
     sheetsGet(`${TABS.suppliers}!A:Z`),
     sheetsGet(`${TABS.inspections}!A:Z`),
+    sheetsGet(`${TABS.floors}!A:Z`),
+    sheetsGet(`${TABS.units}!A:Z`),
   ]);
   DB.users     = rowsToObjects(users,     COLS.users);
   DB.buildings = rowsToObjects(buildings, COLS.buildings);
@@ -1121,6 +1117,8 @@ async function loadAllData(){
     catch(e){ r.items=[]; }
     return r;
   });
+  DB.floors = rowsToObjects(floors, COLS.floors).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
+  DB.units  = rowsToObjects(units,  COLS.units);
 }
 
 async function loadSheet(key){
@@ -1270,90 +1268,59 @@ function populateBldSelect(id){
   el.innerHTML='<option value="">Select…</option>'+DB.buildings.map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
   if(DB.buildings.find(b=>b.name===cur)) el.value=cur;
 }
-function parseSubs(raw){
-  if(!raw) return [];
-  if(Array.isArray(raw)) return raw.filter(Boolean);
-  const s=String(raw).trim();
-  if(s.startsWith('[')){ try{ return JSON.parse(s).filter(Boolean); }catch(e){} }
-  return s.split(',').map(x=>x.trim()).filter(Boolean);
+/* ── getFloorsForBuilding: returns sorted floors from DB for a given building id or name ── */
+function getFloorsForBuilding(bldgIdOrName){
+  const b = DB.buildings.find(x => x.id === bldgIdOrName || x.name === bldgIdOrName);
+  if(!b) return [];
+  return DB.floors.filter(f => f.buildingId === b.id).sort((a,z) => a.sortOrder - z.sortOrder);
 }
-const FLOOR_OPTIONS = ["-2", "-1", "bg", "1e", "2e", "3e", "4e", "dak", "garage"];
-function renderFloorChips(msId, hiddenId, selected){
-  const wrap = document.getElementById(msId); if(!wrap) return;
-  const sel = new Set(Array.isArray(selected)?selected:parseSubs(selected));
-  wrap.innerHTML = FLOOR_OPTIONS.map(f=>
-    `<div class="floor-chip${sel.has(f)?' selected':''}" onclick="toggleFloor(this,'${f}','${hiddenId}')">${f}</div>`
-  ).join('');
-  syncFloorHidden(hiddenId, wrap);
-}
-function toggleFloor(chip, val, hiddenId){
-  chip.classList.toggle('selected');
-  syncFloorHidden(hiddenId, chip.closest('.floors-ms'));
-}
-function syncFloorHidden(hiddenId, wrap){
-  const sel = [...wrap.querySelectorAll('.floor-chip.selected')].map(c=>c.textContent.trim());
-  const el = document.getElementById(hiddenId); if(el) el.value = sel.join(', ');
-}
-function populateSubs(subId,bldId){
-  const bldEl=document.getElementById(bldId); if(!bldEl) return;
-  const sel=document.getElementById(subId); if(!sel) return;
-  const b=DB.buildings.find(x=>x.name===bldEl.value);
-  const subs=parseSubs(b?.subs);
-  sel.innerHTML='<option value="">— Select floor —</option>'+subs.map(s=>`<option value="${s}">${s}</option>`).join('');
-}
-
-/* ── parseUnits: parses "Floor1:Unit1,Unit2|Floor2:Unit3" into a map ── */
-function parseUnits(raw){
-  const map={};
-  if(!raw) return map;
-  String(raw).split('|').forEach(part=>{
-    const [floor,...rest]=part.split(':');
-    const f=floor.trim(); if(!f) return;
-    map[f]=rest.join(':').split(',').map(u=>u.trim()).filter(Boolean);
-  });
-  return map;
+function populateSubs(subId, bldId){
+  const bldEl = document.getElementById(bldId); if(!bldEl) return;
+  const sel   = document.getElementById(subId);  if(!sel)   return;
+  const floors = getFloorsForBuilding(bldEl.value);
+  sel.innerHTML = '<option value="">— Select floor —</option>'
+    + floors.map(f => `<option value="${f.id}">${f.label}</option>`).join('');
 }
 
 /* ── Ticket form cascade functions ── */
 function tfOnBldgChange(){
   const bldg=document.getElementById('tf-bldg').value;
-  const b=DB.buildings.find(x=>x.name===bldg);
   // Reset downstream
   document.getElementById('tf-unit').innerHTML='<option value="">— Select unit —</option>';
   document.getElementById('tf-asset').innerHTML='<option value="">None</option>';
   document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
-  // Populate floor
-  const subs=parseSubs(b?.subs);
+  // Populate floor from DB.floors
+  const floors=getFloorsForBuilding(bldg);
   const floorSel=document.getElementById('tf-sub');
-  floorSel.innerHTML='<option value="">— Select floor —</option>'+subs.map(s=>`<option value="${s}">${s}</option>`).join('');
+  floorSel.innerHTML='<option value="">— Select floor —</option>'+floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
 }
 function tfOnFloorChange(){
-  const bldg=document.getElementById('tf-bldg').value;
-  const floor=document.getElementById('tf-sub').value;
-  const b=DB.buildings.find(x=>x.name===bldg);
+  const floorId=document.getElementById('tf-sub').value;
+  const floor=DB.floors.find(f=>f.id===floorId);
   // Reset downstream
   document.getElementById('tf-asset').innerHTML='<option value="">None</option>';
   document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
-  // Populate unit
-  const unitMap=parseUnits(b?.unitsList);
-  const units=floor&&unitMap[floor]?unitMap[floor]:[];
+  // Populate units from DB.units
+  const unitList=floorId ? DB.units.filter(u=>u.floorId===floorId) : [];
   const unitSel=document.getElementById('tf-unit');
-  if(units.length){
-    unitSel.innerHTML='<option value="">— Select unit —</option>'+units.map(u=>`<option value="${u}">${u}</option>`).join('');
+  if(unitList.length){
+    unitSel.innerHTML='<option value="">— Select unit —</option>'+unitList.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
   } else {
     unitSel.innerHTML='<option value="">— None —</option>';
   }
 }
 function tfOnUnitChange(){
   const bldg=document.getElementById('tf-bldg').value;
-  const floor=document.getElementById('tf-sub').value;
+  const floorId=document.getElementById('tf-sub').value;
+  const floor=DB.floors.find(f=>f.id===floorId);
+  const floorLabel=floor?floor.label:'';
   const unit=document.getElementById('tf-unit').value;
   // Reset downstream
   document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
-  // Populate assets filtered by building + floor + location
+  // Populate assets filtered by building + floor label + location
   const assets=DB.assets.filter(a=>{
     if(a.building!==bldg) return false;
-    if(floor&&a.subdivision&&a.subdivision!==floor) return false;
+    if(floorLabel&&a.subdivision&&a.subdivision!==floorLabel) return false;
     if(unit&&a.location&&a.location!==unit) return false;
     return true;
   });
@@ -2144,7 +2111,7 @@ function openFloorView(buildingName, buildingId, floorEnc){
 ══════════════════════════════════════════════════════════ */
 function openBldDetail(id){
   const b=DB.buildings.find(x=>x.id===id); if(!b) return;
-  const subs=parseSubs(b.subs);
+  const floorCount=DB.floors.filter(f=>f.buildingId===b.id).length;
   const allTix=DB.tickets.filter(t=>t.building===b.name);
   const openTix=allTix.filter(t=>t.status!=='Closed');
   const allAsts=DB.assets.filter(a=>a.building===b.name);
@@ -2167,7 +2134,7 @@ function openBldDetail(id){
       </div>
     </div>
     <div class="bc-body">
-      <div class="bs"><div class="bs-val">${subs.length}</div><div class="bs-lbl">Floors</div></div>
+      <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
       <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
       <div class="bs"><div class="bs-val">${openTix.length}</div><div class="bs-lbl">Open Tix</div></div>
       <div class="bs"><div class="bs-val">${allAsts.length}</div><div class="bs-lbl">Assets</div></div>
@@ -2212,14 +2179,14 @@ function renderBlds(){
   const c=document.getElementById('bld-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><div style="font-size:13px">No buildings yet</div></div>';return;}
   c.innerHTML=list.map(b=>{
-    const subs=parseSubs(b.subs);
+    const floorCount=DB.floors.filter(f=>f.buildingId===b.id).length;
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
     return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
       <div class="bc-hdr">
         <div><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''} ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px">${b.phone}</div>`:''}</div>
       </div>
       <div class="bc-body">
-        <div class="bs"><div class="bs-val">${subs.length}</div><div class="bs-lbl">Floors</div></div>
+        <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
         <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
         <div class="bs"><div class="bs-val">${openTix}</div><div class="bs-lbl">Open Tix</div></div>
         <div class="bs"><div class="bs-val">${DB.assets.filter(a=>a.building===b.name).length}</div><div class="bs-lbl">Assets</div></div>
@@ -2231,9 +2198,8 @@ function openNewBuilding(){
   if(!can('canManageBuildings')) return;
   editingId.bld=null;
   document.getElementById('bld-modal-title').textContent='Add Building';
-  ['bf-name','bf-addr','bf-daysopen','bf-timeopen','bf-units','bf-year','bf-phone','bf-subs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['bf-name','bf-addr','bf-daysopen','bf-timeopen','bf-units','bf-year','bf-phone'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   populateMgrSelect('bf-mgr');
-  renderFloorChips('bf-floors-ms','bf-subs',[]);
   openMo('mo-bld');
 }
 function editBld(id){
@@ -2248,18 +2214,13 @@ function editBld(id){
   document.getElementById('bf-units').value=b.units||'';
   document.getElementById('bf-year').value=b.yearBuilt||'';
   document.getElementById('bf-phone').value=b.phone||'';
-  const subs=parseSubs(b.subs);
-  document.getElementById('bf-subs').value=subs.join(', ');
   populateMgrSelect('bf-mgr'); document.getElementById('bf-mgr').value=b.manager||'';
-  renderFloorChips('bf-floors-ms','bf-subs',subs);
   openMo('mo-bld');
 }
 async function saveBld(){
   const name=document.getElementById('bf-name').value.trim();
   if(!name){toast('Building name required','err');return;}
-  const subsRaw=document.getElementById('bf-subs').value;
-  const subs=subsRaw?subsRaw.split(',').map(s=>s.trim()).filter(Boolean):[];
-  const data={name,address:document.getElementById('bf-addr').value,daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,yearBuilt:parseInt(document.getElementById('bf-year').value)||'',manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value,subs:subs.join(', ')};
+  const data={name,address:document.getElementById('bf-addr').value,daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,yearBuilt:parseInt(document.getElementById('bf-year').value)||'',manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value};
   if(editingId.bld){ Object.assign(DB.buildings.find(x=>x.id===editingId.bld),data); }
   else { DB.buildings.push({id:nextId(DB.buildings,'BLD'),...data}); }
   closeMo('mo-bld');
@@ -2518,10 +2479,9 @@ function openStartInspection(){
 
 function inspOnBldgChange(){
   const bldg = document.getElementById('insp-bldg').value;
-  const b    = DB.buildings.find(x => x.name === bldg);
-  const subs = parseSubs(b?.subs);
-  const fl   = document.getElementById('insp-floor');
-  fl.innerHTML = '<option value="">All floors</option>' + subs.map(s=>`<option value="${s}">${s}</option>`).join('');
+  const floors = getFloorsForBuilding(bldg);
+  const fl = document.getElementById('insp-floor');
+  fl.innerHTML = '<option value="">All floors</option>' + floors.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
   updateInspPreview();
 }
 
