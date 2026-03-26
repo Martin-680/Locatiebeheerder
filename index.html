@@ -886,10 +886,10 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
-  assets:    ['id','name','building','subdivision','location','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
-  tickets:   ['id','building','subdivision','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
+  assets:    ['id','name','building','floor','location','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
+  tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
-  inspections: ['id','building','subdivision','category','date','inspector','status','items','notes'],
+  inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
   floors:    ['id','buildingId','label','sortOrder'],
   units:     ['id','floorId','buildingId','label'],
 };
@@ -1320,7 +1320,7 @@ function tfOnUnitChange(){
   // Populate assets filtered by building + floor label + location
   const assets=DB.assets.filter(a=>{
     if(a.building!==bldg) return false;
-    if(floorLabel&&a.subdivision&&a.subdivision!==floorLabel) return false;
+    if(floorLabel&&a.floor&&a.floor!==floorLabel) return false;
     if(unit&&a.location&&a.location!==unit) return false;
     return true;
   });
@@ -1610,7 +1610,7 @@ function tixItemHTML(t,clickable=true){
       </div>
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.building}</div><div class="bs-lbl">Building</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${t.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${t.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.unit||'—'}</div><div class="bs-lbl">Location</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;${daysColor}">${days||'—'}</div><div class="bs-lbl">Age</div></div>
       </div>
@@ -1647,7 +1647,7 @@ function openTixDetail(id){
     </div>
     <div style="padding:0 18px">
       <div class="dr"><span class="dk">Building</span><span class="dv">${t.building}</span></div>
-      ${t.subdivision?`<div class="dr"><span class="dk">Floor</span><span class="dv">${t.subdivision}</span></div>`:''}
+      ${t.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${t.floor}</span></div>`:''}
       <div class="dr"><span class="dk">Unit / Area</span><span class="dv">${t.unit||'—'}</span></div>
       <div class="dr"><span class="dk">Assigned To</span><span class="dv">${t.assignedTo||'—'}</span></div>
       <div class="dr"><span class="dk">Opened</span><span class="dv">${df(t.dateOpened)}</span></div>
@@ -1757,7 +1757,7 @@ function editTix(id){
   populateBldSelect('tf-bldg');
   document.getElementById('tf-bldg').value=t.building;
   tfOnBldgChange();
-  document.getElementById('tf-sub').value=t.subdivision||'';
+  document.getElementById('tf-sub').value=t.floor||'';
   tfOnFloorChange();
   // Restore unit value — set after populating
   const unitSel=document.getElementById('tf-unit');
@@ -1799,7 +1799,7 @@ async function saveTix(){
     if(t){
       const prevStatus=t.status;
       t.building=document.getElementById('tf-bldg').value;
-      t.subdivision=document.getElementById('tf-sub').value;
+      t.floor=document.getElementById('tf-sub').value;
       t.unit=document.getElementById('tf-unit').value||'TBD';
       t.subject=subj; t.priority=document.getElementById('tf-pri').value;
       t.category=document.getElementById('tf-cat').value;
@@ -1817,7 +1817,7 @@ async function saveTix(){
     }
   } else {
     const id=nextId(DB.tickets,'TKT');
-    DB.tickets.unshift({id,building:document.getElementById('tf-bldg').value,subdivision:document.getElementById('tf-sub').value,unit:document.getElementById('tf-unit').value||'TBD',subject:subj,status,priority:document.getElementById('tf-pri').value,category:document.getElementById('tf-cat').value,assignedTo:document.getElementById('tf-assign').value,dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}])});
+    DB.tickets.unshift({id,building:document.getElementById('tf-bldg').value,floor:document.getElementById('tf-sub').value,unit:document.getElementById('tf-unit').value||'TBD',subject:subj,status,priority:document.getElementById('tf-pri').value,category:document.getElementById('tf-cat').value,assignedTo:document.getElementById('tf-assign').value,dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}])});
   }
   closeMo('mo-tix');
   await writeSheet('tickets');
@@ -1866,7 +1866,7 @@ async function saveQuickTicket(){
   if(!subj){toast('Subject required','err');return;}
   if(!bldg){toast('Building required','err');return;}
   const id=nextId(DB.tickets,'TKT');
-  DB.tickets.unshift({id,building:bldg,subdivision:'',unit:'TBD',subject:subj,status:'Open',priority:document.getElementById('qt-pri').value,category:'General',assignedTo:'',dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:'',supplierId:'',reportedBy:'',notes:'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Quick ticket created'}])});
+  DB.tickets.unshift({id,building:bldg,floor:'',unit:'TBD',subject:subj,status:'Open',priority:document.getElementById('qt-pri').value,category:'General',assignedTo:'',dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:'',supplierId:'',reportedBy:'',notes:'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Quick ticket created'}])});
   closeMo('mo-quick-tix');
   await writeSheet('tickets');
   toast(`${id} created`);
@@ -1889,7 +1889,7 @@ function astCardHTML(a, onclick){
     </div>
     <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</div><div class="bs-lbl">Building</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.location||'—'}</div><div class="bs-lbl">Location</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.category}</div><div class="bs-lbl">Category</div></div>
     </div>
@@ -1926,7 +1926,7 @@ function openAstDetail(id){
     </div>
     <div style="padding:0 18px">
       <div class="dr"><span class="dk">Building</span><span class="dv">${a.building}</span></div>
-      ${a.subdivision?`<div class="dr"><span class="dk">Floor</span><span class="dv">${a.subdivision}</span></div>`:''}
+      ${a.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${a.floor}</span></div>`:''}
       <div class="dr"><span class="dk">Location</span><span class="dv">${a.location||'—'}</span></div>
       <div class="dr"><span class="dk">Category</span><span class="dv">${a.category}</span></div>
       <div class="dr"><span class="dk">Manufacturer</span><span class="dv">${a.manufacturer||'—'}</span></div>
@@ -1959,7 +1959,7 @@ function editAst(id){
   document.getElementById('ast-modal-title').textContent='Edit Asset';
   document.getElementById('af-name').value=a.name;
   populateBldSelect('af-bldg'); document.getElementById('af-bldg').value=a.building;
-  populateSubs('af-sub','af-bldg'); document.getElementById('af-sub').value=a.subdivision||'';
+  populateSubs('af-sub','af-bldg'); document.getElementById('af-sub').value=a.floor||'';
   document.getElementById('af-loc').value=a.location||'';
   document.getElementById('af-cat').value=a.category||'General';
   document.getElementById('af-status').value=a.status||'Active';
@@ -1973,7 +1973,7 @@ function editAst(id){
 async function saveAst(){
   const name=document.getElementById('af-name').value.trim();
   if(!name){toast('Asset name required','err');return;}
-  const data={name,building:document.getElementById('af-bldg').value,subdivision:document.getElementById('af-sub').value,location:document.getElementById('af-loc').value,category:document.getElementById('af-cat').value,status:document.getElementById('af-status').value,manufacturer:document.getElementById('af-mfr').value,model:document.getElementById('af-model').value,warrantyExpiry:document.getElementById('af-warr').value,purchaseDate:document.getElementById('af-pdate').value,lastServiced:document.getElementById('af-lsvc').value};
+  const data={name,building:document.getElementById('af-bldg').value,floor:document.getElementById('af-sub').value,location:document.getElementById('af-loc').value,category:document.getElementById('af-cat').value,status:document.getElementById('af-status').value,manufacturer:document.getElementById('af-mfr').value,model:document.getElementById('af-model').value,warrantyExpiry:document.getElementById('af-warr').value,purchaseDate:document.getElementById('af-pdate').value,lastServiced:document.getElementById('af-lsvc').value};
   if(editingId.ast){ Object.assign(DB.assets.find(x=>x.id===editingId.ast),data); }
   else { DB.assets.push({id:nextId(DB.assets,'AST'),...data}); }
   closeMo('mo-ast');
@@ -2053,8 +2053,8 @@ function openFloorView(buildingName, buildingId, floorEnc){
   document.getElementById('floor-view-title').textContent = floor;
   document.getElementById('floor-view-sub').textContent = buildingName;
 
-  const tickets   = DB.tickets.filter(t=>t.building===buildingName && t.subdivision===floor);
-  const assets    = DB.assets.filter(a=>a.building===buildingName && a.subdivision===floor);
+  const tickets   = DB.tickets.filter(t=>t.building===buildingName && t.floor===floor);
+  const assets    = DB.assets.filter(a=>a.building===buildingName && a.floor===floor);
   const suppliers = DB.suppliers.filter(s=>
     tickets.some(t=>t.supplierId===s.id) || assets.some(a=>false)
   );
@@ -2382,7 +2382,7 @@ async function saveSupplier(){
 ══════════════════════════════════════════════════════════ */
 
 /* ── State for the active round ── */
-let activeRound = null; // { inspId, building, subdivision, category, items:[{assetId,label,category,result,note}] }
+let activeRound = null; // { inspId, building, floor, category, items:[{assetId,label,category,result,note}] }
 
 /* ── List view ── */
 function goInspPage(p){ setPage('insp',p); renderInspections(); }
@@ -2444,7 +2444,7 @@ function inspListCardHTML(r){
   return `<div class="insp-list-card" onclick="openInspDetail('${r.id}')">
     <div class="insp-list-hdr">
       <div>
-        <div class="insp-list-title">${r.building}${r.subdivision ? ' · ' + r.subdivision : ''}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
+        <div class="insp-list-title">${r.building}${r.floor ? ' · ' + r.floor : ''}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
         <div class="insp-list-sub">${df(r.date)} · ${r.inspector}</div>
       </div>
       <span class="badge" style="background:${stBg};color:${stColor};flex-shrink:0">${stLabel}</span>
@@ -2502,7 +2502,7 @@ function updateInspPreview(){
 function getInspAssets(bldg, floor, cat){
   return DB.assets.filter(a => {
     if(a.building !== bldg) return false;
-    if(floor && a.subdivision && a.subdivision !== floor) return false;
+    if(floor && a.floor && a.floor !== floor) return false;
     if(cat && cat !== 'All' && a.category !== cat) return false;
     return true;
   });
@@ -2521,9 +2521,9 @@ function launchInspectionRound(){
   activeRound = {
     inspId,
     building   : bldg,
-    subdivision: floor,
+    floor      : floor,
     category   : cat,
-    items      : assets.map(a => ({ assetId: a.id, label: a.name, category: a.category, location: a.location||'', subdivision: a.subdivision||'', result: 'Open', note: '' }))
+    items      : assets.map(a => ({ assetId: a.id, label: a.name, category: a.category, location: a.location||'', floor: a.floor||'', result: 'Open', note: '' }))
   };
 
   closeMo('mo-insp-start');
@@ -2574,7 +2574,7 @@ function inspRoundItemHTML(item, idx){
         </div>
         <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
           <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${activeRound.building}</div><div class="bs-lbl">Building</div></div>
-          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.subdivision||'—'}</div><div class="bs-lbl">Floor</div></div>
+          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
           <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.location||'—'}</div><div class="bs-lbl">Location</div></div>
           <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.category}</div><div class="bs-lbl">Category</div></div>
         </div>
@@ -2733,7 +2733,7 @@ async function saveInspectionRound(){
   const newInsp = {
     id          : activeRound.inspId,
     building    : activeRound.building,
-    subdivision : activeRound.subdivision,
+    floor      : activeRound.floor,
     category    : activeRound.category,
     date        : today.toISOString().split('T')[0],
     inspector   : currentUser.name,
@@ -2797,8 +2797,8 @@ function _prefillTicketFromFailure(item){
 
   // Restore floor
   const floorSel = document.getElementById('tf-sub');
-  if(item.subdivision && [...floorSel.options].some(o => o.value === item.subdivision)){
-    floorSel.value = item.subdivision;
+  if(item.floor && [...floorSel.options].some(o => o.value === item.floor)){
+    floorSel.value = item.floor;
     tfOnFloorChange();
   }
 
@@ -2836,7 +2836,7 @@ function openInspDetail(id){
   document.getElementById('insp-detail-body').innerHTML = `
     <div style="padding:0 18px 8px">
       <div style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--teal);margin-bottom:4px">${r.id}</div>
-      <div style="font-size:19px;font-weight:700;margin-bottom:6px">${r.building}${r.subdivision?' · '+r.subdivision:''}</div>
+      <div style="font-size:19px;font-weight:700;margin-bottom:6px">${r.building}${r.floor?' · '+r.floor:''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
         <span class="badge" style="background:${stBg};color:${stColor}">${r.status}</span>
         ${r.category && r.category !== 'All' ? `<span class="badge" style="background:rgba(99,102,241,.12);color:#818CF8">${r.category}</span>` : ''}
