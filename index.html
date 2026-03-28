@@ -635,6 +635,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="topbar-inner">
         <div class="topbar-left"><div class="topbar-title">Units</div><div class="topbar-sub" id="unit-lbl"></div></div>
         <div class="topbar-actions">
+          <button class="ib" onclick="openNewUnit()" id="btn-new-unit" style="display:none" title="Add Unit"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
         </div>
       </div>
@@ -923,7 +924,7 @@ const COLS = {
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
   floors:    ['id','buildingId','label','sortOrder'],
-  units:     ['id','floorId','buildingId','label'],
+  units:     ['id','floorId','buildingId','label','sortOrder'],
 };
 
 /* ══════════════════════════════════════════════════════════
@@ -945,7 +946,7 @@ function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
 let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], floors:[], units:[] };
-let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null };
+let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
 const pages = { tix:1, ast:1, usr:1, bld:1, sup:1, insp:1 };
@@ -1317,6 +1318,7 @@ function applyPermUI(){
   show('btn-new-ast',p.canEditAssets);
   show('btn-new-usr',p.canManageUsers);
   show('btn-new-bld',p.canManageBuildings);
+  show('btn-new-unit',p.canManageBuildings);
   show('btn-new-sup',p.canManageSuppliers);
   show('btn-new-insp',p.canStartInspection);
   const fab=document.getElementById('fab-quick');
@@ -2363,12 +2365,66 @@ function openUnitDetail(id){
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Open Tickets (${openTix.length})</div>
       <div class="tlist" style="padding:0">${openTix.map(t=>tixItemHTML(t,true)).join('')}</div>
     </div>` : ''}
-    <div style="height:20px"></div>`;
+    ${can('canManageBuildings') ? `
+    <div style="padding:16px 18px 0;display:flex;gap:9px">
+      <button onclick="editUnit('${u.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>
+    </div>` : ''}
+    <div style="height:24px"></div>`;
   openMo('mo-unit-detail');
 }
 
-/* ══════════════════════════════════════════════════════════
-   BUILDINGS
+function openNewUnit(){
+  if(!can('canManageBuildings')) return;
+  editingId.unit=null;
+  document.getElementById('unit-modal-title').textContent='New Unit';
+  document.getElementById('uf2-label').value='';
+  document.getElementById('uf2-sort').value='';
+  populateBldSelect('uf2-bldg');
+  document.getElementById('uf2-bldg').value='';
+  uf2OnBldgChange();
+  openMo('mo-unit');
+}
+function editUnit(id){
+  if(!can('canManageBuildings')) return;
+  const u=DB.units.find(x=>x.id===id); if(!u) return;
+  editingId.unit=id; closeMo('mo-unit-detail');
+  document.getElementById('unit-modal-title').textContent='Edit Unit';
+  document.getElementById('uf2-label').value=u.label||'';
+  document.getElementById('uf2-sort').value=u.sortOrder||'';
+  populateBldSelect('uf2-bldg');
+  const bld=DB.buildings.find(b=>b.id===u.buildingId);
+  document.getElementById('uf2-bldg').value=bld?bld.name:'';
+  uf2OnBldgChange();
+  document.getElementById('uf2-floor').value=u.floorId||'';
+  openMo('mo-unit');
+}
+function uf2OnBldgChange(){
+  const bldName=document.getElementById('uf2-bldg').value;
+  const floors=getFloorsForBuilding(bldName);
+  const sel=document.getElementById('uf2-floor');
+  sel.innerHTML='<option value="">— Select floor —</option>'+floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+}
+async function saveUnit(){
+  const label=document.getElementById('uf2-label').value.trim();
+  if(!label){toast('Unit name required','err');return;}
+  const bldName=document.getElementById('uf2-bldg').value;
+  const floorId=document.getElementById('uf2-floor').value;
+  const bld=DB.buildings.find(b=>b.name===bldName);
+  if(!bld){toast('Select a building','err');return;}
+  const sortOrder=parseInt(document.getElementById('uf2-sort').value)||0;
+  const data={label,floorId,buildingId:bld.id,sortOrder};
+  if(editingId.unit){
+    Object.assign(DB.units.find(x=>x.id===editingId.unit),data);
+  } else {
+    DB.units.push({id:nextId(DB.units,'UNT'),...data});
+  }
+  closeMo('mo-unit');
+  await writeSheet('units');
+  toast(editingId.unit?'Unit updated':'Unit added');
+  if(currentScreen==='units') renderUnits();
+}
+
+
 ══════════════════════════════════════════════════════════ */
 function openBldDetail(id){
   const b=DB.buildings.find(x=>x.id===id); if(!b) return;
@@ -3258,6 +3314,22 @@ function exportCSV(type){
   toast(`${type} exported`);
 }
 </script>
+
+<!-- Unit form -->
+<div class="mo" id="mo-unit" onclick="mcClick(event,'mo-unit')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt"><span id="unit-modal-title">New Unit</span><button class="mt-close" onclick="closeMo('mo-unit')">✕</button></div>
+    <div class="fg"><label>Unit Name *</label><input class="fi2" id="uf2-label" placeholder="e.g. Office 101"/></div>
+    <div class="frow2">
+      <div class="fg"><label>Building *</label><select class="fs2" id="uf2-bldg" onchange="uf2OnBldgChange()"><option value="">Select…</option></select></div>
+      <div class="fg"><label>Floor</label><select class="fs2" id="uf2-floor"><option value="">— Select floor —</option></select></div>
+    </div>
+    <div class="fg"><label>Sort Order</label><input class="fi2" type="number" id="uf2-sort" placeholder="0"/></div>
+    <button class="btn-p" onclick="saveUnit()">Save Unit</button>
+    <button class="btn-s" onclick="closeMo('mo-unit')">Cancel</button>
+  </div>
+</div>
 
 <!-- Unit detail -->
 <div class="mo" id="mo-unit-detail" onclick="mcClick(event,'mo-unit-detail')">
