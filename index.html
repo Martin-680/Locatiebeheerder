@@ -983,25 +983,37 @@ function setStatus(msg,err=false){
 }
 
 function gapiLoaded(){
+  setStatus('<span class="ag-spinner"></span>');
   gapi.load('client', async ()=>{
-    await gapi.client.init({ discoveryDocs:[DISCOVERY] });
-    // GIS token client
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: SCOPES,
-      callback: handleToken,
-    });
-    // Try silent restore
-    const saved = sessionStorage.getItem('pm_token');
-    if(saved){
-      accessToken = saved;
-      gapi.client.setToken({ access_token: accessToken });
-      await checkUserAccess();
+    try {
+      await gapi.client.init({ discoveryDocs:[DISCOVERY] });
+      // GIS token client
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: handleToken,
+      });
+      // Try silent restore
+      const saved = sessionStorage.getItem('pm_token');
+      if(saved){
+        accessToken = saved;
+        gapi.client.setToken({ access_token: accessToken });
+        await checkUserAccess();
+      } else {
+        setStatus('');
+      }
+    } catch(e){
+      setStatus('Failed to load Google API. Please refresh the page.', true);
+      console.error('gapiLoaded error:', e);
     }
   });
 }
 
 function signIn(){
+  if(!tokenClient){
+    setStatus('Google API still loading — please wait a moment and try again.', true);
+    return;
+  }
   setStatus('<span class="ag-spinner"></span>');
   tokenClient.requestAccessToken({ prompt: 'consent' });
 }
