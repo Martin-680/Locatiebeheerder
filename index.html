@@ -479,9 +479,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="Under Maintenance">Under Maintenance</option><option value="Decommissioned">Decommissioned</option>
         </select>
       </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Category</div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Supplier</div>
         <select class="fsel" id="sel-ast-cat" onchange="setPage('ast',1);renderAst()">
-          <option value="All">All Categories</option><option>HVAC</option><option>Electrical</option>
+          <option value="All">All Suppliers</option><option>HVAC</option><option>Electrical</option>
           <option>Plumbing</option><option>Security</option><option>Safety</option>
           <option>Structural</option><option>Equipment</option><option>Tools</option><option>General</option>
         </select>
@@ -717,12 +717,12 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="mt"><span id="ast-modal-title">New Asset</span><button class="mt-close" onclick="closeMo('mo-ast')">✕</button></div>
     <div class="fg"><label>Asset Name *</label><input class="fi2" id="af-name" placeholder="e.g. HVAC Unit A"/></div>
     <div class="frow2">
-      <div class="fg"><label>Building</label><select class="fs2" id="af-bldg" onchange="populateSubs('af-sub','af-bldg')"><option value="">Select…</option></select></div>
-      <div class="fg"><label>Floor</label><select class="fs2" id="af-sub"><option value="">None</option></select></div>
+      <div class="fg"><label>Building</label><select class="fs2" id="af-bldg" onchange="afOnBldgChange()"><option value="">Select…</option></select></div>
+      <div class="fg"><label>Floor</label><select class="fs2" id="af-sub" onchange="afOnFloorChange()"><option value="">None</option></select></div>
     </div>
     <div class="frow2">
-      <div class="fg"><label>Location</label><input class="fi2" id="af-loc" placeholder="Unit / Area"/></div>
-      <div class="fg"><label>Category</label>
+      <div class="fg"><label>Unit</label><select class="fs2" id="af-loc"><option value="">— Select unit —</option></select></div>
+      <div class="fg"><label>Supplier</label>
         <select class="fs2" id="af-cat"><option>HVAC</option><option>Electrical</option><option>Plumbing</option><option>Safety</option><option>Security</option><option>Structural</option><option>Equipment</option><option>Tools</option><option>General</option></select>
       </div>
     </div>
@@ -886,7 +886,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
-  assets:    ['id','name','building','floor','unit','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
+  assets:    ['id','label','buildingId','floorId','unitId','supplier','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
@@ -1109,7 +1109,6 @@ async function loadAllData(){
   ]);
   DB.users     = rowsToObjects(users,     COLS.users);
   DB.buildings = rowsToObjects(buildings, COLS.buildings);
-  DB.assets    = rowsToObjects(assets,    COLS.assets);
   DB.tickets   = rowsToObjects(tickets,   COLS.tickets);
   DB.suppliers = rowsToObjects(suppliers, COLS.suppliers);
   DB.inspections = rowsToObjects(inspections, COLS.inspections).map(r=>{
@@ -1118,7 +1117,20 @@ async function loadAllData(){
     return r;
   });
   DB.floors = rowsToObjects(floors, COLS.floors).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
-  DB.units  = rowsToObjects(units,  COLS.units);
+  DB.units  = rowsToObjects(units,  COLS.units).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
+  DB.assets = rowsToObjects(assets, COLS.assets).map(r=>{
+    const bld = DB.buildings.find(b=>b.id===r.buildingId);
+    const flr = DB.floors.find(f=>f.id===r.floorId);
+    const unt = DB.units.find(u=>u.id===r.unitId);
+    return {
+      ...r,
+      name    : r.label,
+      building: bld ? bld.name : r.buildingId,
+      floor   : flr ? flr.label : r.floorId,
+      unit    : unt ? unt.label : r.unitId,
+      category: r.supplier, // map supplier→category so inspection/filter logic still works
+    };
+  });
 }
 
 async function loadSheet(key){
@@ -1891,7 +1903,7 @@ function astCardHTML(a, onclick){
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</div><div class="bs-lbl">Building</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.category}</div><div class="bs-lbl">Category</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.supplier||a.category||'—'}</div><div class="bs-lbl">Supplier</div></div>
     </div>
   </div>`;
 }
@@ -1928,7 +1940,7 @@ function openAstDetail(id){
       <div class="dr"><span class="dk">Building</span><span class="dv">${a.building}</span></div>
       ${a.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${a.floor}</span></div>`:''}
       <div class="dr"><span class="dk">Unit</span><span class="dv">${a.unit||'—'}</span></div>
-      <div class="dr"><span class="dk">Category</span><span class="dv">${a.category}</span></div>
+      <div class="dr"><span class="dk">Supplier</span><span class="dv">${a.supplier||a.category||'—'}</span></div>
       <div class="dr"><span class="dk">Manufacturer</span><span class="dv">${a.manufacturer||'—'}</span></div>
       <div class="dr"><span class="dk">Model</span><span class="dv">${a.model||'—'}</span></div>
       <div class="dr"><span class="dk">Warranty</span><span class="dv">${df(a.warrantyExpiry)}</span></div>
@@ -1943,13 +1955,27 @@ function openAstDetail(id){
     <div style="height:20px"></div>`;
   openMo('mo-ast-detail');
 }
+function afOnBldgChange(){
+  populateSubs('af-sub','af-bldg');
+  document.getElementById('af-sub').value='';
+  document.getElementById('af-loc').innerHTML='<option value="">— Select unit —</option>';
+}
+function afOnFloorChange(){
+  const floorId=document.getElementById('af-sub').value;
+  const unitList=floorId ? DB.units.filter(u=>u.floorId===floorId).sort((a,z)=>a.sortOrder-z.sortOrder) : [];
+  const sel=document.getElementById('af-loc');
+  sel.innerHTML='<option value="">— Select unit —</option>'+unitList.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+}
 function openNewAsset(){
   if(!can('canEditAssets')) return;
   editingId.ast=null;
   document.getElementById('ast-modal-title').textContent='New Asset';
-  ['af-name','af-loc','af-mfr','af-model','af-warr','af-pdate','af-lsvc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['af-name','af-mfr','af-model','af-warr','af-pdate','af-lsvc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('af-status').value='Active';
-  populateBldSelect('af-bldg'); populateSubs('af-sub','af-bldg');
+  document.getElementById('af-loc').innerHTML='<option value="">— Select unit —</option>';
+  populateBldSelect('af-bldg');
+  document.getElementById('af-bldg').value='';
+  populateSubs('af-sub','af-bldg');
   openMo('mo-ast');
 }
 function editAst(id){
@@ -1957,11 +1983,17 @@ function editAst(id){
   const a=DB.assets.find(x=>x.id===id); if(!a) return;
   editingId.ast=id; closeMo('mo-ast-detail');
   document.getElementById('ast-modal-title').textContent='Edit Asset';
-  document.getElementById('af-name').value=a.name;
-  populateBldSelect('af-bldg'); document.getElementById('af-bldg').value=a.building;
-  populateSubs('af-sub','af-bldg'); document.getElementById('af-sub').value=a.floor||'';
-  document.getElementById('af-loc').value=a.unit||'';
-  document.getElementById('af-cat').value=a.category||'General';
+  document.getElementById('af-name').value=a.label||a.name;
+  populateBldSelect('af-bldg');
+  // set building by ID if available, else by name
+  const bld=DB.buildings.find(b=>b.id===a.buildingId||b.name===a.building);
+  document.getElementById('af-bldg').value=bld?bld.id:(a.buildingId||a.building||'');
+  populateSubs('af-sub','af-bldg');
+  document.getElementById('af-sub').value=a.floorId||'';
+  // populate unit dropdown for this floor then set value
+  afOnFloorChange();
+  document.getElementById('af-loc').value=a.unitId||'';
+  document.getElementById('af-cat').value=a.supplier||a.category||'General';
   document.getElementById('af-status').value=a.status||'Active';
   document.getElementById('af-mfr').value=a.manufacturer||'';
   document.getElementById('af-model').value=a.model||'';
@@ -1971,9 +2003,33 @@ function editAst(id){
   openMo('mo-ast');
 }
 async function saveAst(){
-  const name=document.getElementById('af-name').value.trim();
-  if(!name){toast('Asset name required','err');return;}
-  const data={name,building:document.getElementById('af-bldg').value,floor:document.getElementById('af-sub').value,unit:document.getElementById('af-loc').value,category:document.getElementById('af-cat').value,status:document.getElementById('af-status').value,manufacturer:document.getElementById('af-mfr').value,model:document.getElementById('af-model').value,warrantyExpiry:document.getElementById('af-warr').value,purchaseDate:document.getElementById('af-pdate').value,lastServiced:document.getElementById('af-lsvc').value};
+  const label=document.getElementById('af-name').value.trim();
+  if(!label){toast('Asset name required','err');return;}
+  const buildingId=document.getElementById('af-bldg').value;
+  const floorId=document.getElementById('af-sub').value;
+  const unitId=document.getElementById('af-loc').value;
+  const bld=DB.buildings.find(b=>b.id===buildingId||b.name===buildingId);
+  const flr=DB.floors.find(f=>f.id===floorId);
+  const unt=DB.units.find(u=>u.id===unitId||u.label===unitId);
+  const data={
+    label,
+    buildingId: bld?bld.id:buildingId,
+    floorId: flr?flr.id:floorId,
+    unitId: unt?unt.id:unitId,
+    supplier:document.getElementById('af-cat').value,
+    status:document.getElementById('af-status').value,
+    manufacturer:document.getElementById('af-mfr').value,
+    model:document.getElementById('af-model').value,
+    warrantyExpiry:document.getElementById('af-warr').value,
+    purchaseDate:document.getElementById('af-pdate').value,
+    lastServiced:document.getElementById('af-lsvc').value,
+    // keep display fields in sync
+    name:label,
+    building: bld?bld.name:buildingId,
+    floor: flr?flr.label:floorId,
+    unit: unt?unt.label:unitId,
+    category: document.getElementById('af-cat').value,
+  };
   if(editingId.ast){ Object.assign(DB.assets.find(x=>x.id===editingId.ast),data); }
   else { DB.assets.push({id:nextId(DB.assets,'AST'),...data}); }
   closeMo('mo-ast');
@@ -2523,7 +2579,7 @@ function launchInspectionRound(){
     building   : bldg,
     floor      : floor,
     category   : cat,
-    items      : assets.map(a => ({ assetId: a.id, label: a.name, category: a.category, unit: a.unit||'', floor: a.floor||'', result: 'Open', note: '' }))
+    items      : assets.map(a => ({ assetId: a.id, label: a.label||a.name, category: a.supplier||a.category, unit: a.unit||'', floor: a.floor||'', result: 'Open', note: '' }))
   };
 
   closeMo('mo-insp-start');
@@ -2920,8 +2976,8 @@ function exportCSV(type){
     headers=['ID','Subject','Status','Priority','Category','Building','Unit','Assigned To','Reported By','Date Opened','Date Closed','Notes'];
     rows=DB.tickets.map(t=>[t.id,t.subject,t.status,t.priority,t.category,t.building,t.unit,t.assignedTo||'',t.reportedBy||'',t.dateOpened||'',t.dateClosed||'',t.notes||'']);
   } else if(type==='assets'){
-    headers=['ID','Name','Building','Category','Status','Manufacturer','Model','Warranty Expiry'];
-    rows=DB.assets.map(a=>[a.id,a.name,a.building,a.category,a.status,a.manufacturer||'',a.model||'',a.warrantyExpiry||'']);
+    headers=['ID','Name','Building','Floor','Unit','Supplier','Status','Manufacturer','Model','Warranty Expiry'];
+    rows=DB.assets.map(a=>[a.id,a.label||a.name,a.building,a.floor||'',a.unit||'',a.supplier||'',a.status,a.manufacturer||'',a.model||'',a.warrantyExpiry||'']);
   } else if(type==='suppliers'){
     headers=['ID','Name','Contact','Status','Rating','Rate/Hr','Phone','Email'];
     rows=DB.suppliers.map(s=>[s.id,s.name,s.contact||'',s.status,s.rating||'',s.ratePerHour||0,s.phone||'',s.email||'']);
