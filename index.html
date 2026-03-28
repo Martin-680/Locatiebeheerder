@@ -2577,6 +2577,7 @@ function openStartInspection(){
   populateBldSelect('insp-bldg');
   document.getElementById('insp-bldg').value = '';
   document.getElementById('insp-floor').innerHTML = '<option value="">All floors</option>';
+  document.getElementById('insp-unit').innerHTML  = '<option value="">All units</option>';
   // Populate category filter from distinct asset categories
   const cats = [...new Set(DB.assets.map(a=>a.category).filter(Boolean))].sort();
   const catSel = document.getElementById('insp-cat');
@@ -2591,6 +2592,7 @@ function inspOnBldgChange(){
   const floors = getFloorsForBuilding(bldg);
   const fl = document.getElementById('insp-floor');
   fl.innerHTML = '<option value="">All floors</option>' + floors.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
+  document.getElementById('insp-unit').innerHTML = '<option value="">All units</option>';
   // Refresh category list scoped to this building's assets
   const catSel = document.getElementById('insp-cat');
   const prevCat = catSel.value;
@@ -2600,13 +2602,28 @@ function inspOnBldgChange(){
   updateInspPreview();
 }
 
+function inspOnFloorChange(){
+  const floorLabel = document.getElementById('insp-floor').value;
+  const bldg = document.getElementById('insp-bldg').value;
+  const unitSel = document.getElementById('insp-unit');
+  if(floorLabel && bldg){
+    const bldObj = DB.buildings.find(b=>b.name===bldg);
+    const flrObj = DB.floors.find(f=>f.label===floorLabel && f.buildingId===bldObj?.id);
+    const units  = flrObj ? DB.units.filter(u=>u.floorId===flrObj.id).sort((a,z)=>a.sortOrder-z.sortOrder) : [];
+    unitSel.innerHTML = '<option value="">All units</option>' + units.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
+  } else {
+    unitSel.innerHTML = '<option value="">All units</option>';
+  }
+  updateInspPreview();
+}
 function updateInspPreview(){
   const bldg = document.getElementById('insp-bldg').value;
   const floor= document.getElementById('insp-floor').value;
+  const unit = document.getElementById('insp-unit').value;
   const cat  = document.getElementById('insp-cat').value;
   const prev = document.getElementById('insp-asset-preview');
   if(!bldg){ prev.textContent = 'Select a building to preview assets'; return; }
-  const assets = getInspAssets(bldg, floor, cat);
+  const assets = getInspAssets(bldg, floor, unit, cat);
   if(!assets.length){
     prev.innerHTML = `<span style="color:var(--red)">No assets match this selection.</span>`;
   } else {
@@ -2614,10 +2631,11 @@ function updateInspPreview(){
   }
 }
 
-function getInspAssets(bldg, floor, cat){
+function getInspAssets(bldg, floor, unit, cat){
   return DB.assets.filter(a => {
     if(a.building !== bldg) return false;
     if(floor && a.floor && a.floor !== floor) return false;
+    if(unit && a.unit && a.unit !== unit) return false;
     if(cat && cat !== 'All' && a.category !== cat) return false;
     return true;
   });
@@ -2627,24 +2645,25 @@ function getInspAssets(bldg, floor, cat){
 function launchInspectionRound(){
   const bldg  = document.getElementById('insp-bldg').value;
   const floor = document.getElementById('insp-floor').value;
+  const unit  = document.getElementById('insp-unit').value;
   const cat   = document.getElementById('insp-cat').value;
   if(!bldg){ toast('Select a building','err'); return; }
-  const assets = getInspAssets(bldg, floor, cat);
+  const assets = getInspAssets(bldg, floor, unit, cat);
   if(!assets.length){ toast('No assets match this selection','err'); return; }
 
   const inspId = nextId(DB.inspections, 'INS');
   activeRound = {
     inspId,
-    building   : bldg,
-    floor      : floor,
-    category   : cat,
-    items      : assets.map(a => ({ assetId: a.id, label: a.label||a.name, category: a.category, unit: a.unit||'', floor: a.floor||'', result: 'Open', note: '' }))
+    building : bldg,
+    floor    : floor,
+    unit     : unit,
+    category : cat,
+    items    : assets.map(a => ({ assetId: a.id, label: a.label||a.name, category: a.category, unit: a.unit||'', floor: a.floor||'', result: 'Open', note: '' }))
   };
 
   closeMo('mo-insp-start');
 
-  // Set header
-  document.getElementById('insp-round-title').textContent = bldg + (floor ? ' · ' + floor : '');
+  document.getElementById('insp-round-title').textContent = bldg + (floor ? ' · ' + floor : '') + (unit ? ' · ' + unit : '');
   document.getElementById('insp-round-sub').textContent   = (cat !== 'All' ? cat + ' · ' : '') + assets.length + ' items';
 
   renderRound();
@@ -3092,7 +3111,8 @@ function exportCSV(type){
     <div class="mh"></div>
     <div class="mt"><span>Start Inspection Round</span><button class="mt-close" onclick="closeMo('mo-insp-start')">✕</button></div>
     <div class="fg"><label>Building *</label><select class="fs2" id="insp-bldg" onchange="inspOnBldgChange()"><option value="">Select building…</option></select></div>
-    <div class="fg"><label>Floor (optional)</label><select class="fs2" id="insp-floor" onchange="updateInspPreview()"><option value="">All floors</option></select></div>
+    <div class="fg"><label>Floor (optional)</label><select class="fs2" id="insp-floor" onchange="inspOnFloorChange()"><option value="">All floors</option></select></div>
+    <div class="fg"><label>Unit (optional)</label><select class="fs2" id="insp-unit" onchange="updateInspPreview()"><option value="">All units</option></select></div>
     <div class="fg"><label>Category filter</label>
       <select class="fs2" id="insp-cat" onchange="updateInspPreview()">
         <option value="All">All Categories</option>
