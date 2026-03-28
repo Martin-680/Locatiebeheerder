@@ -481,9 +481,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
       <div class="fsel-wrap"><div class="fsel-lbl">Supplier</div>
         <select class="fsel" id="sel-ast-cat" onchange="setPage('ast',1);renderAst()">
-          <option value="All">All Suppliers</option><option>HVAC</option><option>Electrical</option>
-          <option>Plumbing</option><option>Security</option><option>Safety</option>
-          <option>Structural</option><option>Equipment</option><option>Tools</option><option>General</option>
+          <option value="All">All Suppliers</option>
         </select>
       </div>
     </div>
@@ -723,7 +721,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="frow2">
       <div class="fg"><label>Unit</label><select class="fs2" id="af-loc"><option value="">— Select unit —</option></select></div>
       <div class="fg"><label>Supplier</label>
-        <select class="fs2" id="af-cat"><option>HVAC</option><option>Electrical</option><option>Plumbing</option><option>Safety</option><option>Security</option><option>Structural</option><option>Equipment</option><option>Tools</option><option>General</option></select>
+        <select class="fs2" id="af-cat"><option value="">— Select supplier —</option></select>
       </div>
     </div>
     <div class="frow2">
@@ -1122,13 +1120,14 @@ async function loadAllData(){
     const bld = DB.buildings.find(b=>b.id===r.buildingId);
     const flr = DB.floors.find(f=>f.id===r.floorId);
     const unt = DB.units.find(u=>u.id===r.unitId);
+    const sup = DB.suppliers.find(s=>s.id===r.supplier);
     return {
       ...r,
       name    : r.label,
       building: bld ? bld.name : r.buildingId,
       floor   : flr ? flr.label : r.floorId,
       unit    : unt ? unt.label : r.unitId,
-      category: r.supplier, // map supplier→category so inspection/filter logic still works
+      category: sup ? sup.name : r.supplier,
     };
   });
 }
@@ -1911,11 +1910,19 @@ function astCardHTML(a, onclick){
 function renderAst(){
   const q=(document.getElementById('asearch')?.value||'').toLowerCase();
   const statusVal=document.getElementById('sel-ast-status')?.value||'All';
-  const catVal=document.getElementById('sel-ast-cat')?.value||'All';
+  // Populate supplier filter from DB.suppliers, preserving current selection
+  const catSel=document.getElementById('sel-ast-cat');
+  if(catSel){
+    const prev=catSel.value;
+    catSel.innerHTML='<option value="All">All Suppliers</option>'
+      +DB.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    catSel.value=prev;
+  }
+  const catVal=catSel?.value||'All';
   syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat');
   let list=DB.assets;
   if(statusVal!=='All') list=list.filter(a=>a.status===statusVal);
-  if(catVal!=='All') list=list.filter(a=>a.category===catVal);
+  if(catVal!=='All') list=list.filter(a=>a.supplier===catVal);
   if(q) list=list.filter(a=>a.name.toLowerCase().includes(q)||a.building.toLowerCase().includes(q)||a.id.toLowerCase().includes(q));
   document.getElementById('ast-lbl').textContent=`${list.length} asset${list.length!==1?'s':''}`;
   const c=document.getElementById('ast-list');
@@ -1966,6 +1973,12 @@ function afOnFloorChange(){
   const sel=document.getElementById('af-loc');
   sel.innerHTML='<option value="">— Select unit —</option>'+unitList.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
 }
+function populateAstSupplierSelect(id, selectedId=''){
+  const el=document.getElementById(id); if(!el) return;
+  el.innerHTML='<option value="">— Select supplier —</option>'
+    +DB.suppliers.filter(s=>s.status!=='Inactive').map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  if(selectedId) el.value=selectedId;
+}
 function openNewAsset(){
   if(!can('canEditAssets')) return;
   editingId.ast=null;
@@ -1976,6 +1989,7 @@ function openNewAsset(){
   populateBldSelect('af-bldg');
   document.getElementById('af-bldg').value='';
   populateSubs('af-sub','af-bldg');
+  populateAstSupplierSelect('af-cat');
   openMo('mo-ast');
 }
 function editAst(id){
@@ -1993,7 +2007,7 @@ function editAst(id){
   // populate unit dropdown for this floor then set value
   afOnFloorChange();
   document.getElementById('af-loc').value=a.unitId||'';
-  document.getElementById('af-cat').value=a.supplier||a.category||'General';
+  populateAstSupplierSelect('af-cat', a.supplier||'');
   document.getElementById('af-status').value=a.status||'Active';
   document.getElementById('af-mfr').value=a.manufacturer||'';
   document.getElementById('af-model').value=a.model||'';
@@ -2011,12 +2025,14 @@ async function saveAst(){
   const bld=DB.buildings.find(b=>b.id===buildingId||b.name===buildingId);
   const flr=DB.floors.find(f=>f.id===floorId);
   const unt=DB.units.find(u=>u.id===unitId||u.label===unitId);
+  const supplierId=document.getElementById('af-cat').value;
+  const sup=DB.suppliers.find(s=>s.id===supplierId);
   const data={
     label,
     buildingId: bld?bld.id:buildingId,
     floorId: flr?flr.id:floorId,
     unitId: unt?unt.id:unitId,
-    supplier:document.getElementById('af-cat').value,
+    supplier: supplierId,
     status:document.getElementById('af-status').value,
     manufacturer:document.getElementById('af-mfr').value,
     model:document.getElementById('af-model').value,
@@ -2028,7 +2044,7 @@ async function saveAst(){
     building: bld?bld.name:buildingId,
     floor: flr?flr.label:floorId,
     unit: unt?unt.label:unitId,
-    category: document.getElementById('af-cat').value,
+    category: sup?sup.name:supplierId,
   };
   if(editingId.ast){ Object.assign(DB.assets.find(x=>x.id===editingId.ast),data); }
   else { DB.assets.push({id:nextId(DB.assets,'AST'),...data}); }
