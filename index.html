@@ -2032,9 +2032,7 @@ function editAst(id){
   document.getElementById('ast-modal-title').textContent='Edit Asset';
   document.getElementById('af-name').value=a.label||a.name;
   populateBldSelect('af-bldg');
-  // set building by ID if available, else by name
-  const bld=DB.buildings.find(b=>b.id===a.buildingId||b.name===a.building);
-  document.getElementById('af-bldg').value=bld?bld.id:(a.buildingId||a.building||'');
+  document.getElementById('af-bldg').value=a.building||'';
   populateSubs('af-sub','af-bldg');
   document.getElementById('af-sub').value=a.floorId||'';
   // populate unit dropdown for this floor then set value
@@ -2053,17 +2051,17 @@ function editAst(id){
 async function saveAst(){
   const label=document.getElementById('af-name').value.trim();
   if(!label){toast('Asset name required','err');return;}
-  const buildingId=document.getElementById('af-bldg').value;
+  const buildingName=document.getElementById('af-bldg').value;
   const floorId=document.getElementById('af-sub').value;
   const unitId=document.getElementById('af-loc').value;
-  const bld=DB.buildings.find(b=>b.id===buildingId||b.name===buildingId);
+  const bld=DB.buildings.find(b=>b.name===buildingName);
   const flr=DB.floors.find(f=>f.id===floorId);
-  const unt=DB.units.find(u=>u.id===unitId||u.label===unitId);
+  const unt=DB.units.find(u=>u.id===unitId);
   const supplierId=document.getElementById('af-cat').value;
   const sup=DB.suppliers.find(s=>s.id===supplierId);
   const data={
     label,
-    buildingId  : bld?bld.id:buildingId,
+    buildingId  : bld?bld.id:buildingName,
     floorId     : flr?flr.id:floorId,
     unitId      : unt?unt.id:unitId,
     supplierId  : supplierId,
@@ -2077,7 +2075,7 @@ async function saveAst(){
     lastServiced: document.getElementById('af-lsvc').value,
     // display fields
     name        : label,
-    building    : bld?bld.name:buildingId,
+    building    : bld?bld.name:buildingName,
     floor       : flr?flr.label:floorId,
     unit        : unt?unt.label:unitId,
     supplierName: sup?sup.name:supplierId,
