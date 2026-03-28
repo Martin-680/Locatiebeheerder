@@ -1329,7 +1329,7 @@ function applyPermUI(){
 function populateBldSelect(id){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
-  el.innerHTML='<option value="">Select…</option>'+DB.buildings.map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+  el.innerHTML='<option value="">Select…</option>'+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
   if(DB.buildings.find(b=>b.name===cur)) el.value=cur;
 }
 /* ── getFloorsForBuilding: returns sorted floors from DB for a given building id or name ── */
@@ -1401,37 +1401,37 @@ function tfOnAssetChange(){
       if(s.status==='Inactive') return false;
       const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').split(',').map(x=>x.trim());
       return exp.some(e=>e.toLowerCase()===a.category.toLowerCase());
-    });
-    const others=DB.suppliers.filter(s=>s.status!=='Inactive'&&!matched.find(m=>m.id===s.id));
+    }).sort((a,z)=>a.name.localeCompare(z.name));
+    const others=DB.suppliers.filter(s=>s.status!=='Inactive'&&!matched.find(m=>m.id===s.id)).sort((a,z)=>a.name.localeCompare(z.name));
     supSel.innerHTML='<option value="">None</option>'
       +(matched.length?'<optgroup label="Matching expertise">'+matched.map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('')+'</optgroup>':'')
       +(others.length?'<optgroup label="All suppliers">'+others.map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('')+'</optgroup>':'');
   } else {
-    supSel.innerHTML='<option value="">None</option>'+DB.suppliers.filter(s=>s.status!=='Inactive').map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('');
+    supSel.innerHTML='<option value="">None</option>'+DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)).map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('');
   }
 }
 function populateAssignSelect(id){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
-  el.innerHTML='<option value="">Unassigned</option>'+DB.users.filter(u=>u.active).map(u=>`<option value="${u.name}">${u.name} (${u.role})</option>`).join('');
+  el.innerHTML='<option value="">Unassigned</option>'+DB.users.filter(u=>u.active).sort((a,z)=>a.name.localeCompare(z.name)).map(u=>`<option value="${u.name}">${u.name} (${u.role})</option>`).join('');
   if(cur) el.value=cur;
 }
 function populateAssetSelect(id){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
-  el.innerHTML='<option value="">None</option>'+DB.assets.map(a=>`<option value="${a.id}">${a.id} – ${a.name}</option>`).join('');
+  el.innerHTML='<option value="">None</option>'+[...DB.assets].sort((a,z)=>a.name.localeCompare(z.name)).map(a=>`<option value="${a.id}">${a.id} – ${a.name}</option>`).join('');
   if(cur) el.value=cur;
 }
 function populateSupplierSelect(id){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
-  el.innerHTML='<option value="">None</option>'+DB.suppliers.filter(s=>s.status!=='Inactive').map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('');
+  el.innerHTML='<option value="">None</option>'+DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)).map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('');
   if(cur) el.value=cur;
 }
 function populateMgrSelect(id){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
-  el.innerHTML='<option value="">None</option>'+DB.users.filter(u=>u.role==='Property Manager'||u.role==='Supervisor').map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
+  el.innerHTML='<option value="">None</option>'+DB.users.filter(u=>u.role==='Property Manager'||u.role==='Supervisor').sort((a,z)=>a.name.localeCompare(z.name)).map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
   if(cur) el.value=cur;
 }
 
@@ -1634,7 +1634,7 @@ function renderTix(){
   // Populate building filter dynamically
   const bldgSel=document.getElementById('sel-tix-bldg');
   if(bldgSel&&bldgSel.options.length<=1){
-    DB.buildings.forEach(b=>{const o=document.createElement('option');o.value=b.name;o.textContent=b.name;bldgSel.appendChild(o);});
+    [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).forEach(b=>{const o=document.createElement('option');o.value=b.name;o.textContent=b.name;bldgSel.appendChild(o);});
     if(bldgVal!=='All') bldgSel.value=bldgVal;
   }
   let list=DB.tickets;
@@ -1952,7 +1952,7 @@ function astCardHTML(a, onclick){
       <span class="badge ${stCls}" style="flex-shrink:0;margin-left:8px">${a.status}</span>
     </div>
     <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</div><div class="bs-lbl">Building</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building||'—'}</div><div class="bs-lbl">Building</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.supplierName||'—'}</div><div class="bs-lbl">Supplier</div></div>
@@ -1968,7 +1968,7 @@ function renderAst(){
   if(catSel){
     const prev=catSel.value;
     catSel.innerHTML='<option value="All">All Suppliers</option>'
-      +DB.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+      +[...DB.suppliers].sort((a,z)=>a.name.localeCompare(z.name)).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
     catSel.value=prev;
   }
   // Populate category filter from distinct asset categories, preserving selection
@@ -2041,7 +2041,7 @@ function afOnFloorChange(){
 function populateAstSupplierSelect(id, selectedId=''){
   const el=document.getElementById(id); if(!el) return;
   el.innerHTML='<option value="">— Select supplier —</option>'
-    +DB.suppliers.filter(s=>s.status!=='Inactive').map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    +DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
   if(selectedId) el.value=selectedId;
 }
 function populateAstCategorySelect(id, selected=''){
@@ -2274,7 +2274,7 @@ function renderUnits(){
   if(bldSel){
     const cur = bldSel.value;
     bldSel.innerHTML = '<option value="All">All Buildings</option>'
-      + DB.buildings.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+      + [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
     bldSel.value = cur;
   }
 
@@ -2654,7 +2654,7 @@ function renderInspections(){
   if(bldSel){
     const cur = bldSel.value;
     bldSel.innerHTML = '<option value="All">All Buildings</option>' +
-      DB.buildings.map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
     if(cur) bldSel.value = cur;
   }
 
