@@ -884,7 +884,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
-  assets:    ['id','label','buildingId','floorId','unitId','supplier','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
+  assets:    ['id','label','buildingId','floorId','unitId','supplierId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
@@ -1120,14 +1120,15 @@ async function loadAllData(){
     const bld = DB.buildings.find(b=>b.id===r.buildingId);
     const flr = DB.floors.find(f=>f.id===r.floorId);
     const unt = DB.units.find(u=>u.id===r.unitId);
-    const sup = DB.suppliers.find(s=>s.id===r.supplier);
+    const sup = DB.suppliers.find(s=>s.id===r.supplierId);
     return {
       ...r,
-      name    : r.label,
-      building: bld ? bld.name : r.buildingId,
-      floor   : flr ? flr.label : r.floorId,
-      unit    : unt ? unt.label : r.unitId,
-      category: sup ? sup.name : r.supplier,
+      name      : r.label,
+      building  : bld ? bld.name : r.buildingId,
+      floor     : flr ? flr.label : r.floorId,
+      unit      : unt ? unt.label : r.unitId,
+      supplier  : r.supplierId,
+      category  : sup ? sup.name : r.supplierId,
     };
   });
 }
@@ -1902,7 +1903,7 @@ function astCardHTML(a, onclick){
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</div><div class="bs-lbl">Building</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.supplier||a.category||'—'}</div><div class="bs-lbl">Supplier</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.category||'—'}</div><div class="bs-lbl">Supplier</div></div>
     </div>
   </div>`;
 }
@@ -1922,7 +1923,7 @@ function renderAst(){
   syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat');
   let list=DB.assets;
   if(statusVal!=='All') list=list.filter(a=>a.status===statusVal);
-  if(catVal!=='All') list=list.filter(a=>a.supplier===catVal);
+  if(catVal!=='All') list=list.filter(a=>a.supplierId===catVal);
   if(q) list=list.filter(a=>a.name.toLowerCase().includes(q)||a.building.toLowerCase().includes(q)||a.id.toLowerCase().includes(q));
   document.getElementById('ast-lbl').textContent=`${list.length} asset${list.length!==1?'s':''}`;
   const c=document.getElementById('ast-list');
@@ -1947,7 +1948,7 @@ function openAstDetail(id){
       <div class="dr"><span class="dk">Building</span><span class="dv">${a.building}</span></div>
       ${a.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${a.floor}</span></div>`:''}
       <div class="dr"><span class="dk">Unit</span><span class="dv">${a.unit||'—'}</span></div>
-      <div class="dr"><span class="dk">Supplier</span><span class="dv">${a.supplier||a.category||'—'}</span></div>
+      <div class="dr"><span class="dk">Supplier</span><span class="dv">${a.category||'—'}</span></div>
       <div class="dr"><span class="dk">Manufacturer</span><span class="dv">${a.manufacturer||'—'}</span></div>
       <div class="dr"><span class="dk">Model</span><span class="dv">${a.model||'—'}</span></div>
       <div class="dr"><span class="dk">Warranty</span><span class="dv">${df(a.warrantyExpiry)}</span></div>
@@ -2007,7 +2008,7 @@ function editAst(id){
   // populate unit dropdown for this floor then set value
   afOnFloorChange();
   document.getElementById('af-loc').value=a.unitId||'';
-  populateAstSupplierSelect('af-cat', a.supplier||'');
+  populateAstSupplierSelect('af-cat', a.supplierId||'');
   document.getElementById('af-status').value=a.status||'Active';
   document.getElementById('af-mfr').value=a.manufacturer||'';
   document.getElementById('af-model').value=a.model||'';
@@ -2032,7 +2033,8 @@ async function saveAst(){
     buildingId: bld?bld.id:buildingId,
     floorId: flr?flr.id:floorId,
     unitId: unt?unt.id:unitId,
-    supplier: supplierId,
+    supplierId: supplierId,
+    supplier  : supplierId,
     status:document.getElementById('af-status').value,
     manufacturer:document.getElementById('af-mfr').value,
     model:document.getElementById('af-model').value,
@@ -2595,7 +2597,7 @@ function launchInspectionRound(){
     building   : bldg,
     floor      : floor,
     category   : cat,
-    items      : assets.map(a => ({ assetId: a.id, label: a.label||a.name, category: a.supplier||a.category, unit: a.unit||'', floor: a.floor||'', result: 'Open', note: '' }))
+    items      : assets.map(a => ({ assetId: a.id, label: a.label||a.name, category: a.category, unit: a.unit||'', floor: a.floor||'', result: 'Open', note: '' }))
   };
 
   closeMo('mo-insp-start');
@@ -2993,7 +2995,7 @@ function exportCSV(type){
     rows=DB.tickets.map(t=>[t.id,t.subject,t.status,t.priority,t.category,t.building,t.unit,t.assignedTo||'',t.reportedBy||'',t.dateOpened||'',t.dateClosed||'',t.notes||'']);
   } else if(type==='assets'){
     headers=['ID','Name','Building','Floor','Unit','Supplier','Status','Manufacturer','Model','Warranty Expiry'];
-    rows=DB.assets.map(a=>[a.id,a.label||a.name,a.building,a.floor||'',a.unit||'',a.supplier||'',a.status,a.manufacturer||'',a.model||'',a.warrantyExpiry||'']);
+    rows=DB.assets.map(a=>[a.id,a.label||a.name,a.building,a.floor||'',a.unit||'',a.category||'',a.status,a.manufacturer||'',a.model||'',a.warrantyExpiry||'']);
   } else if(type==='suppliers'){
     headers=['ID','Name','Contact','Status','Rating','Rate/Hr','Phone','Email'];
     rows=DB.suppliers.map(s=>[s.id,s.name,s.contact||'',s.status,s.rating||'',s.ratePerHour||0,s.phone||'',s.email||'']);
