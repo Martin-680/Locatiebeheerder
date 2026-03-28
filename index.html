@@ -732,9 +732,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="fg"><label>Category</label>
       <select class="fs2" id="af-acat">
         <option value="">— Select category —</option>
-        <option>HVAC</option><option>Electrical</option><option>Plumbing</option>
-        <option>Security</option><option>Safety</option><option>Structural</option>
-        <option>Equipment</option><option>Tools</option><option>General</option>
       </select>
     </div>
     <div class="frow2">
@@ -2006,6 +2003,13 @@ function populateAstSupplierSelect(id, selectedId=''){
     +DB.suppliers.filter(s=>s.status!=='Inactive').map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
   if(selectedId) el.value=selectedId;
 }
+function populateAstCategorySelect(id, selected=''){
+  const el=document.getElementById(id); if(!el) return;
+  const cats=[...new Set(DB.assets.map(a=>a.category).filter(Boolean))].sort();
+  el.innerHTML='<option value="">— Select category —</option>'
+    +cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(selected) el.value=selected;
+}
 function openNewAsset(){
   if(!can('canEditAssets')) return;
   editingId.ast=null;
@@ -2018,6 +2022,7 @@ function openNewAsset(){
   document.getElementById('af-bldg').value='';
   populateSubs('af-sub','af-bldg');
   populateAstSupplierSelect('af-cat');
+  populateAstCategorySelect('af-acat');
   openMo('mo-ast');
 }
 function editAst(id){
@@ -2036,7 +2041,7 @@ function editAst(id){
   afOnFloorChange();
   document.getElementById('af-loc').value=a.unitId||'';
   populateAstSupplierSelect('af-cat', a.supplierId||'');
-  document.getElementById('af-acat').value=a.category||'';
+  populateAstCategorySelect('af-acat', a.category||'');
   document.getElementById('af-status').value=a.status||'Active';
   document.getElementById('af-mfr').value=a.manufacturer||'';
   document.getElementById('af-model').value=a.model||'';
