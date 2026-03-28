@@ -918,7 +918,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
-  assets:    ['id','label','buildingId','floorId','unitId','supplierId','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
+  assets:    ['id','label','building','floor','unit','supplier','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
@@ -1151,17 +1151,20 @@ async function loadAllData(){
   DB.floors = rowsToObjects(floors, COLS.floors).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
   DB.units  = rowsToObjects(units,  COLS.units).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
   DB.assets = rowsToObjects(assets, COLS.assets).map(r=>{
-    const bld = DB.buildings.find(b=>b.id===r.buildingId);
-    const flr = DB.floors.find(f=>f.id===r.floorId);
-    const unt = DB.units.find(u=>u.id===r.unitId);
-    const sup = DB.suppliers.find(s=>s.id===r.supplierId);
+    const bld = DB.buildings.find(b=>b.id===r.building);
+    const flr = DB.floors.find(f=>f.id===r.floor);
+    const unt = DB.units.find(u=>u.id===r.unit);
+    const sup = DB.suppliers.find(s=>s.id===r.supplier);
     return {
       ...r,
       name        : r.label,
-      building    : bld ? bld.name : r.buildingId,
-      floor       : flr ? flr.label : r.floorId,
-      unit        : unt ? unt.label : r.unitId,
-      supplier    : r.supplierId,
+      buildingId  : r.building,
+      floorId     : r.floor,
+      unitId      : r.unit,
+      supplierId  : r.supplier,
+      building    : bld ? bld.name : r.building,
+      floor       : flr ? flr.label : r.floor,
+      unit        : unt ? unt.label : r.unit,
       supplierName: sup ? sup.name : '',
     };
   });
@@ -1192,7 +1195,18 @@ function objToRow(obj, cols){
 async function writeSheet(key){
   showSync();
   const cols = COLS[key];
-  const rows = [cols, ...DB[key].map(o=>objToRow(o,cols))];
+  let records = DB[key];
+  // Assets: sheet columns building/floor/unit/supplier hold IDs, not resolved names
+  if(key === 'assets'){
+    records = records.map(a => ({
+      ...a,
+      building : a.buildingId || a.building,
+      floor    : a.floorId    || a.floor,
+      unit     : a.unitId     || a.unit,
+      supplier : a.supplierId || a.supplier,
+    }));
+  }
+  const rows = [cols, ...records.map(o=>objToRow(o,cols))];
   try {
     // First clear the sheet to avoid stale data in extra columns/rows
     await gapi.client.sheets.spreadsheets.values.clear({
@@ -2086,12 +2100,15 @@ async function saveAst(){
   const unt=DB.units.find(u=>u.id===unitId);
   const supplierId=document.getElementById('af-cat').value;
   const sup=DB.suppliers.find(s=>s.id===supplierId);
-  const data={
+  const bldId  = bld ? bld.id   : buildingName;
+  const flrId  = flr ? flr.id   : floorId;
+  const untId  = unt ? unt.id   : unitId;
+  // Sheet-facing object: building/floor/unit/supplier hold IDs
+  const sheetData = {
     label,
-    buildingId  : bld?bld.id:buildingName,
-    floorId     : flr?flr.id:floorId,
-    unitId      : unt?unt.id:unitId,
-    supplierId  : supplierId,
+    building    : bldId,
+    floor       : flrId,
+    unit        : untId,
     supplier    : supplierId,
     category    : document.getElementById('af-acat').value,
     status      : document.getElementById('af-status').value,
@@ -2100,12 +2117,19 @@ async function saveAst(){
     warrantyExpiry: document.getElementById('af-warr').value,
     purchaseDate: document.getElementById('af-pdate').value,
     lastServiced: document.getElementById('af-lsvc').value,
-    // display fields
+  };
+  // Resolved display fields merged on top for in-memory use
+  const data = {
+    ...sheetData,
     name        : label,
-    building    : bld?bld.name:buildingName,
-    floor       : flr?flr.label:floorId,
-    unit        : unt?unt.label:unitId,
-    supplierName: sup?sup.name:supplierId,
+    buildingId  : bldId,
+    floorId     : flrId,
+    unitId      : untId,
+    supplierId  : supplierId,
+    building    : bld ? bld.name : buildingName,
+    floor       : flr ? flr.label : floorId,
+    unit        : unt ? unt.label : unitId,
+    supplierName: sup ? sup.name : supplierId,
   };
   if(editingId.ast){ Object.assign(DB.assets.find(x=>x.id===editingId.ast),data); }
   else { DB.assets.push({id:nextId(DB.assets,'AST'),...data}); }
