@@ -484,6 +484,11 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="All">All Suppliers</option>
         </select>
       </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Category</div>
+        <select class="fsel" id="sel-ast-acat" onchange="setPage('ast',1);renderAst()">
+          <option value="All">All Categories</option>
+        </select>
+      </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:flex-end;padding:0 14px 8px">
       <button onclick="clearAstFilters()" style="font-size:12px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button>
@@ -724,6 +729,14 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <select class="fs2" id="af-cat"><option value="">— Select supplier —</option></select>
       </div>
     </div>
+    <div class="fg"><label>Category</label>
+      <select class="fs2" id="af-acat">
+        <option value="">— Select category —</option>
+        <option>HVAC</option><option>Electrical</option><option>Plumbing</option>
+        <option>Security</option><option>Safety</option><option>Structural</option>
+        <option>Equipment</option><option>Tools</option><option>General</option>
+      </select>
+    </div>
     <div class="frow2">
       <div class="fg"><label>Status</label><select class="fs2" id="af-status"><option>Active</option><option>Under Maintenance</option><option>Decommissioned</option></select></div>
       <div class="fg"><label>Manufacturer</label><input class="fi2" id="af-mfr" placeholder="Brand"/></div>
@@ -884,7 +897,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
-  assets:    ['id','label','buildingId','floorId','unitId','supplierId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
+  assets:    ['id','label','buildingId','floorId','unitId','supplierId','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
@@ -1123,12 +1136,12 @@ async function loadAllData(){
     const sup = DB.suppliers.find(s=>s.id===r.supplierId);
     return {
       ...r,
-      name      : r.label,
-      building  : bld ? bld.name : r.buildingId,
-      floor     : flr ? flr.label : r.floorId,
-      unit      : unt ? unt.label : r.unitId,
-      supplier  : r.supplierId,
-      category  : sup ? sup.name : r.supplierId,
+      name        : r.label,
+      building    : bld ? bld.name : r.buildingId,
+      floor       : flr ? flr.label : r.floorId,
+      unit        : unt ? unt.label : r.unitId,
+      supplier    : r.supplierId,
+      supplierName: sup ? sup.name : '',
     };
   });
 }
@@ -1565,7 +1578,7 @@ function clearTixFilters(){
 }
 
 function clearAstFilters(){
-  ['sel-ast-status','sel-ast-cat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
+  ['sel-ast-status','sel-ast-cat','sel-ast-acat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const search=document.getElementById('asearch');if(search)search.value='';
   setPage('ast',1);renderAst();
 }
@@ -1903,7 +1916,8 @@ function astCardHTML(a, onclick){
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building}</div><div class="bs-lbl">Building</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.category||'—'}</div><div class="bs-lbl">Supplier</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.supplierName||'—'}</div><div class="bs-lbl">Supplier</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.category||'—'}</div><div class="bs-lbl">Category</div></div>
     </div>
   </div>`;
 }
@@ -1911,7 +1925,7 @@ function astCardHTML(a, onclick){
 function renderAst(){
   const q=(document.getElementById('asearch')?.value||'').toLowerCase();
   const statusVal=document.getElementById('sel-ast-status')?.value||'All';
-  // Populate supplier filter from DB.suppliers, preserving current selection
+  // Populate supplier filter from DB.suppliers, preserving selection
   const catSel=document.getElementById('sel-ast-cat');
   if(catSel){
     const prev=catSel.value;
@@ -1919,11 +1933,22 @@ function renderAst(){
       +DB.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
     catSel.value=prev;
   }
+  // Populate category filter from distinct asset categories, preserving selection
+  const acatSel=document.getElementById('sel-ast-acat');
+  if(acatSel){
+    const prev=acatSel.value;
+    const cats=[...new Set(DB.assets.map(a=>a.category).filter(Boolean))].sort();
+    acatSel.innerHTML='<option value="All">All Categories</option>'
+      +cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+    acatSel.value=prev;
+  }
   const catVal=catSel?.value||'All';
-  syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat');
+  const acatVal=acatSel?.value||'All';
+  syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat');
   let list=DB.assets;
   if(statusVal!=='All') list=list.filter(a=>a.status===statusVal);
-  if(catVal!=='All') list=list.filter(a=>a.supplierId===catVal);
+  if(catVal!=='All')  list=list.filter(a=>a.supplierId===catVal);
+  if(acatVal!=='All') list=list.filter(a=>a.category===acatVal);
   if(q) list=list.filter(a=>a.name.toLowerCase().includes(q)||a.building.toLowerCase().includes(q)||a.id.toLowerCase().includes(q));
   document.getElementById('ast-lbl').textContent=`${list.length} asset${list.length!==1?'s':''}`;
   const c=document.getElementById('ast-list');
@@ -1948,7 +1973,8 @@ function openAstDetail(id){
       <div class="dr"><span class="dk">Building</span><span class="dv">${a.building}</span></div>
       ${a.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${a.floor}</span></div>`:''}
       <div class="dr"><span class="dk">Unit</span><span class="dv">${a.unit||'—'}</span></div>
-      <div class="dr"><span class="dk">Supplier</span><span class="dv">${a.category||'—'}</span></div>
+      <div class="dr"><span class="dk">Supplier</span><span class="dv">${a.supplierName||'—'}</span></div>
+      <div class="dr"><span class="dk">Category</span><span class="dv">${a.category||'—'}</span></div>
       <div class="dr"><span class="dk">Manufacturer</span><span class="dv">${a.manufacturer||'—'}</span></div>
       <div class="dr"><span class="dk">Model</span><span class="dv">${a.model||'—'}</span></div>
       <div class="dr"><span class="dk">Warranty</span><span class="dv">${df(a.warrantyExpiry)}</span></div>
@@ -1986,6 +2012,7 @@ function openNewAsset(){
   document.getElementById('ast-modal-title').textContent='New Asset';
   ['af-name','af-mfr','af-model','af-warr','af-pdate','af-lsvc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('af-status').value='Active';
+  document.getElementById('af-acat').value='';
   document.getElementById('af-loc').innerHTML='<option value="">— Select unit —</option>';
   populateBldSelect('af-bldg');
   document.getElementById('af-bldg').value='';
@@ -2009,6 +2036,7 @@ function editAst(id){
   afOnFloorChange();
   document.getElementById('af-loc').value=a.unitId||'';
   populateAstSupplierSelect('af-cat', a.supplierId||'');
+  document.getElementById('af-acat').value=a.category||'';
   document.getElementById('af-status').value=a.status||'Active';
   document.getElementById('af-mfr').value=a.manufacturer||'';
   document.getElementById('af-model').value=a.model||'';
@@ -2030,23 +2058,24 @@ async function saveAst(){
   const sup=DB.suppliers.find(s=>s.id===supplierId);
   const data={
     label,
-    buildingId: bld?bld.id:buildingId,
-    floorId: flr?flr.id:floorId,
-    unitId: unt?unt.id:unitId,
-    supplierId: supplierId,
-    supplier  : supplierId,
-    status:document.getElementById('af-status').value,
-    manufacturer:document.getElementById('af-mfr').value,
-    model:document.getElementById('af-model').value,
-    warrantyExpiry:document.getElementById('af-warr').value,
-    purchaseDate:document.getElementById('af-pdate').value,
-    lastServiced:document.getElementById('af-lsvc').value,
-    // keep display fields in sync
-    name:label,
-    building: bld?bld.name:buildingId,
-    floor: flr?flr.label:floorId,
-    unit: unt?unt.label:unitId,
-    category: sup?sup.name:supplierId,
+    buildingId  : bld?bld.id:buildingId,
+    floorId     : flr?flr.id:floorId,
+    unitId      : unt?unt.id:unitId,
+    supplierId  : supplierId,
+    supplier    : supplierId,
+    category    : document.getElementById('af-acat').value,
+    status      : document.getElementById('af-status').value,
+    manufacturer: document.getElementById('af-mfr').value,
+    model       : document.getElementById('af-model').value,
+    warrantyExpiry: document.getElementById('af-warr').value,
+    purchaseDate: document.getElementById('af-pdate').value,
+    lastServiced: document.getElementById('af-lsvc').value,
+    // display fields
+    name        : label,
+    building    : bld?bld.name:buildingId,
+    floor       : flr?flr.label:floorId,
+    unit        : unt?unt.label:unitId,
+    supplierName: sup?sup.name:supplierId,
   };
   if(editingId.ast){ Object.assign(DB.assets.find(x=>x.id===editingId.ast),data); }
   else { DB.assets.push({id:nextId(DB.assets,'AST'),...data}); }
@@ -2546,7 +2575,11 @@ function openStartInspection(){
   populateBldSelect('insp-bldg');
   document.getElementById('insp-bldg').value = '';
   document.getElementById('insp-floor').innerHTML = '<option value="">All floors</option>';
-  document.getElementById('insp-cat').value = 'All';
+  // Populate category filter from distinct asset categories
+  const cats = [...new Set(DB.assets.map(a=>a.category).filter(Boolean))].sort();
+  const catSel = document.getElementById('insp-cat');
+  catSel.innerHTML = '<option value="All">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  catSel.value = 'All';
   document.getElementById('insp-asset-preview').textContent = 'Select a building to preview assets';
   openMo('mo-insp-start');
 }
@@ -2556,6 +2589,12 @@ function inspOnBldgChange(){
   const floors = getFloorsForBuilding(bldg);
   const fl = document.getElementById('insp-floor');
   fl.innerHTML = '<option value="">All floors</option>' + floors.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
+  // Refresh category list scoped to this building's assets
+  const catSel = document.getElementById('insp-cat');
+  const prevCat = catSel.value;
+  const cats = [...new Set(DB.assets.filter(a=>!bldg||a.building===bldg).map(a=>a.category).filter(Boolean))].sort();
+  catSel.innerHTML = '<option value="All">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  catSel.value = cats.includes(prevCat) ? prevCat : 'All';
   updateInspPreview();
 }
 
@@ -2994,8 +3033,8 @@ function exportCSV(type){
     headers=['ID','Subject','Status','Priority','Category','Building','Unit','Assigned To','Reported By','Date Opened','Date Closed','Notes'];
     rows=DB.tickets.map(t=>[t.id,t.subject,t.status,t.priority,t.category,t.building,t.unit,t.assignedTo||'',t.reportedBy||'',t.dateOpened||'',t.dateClosed||'',t.notes||'']);
   } else if(type==='assets'){
-    headers=['ID','Name','Building','Floor','Unit','Supplier','Status','Manufacturer','Model','Warranty Expiry'];
-    rows=DB.assets.map(a=>[a.id,a.label||a.name,a.building,a.floor||'',a.unit||'',a.category||'',a.status,a.manufacturer||'',a.model||'',a.warrantyExpiry||'']);
+    headers=['ID','Name','Building','Floor','Unit','Supplier','Category','Status','Manufacturer','Model','Warranty Expiry'];
+    rows=DB.assets.map(a=>[a.id,a.label||a.name,a.building,a.floor||'',a.unit||'',a.supplierName||'',a.category||'',a.status,a.manufacturer||'',a.model||'',a.warrantyExpiry||'']);
   } else if(type==='suppliers'){
     headers=['ID','Name','Contact','Status','Rating','Rate/Hr','Phone','Email'];
     rows=DB.suppliers.map(s=>[s.id,s.name,s.contact||'',s.status,s.rating||'',s.ratePerHour||0,s.phone||'',s.email||'']);
@@ -3020,7 +3059,7 @@ function exportCSV(type){
     <div class="fg"><label>Floor (optional)</label><select class="fs2" id="insp-floor" onchange="updateInspPreview()"><option value="">All floors</option></select></div>
     <div class="fg"><label>Category filter</label>
       <select class="fs2" id="insp-cat" onchange="updateInspPreview()">
-        <option value="All">All Categories</option><option>HVAC</option><option>Electrical</option><option>Plumbing</option><option>Security</option><option>Safety</option><option>Structural</option><option>Equipment</option><option>Tools</option><option>General</option>
+        <option value="All">All Categories</option>
       </select>
     </div>
     <div id="insp-asset-preview" style="margin:0 18px 12px;padding:12px 14px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--sub)">Select a building to preview assets</div>
