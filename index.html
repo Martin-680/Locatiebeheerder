@@ -2298,12 +2298,13 @@ function renderUnits(){
     return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;cursor:pointer" onclick="openUnitDetail('${u.id}')">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
         <div style="font-size:15px;font-weight:700">${u.label}</div>
-        ${openTix.length ? `<span class="badge b-open" style="flex-shrink:0;margin-left:8px">${openTix.length} open</span>` : ''}
+        ${openTix.length ? `<span class="badge b-open" style="flex-shrink:0;margin-left:8px">Open</span>` : ''}
       </div>
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;padding-bottom:4px">
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${flr?.label||'—'}</div><div class="bs-lbl">Floor</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${assets.length}</div><div class="bs-lbl">Assets</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;color:${openTix.length?'var(--red)':'var(--text)'}">${openTix.length}</div><div class="bs-lbl">Tickets</div></div>
       </div>
     </div>`;
   }).join('') + '</div>';
