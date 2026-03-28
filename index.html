@@ -2831,6 +2831,30 @@ function finishInspectionRound(){
   openMo('mo-insp-summary');
 }
 
+/* ── Continue an In Progress round ── */
+function continueInspection(id){
+  if(!can('canStartInspection')) return;
+  const r = DB.inspections.find(x => x.id === id); if(!r) return;
+  const items = Array.isArray(r.items) ? r.items : [];
+
+  activeRound = {
+    inspId    : r.id,
+    building  : r.building,
+    floor     : r.floor,
+    category  : r.category,
+    items     : items.map(i => ({ ...i })), // deep-copy so edits don't mutate DB directly
+    resuming  : true,  // flag so saveInspectionRound knows to overwrite
+  };
+
+  closeMo('mo-insp-detail');
+
+  document.getElementById('insp-round-title').textContent = r.building + (r.floor ? ' · ' + r.floor : '');
+  document.getElementById('insp-round-sub').textContent   = (r.category && r.category !== 'All' ? r.category + ' · ' : '') + items.length + ' items';
+
+  renderRound();
+  navTo('insp-round');
+}
+
 /* ── Save the completed round to DB + Sheets ── */
 async function saveInspectionRound(){
   if(!activeRound) return;
@@ -2842,20 +2866,27 @@ async function saveInspectionRound(){
   });
 
   const allChecked = activeRound.items.every(i => i.result !== 'Open');
-  const itemsJSON = JSON.stringify(activeRound.items);
-  const newInsp = {
-    id          : activeRound.inspId,
-    building    : activeRound.building,
-    floor      : activeRound.floor,
-    category    : activeRound.category,
-    date        : today.toISOString().split('T')[0],
-    inspector   : currentUser.name,
-    status      : allChecked ? 'Completed' : 'In Progress',
-    items       : activeRound.items,   // keep as array in DB (for rendering)
-    notes       : ''
+  const inspRecord = {
+    id       : activeRound.inspId,
+    building : activeRound.building,
+    floor    : activeRound.floor,
+    category : activeRound.category,
+    date     : today.toISOString().split('T')[0],
+    inspector: currentUser.name,
+    status   : allChecked ? 'Completed' : 'In Progress',
+    items    : activeRound.items,
+    notes    : ''
   };
 
-  DB.inspections.unshift(newInsp);
+  if(activeRound.resuming){
+    // Overwrite the existing record in-place
+    const idx = DB.inspections.findIndex(x => x.id === activeRound.inspId);
+    if(idx >= 0) DB.inspections[idx] = inspRecord;
+    else DB.inspections.unshift(inspRecord);
+  } else {
+    DB.inspections.unshift(inspRecord);
+  }
+
   closeMo('mo-insp-summary');
 
   try {
@@ -2863,7 +2894,6 @@ async function saveInspectionRound(){
     toast('Inspection round saved');
   } catch(e){
     toast('Save failed – check Sheets permissions','err');
-    DB.inspections.shift(); // rollback
     return;
   }
 
@@ -2986,8 +3016,12 @@ function openInspDetail(id){
           <span style="font-size:11px;font-weight:700;flex-shrink:0;color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">${item.result}</span>
         </div>`).join('')}
     </div>` : ''}
-    ${can('canEditAll') ? `
+    ${can('canStartInspection') && r.status === 'In Progress' ? `
     <div style="padding:16px 18px 0;display:flex;gap:9px">
+      <button onclick="continueInspection('${r.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Continue Inspection</button>
+    </div>` : ''}
+    ${can('canEditAll') ? `
+    <div style="padding:${can('canStartInspection') && r.status === 'In Progress' ? '8' : '16'}px 18px 0;display:flex;gap:9px">
       <button onclick="confirmDelete('inspection','${r.id}')" style="flex:1;padding:13px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--red)"> Delete</button>
     </div>` : ''}
     <div style="height:24px"></div>`;
