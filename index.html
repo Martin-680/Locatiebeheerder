@@ -910,7 +910,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 const CLIENT_ID   = '806872056167-d9r8u2mq154725634o1nbpu93mdpt5ff.apps.googleusercontent.com';
 const SHEET_ID    = '1UkjXu3yOwPWlb1bKjMnXuCrYkxsvzC6wBZ48nPr1P4A';
 const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email openid';
-const DISCOVERY   = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
 
 /* Sheet tab names — must match exactly what you created */
 const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', floors:'Floors', units:'Units' };
@@ -986,7 +985,8 @@ function gapiLoaded(){
   setStatus('<span class="ag-spinner"></span>');
   gapi.load('client', async ()=>{
     try {
-      await gapi.client.init({ discoveryDocs:[DISCOVERY] });
+      await gapi.client.init({});
+      await gapi.client.load('https://sheets.googleapis.com/$discovery/rest?version=v4');
       // GIS token client
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
