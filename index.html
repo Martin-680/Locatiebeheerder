@@ -1344,14 +1344,16 @@ function closeDrawer(){ document.getElementById('drawer-overlay').classList.remo
 let currentScreen='dashboard';
 let prevScreen='dashboard';
 function navTo(s){
+  const scr = document.getElementById('screen-'+s);
+  if(!scr){ console.error('navTo: missing screen-'+s); return; }
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
-  document.getElementById('screen-'+s).classList.add('active');
+  scr.classList.add('active');
   const idx=['dashboard','tickets','buildings','inspections'].indexOf(s);
   if(idx>=0) document.querySelectorAll('.ni')[idx]?.classList.add('active');
   prevScreen=currentScreen;
   currentScreen=s;
-  document.getElementById('screen-'+s).scrollTop=0;
+  scr.scrollTop=0;
   if(s==='dashboard')   renderDash();
   if(s==='tickets')     renderTix();
   if(s==='assets')      renderAst();
@@ -2523,6 +2525,7 @@ async function saveUnit(){
    FLOORS
 ══════════════════════════════════════════════════════════ */
 function renderFloors(){
+  if(!document.getElementById('floor-list')) return;
   const q = (document.getElementById('floor-search')?.value||'').toLowerCase();
 
   const bldSel = document.getElementById('sel-floor-bldg');
