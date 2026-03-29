@@ -670,6 +670,28 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="unit-list"></div>
   </div>
 
+  <!-- ═══════ FLOORS SCREEN ═══════ -->
+  <div id="screen-floors" class="screen">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left"><div class="topbar-title">Floors</div><div class="topbar-sub" id="floor-lbl"></div></div>
+        <div class="topbar-actions">
+          <button class="ib" onclick="openNewFloor()" id="btn-new-floor" style="display:none" title="Add Floor"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
+        </div>
+      </div>
+    </div>
+    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="floor-search" placeholder="Search floors…" oninput="renderFloors()"/></div>
+    <div class="fbar">
+      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
+        <select class="fsel" id="sel-floor-bldg" onchange="renderFloors()">
+          <option value="All">All Buildings</option>
+        </select>
+      </div>
+    </div>
+    <div id="floor-list"></div>
+  </div>
+
   <!-- ═══════ NAV ═══════ -->
   <nav class="bottom-nav" style="grid-template-columns:repeat(4,1fr)">
     <button class="ni active" onclick="navTo('dashboard')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dash</button>
