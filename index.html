@@ -2356,7 +2356,15 @@ function renderUnits(){
     if(floorVal !== 'All' && u.floorId !== floorVal) return false;
     if(q && !u.label.toLowerCase().includes(q)) return false;
     return true;
-  }).sort((a,z) => a.sortOrder - z.sortOrder);
+  }).sort((a,z) => {
+    const bldA = DB.buildings.find(b=>b.id===a.buildingId)?.name||'';
+    const bldZ = DB.buildings.find(b=>b.id===z.buildingId)?.name||'';
+    if(bldA !== bldZ) return bldA.localeCompare(bldZ);
+    if(a.label !== z.label) return a.label.localeCompare(z.label);
+    const flrA = DB.floors.find(f=>f.id===a.floorId)?.label||'';
+    const flrZ = DB.floors.find(f=>f.id===z.floorId)?.label||'';
+    return flrA.localeCompare(flrZ);
+  });
 
   document.getElementById('unit-lbl').textContent = `${list.length} unit${list.length!==1?'s':''}`;
   const c = document.getElementById('unit-list');
