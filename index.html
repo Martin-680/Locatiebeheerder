@@ -1748,7 +1748,7 @@ function tixItemHTML(t,clickable=true){
   const stCls={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Cancelled:'b-cancel',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
   const fn=clickable?`openTixDetail('${t.id}')`:`navTo('tickets')`;
   const daysColor = days && daysSince(t.dateOpened)>7 ? 'color:var(--amber);' : '';
-  const floorLabel = DB.floors.find(f=>f.id===t.floor)?.label || t.floor || '—';
+  const floorLabel = DB.floors.find(f=>f.id===t.floor)?.label || DB.floors.find(f=>f.label===t.floor)?.label || t.floor || '—';
   return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
@@ -1796,7 +1796,7 @@ function openTixDetail(id){
     </div>
     <div style="padding:0 18px">
       <div class="dr"><span class="dk">Building</span><span class="dv">${t.building}</span></div>
-      ${t.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${t.floor}</span></div>`:''}
+      ${t.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${DB.floors.find(f=>f.id===t.floor)?.label||DB.floors.find(f=>f.label===t.floor)?.label||t.floor}</span></div>`:''}
       <div class="dr"><span class="dk">Unit / Area</span><span class="dv">${t.unit||'—'}</span></div>
       <div class="dr"><span class="dk">Assigned To</span><span class="dv">${t.assignedTo||'—'}</span></div>
       <div class="dr"><span class="dk">Opened</span><span class="dv">${df(t.dateOpened)}</span></div>
@@ -1908,7 +1908,7 @@ function editTix(id){
   populateBldSelect('tf-bldg');
   document.getElementById('tf-bldg').value=t.building;
   tfOnBldgChange();
-  document.getElementById('tf-sub').value=t.floor||'';
+  { const _f=DB.floors.find(f=>f.label===t.floor)||DB.floors.find(f=>f.id===t.floor); document.getElementById('tf-sub').value=_f?_f.id:''; }
   tfOnFloorChange();
   // Restore unit value — set after populating
   const unitSel=document.getElementById('tf-unit');
@@ -1950,7 +1950,7 @@ async function saveTix(){
     if(t){
       const prevStatus=t.status;
       t.building=document.getElementById('tf-bldg').value;
-      t.floor=document.getElementById('tf-sub').value;
+      t.floor=(DB.floors.find(f=>f.id===document.getElementById('tf-sub').value)?.label)||document.getElementById('tf-sub').value;
       t.unit=document.getElementById('tf-unit').value||'TBD';
       t.subject=subj; t.priority=document.getElementById('tf-pri').value;
       t.category=document.getElementById('tf-cat').value;
@@ -1968,7 +1968,7 @@ async function saveTix(){
     }
   } else {
     const id=nextId(DB.tickets,'TKT');
-    DB.tickets.unshift({id,building:document.getElementById('tf-bldg').value,floor:document.getElementById('tf-sub').value,unit:document.getElementById('tf-unit').value||'TBD',subject:subj,status,priority:document.getElementById('tf-pri').value,category:document.getElementById('tf-cat').value,assignedTo:document.getElementById('tf-assign').value,dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}])});
+    DB.tickets.unshift({id,building:document.getElementById('tf-bldg').value,floor:(DB.floors.find(f=>f.id===document.getElementById('tf-sub').value)?.label)||document.getElementById('tf-sub').value,unit:document.getElementById('tf-unit').value||'TBD',subject:subj,status,priority:document.getElementById('tf-pri').value,category:document.getElementById('tf-cat').value,assignedTo:document.getElementById('tf-assign').value,dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}])});
   }
   closeMo('mo-tix');
   await writeSheet('tickets');
