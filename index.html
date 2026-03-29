@@ -473,7 +473,12 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="asearch" placeholder="Search assets…" oninput="setPage('ast',1);renderAst()"/></div>
-    <div class="fbar">
+    <div class="fbar-wrap">
+      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
+        <select class="fsel" id="sel-ast-bldg" onchange="setPage('ast',1);renderAst()">
+          <option value="All">All Buildings</option>
+        </select>
+      </div>
       <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
         <select class="fsel" id="sel-ast-status" onchange="setPage('ast',1);renderAst()">
           <option value="All">All Statuses</option><option value="Active">Active</option>
@@ -1689,7 +1694,7 @@ function clearTixFilters(){
 }
 
 function clearAstFilters(){
-  ['sel-ast-status','sel-ast-cat','sel-ast-acat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
+  ['sel-ast-bldg','sel-ast-status','sel-ast-cat','sel-ast-acat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const search=document.getElementById('asearch');if(search)search.value='';
   setPage('ast',1);renderAst();
 }
@@ -2045,6 +2050,15 @@ function astCardHTML(a, onclick){
 function renderAst(){
   const q=(document.getElementById('asearch')?.value||'').toLowerCase();
   const statusVal=document.getElementById('sel-ast-status')?.value||'All';
+  // Populate building filter
+  const bldSel=document.getElementById('sel-ast-bldg');
+  if(bldSel){
+    const prev=bldSel.value;
+    bldSel.innerHTML='<option value="All">All Buildings</option>'
+      +[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+    bldSel.value=prev;
+  }
+  const bldVal=bldSel?.value||'All';
   // Populate supplier filter from DB.suppliers, preserving selection
   const catSel=document.getElementById('sel-ast-cat');
   if(catSel){
@@ -2064,11 +2078,12 @@ function renderAst(){
   }
   const catVal=catSel?.value||'All';
   const acatVal=acatSel?.value||'All';
-  syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat');
+  syncSelActive('sel-ast-bldg'); syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat');
   let list=DB.assets;
+  if(bldVal!=='All')    list=list.filter(a=>a.building===bldVal);
   if(statusVal!=='All') list=list.filter(a=>a.status===statusVal);
-  if(catVal!=='All')  list=list.filter(a=>a.supplierId===catVal);
-  if(acatVal!=='All') list=list.filter(a=>a.category===acatVal);
+  if(catVal!=='All')    list=list.filter(a=>a.supplierId===catVal);
+  if(acatVal!=='All')   list=list.filter(a=>a.category===acatVal);
   if(q) list=list.filter(a=>a.name.toLowerCase().includes(q)||a.building.toLowerCase().includes(q)||a.id.toLowerCase().includes(q));
   document.getElementById('ast-lbl').textContent=`${list.length} asset${list.length!==1?'s':''}`;
   const c=document.getElementById('ast-list');
