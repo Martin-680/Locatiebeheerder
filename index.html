@@ -540,15 +540,28 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
     <div class="fbar">
       <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
-        <select class="fsel" id="sel-insp-status" onchange="renderInspections()">
+        <select class="fsel" id="sel-insp-status" onchange="setPage('insp',1);renderInspections()">
           <option value="All">All</option><option value="In Progress">In Progress</option><option value="Completed">Completed</option>
         </select>
       </div>
       <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
-        <select class="fsel" id="sel-insp-bldg" onchange="renderInspections()">
+        <select class="fsel" id="sel-insp-bldg" onchange="setPage('insp',1);renderInspections()">
           <option value="All">All Buildings</option>
         </select>
       </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Floor</div>
+        <select class="fsel" id="sel-insp-floor" onchange="setPage('insp',1);renderInspections()">
+          <option value="All">All Floors</option>
+        </select>
+      </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Category</div>
+        <select class="fsel" id="sel-insp-cat" onchange="setPage('insp',1);renderInspections()">
+          <option value="All">All Categories</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:flex-end;padding:0 14px 8px">
+      <button onclick="clearInspFilters()" style="font-size:12px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button>
     </div>
     <div id="insp-list"></div>
   </div>
@@ -2747,6 +2760,13 @@ async function saveSupplier(){
 let activeRound = null; // { inspId, building, floor, category, items:[{assetId,label,category,result,note}] }
 
 /* ── List view ── */
+function clearInspFilters(){
+  ['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='All';
+  });
+  setPage('insp',1); renderInspections();
+}
+
 function goInspPage(p){ setPage('insp',p); renderInspections(); }
 
 function renderInspections(){
@@ -2756,15 +2776,45 @@ function renderInspections(){
     const cur = bldSel.value;
     bldSel.innerHTML = '<option value="All">All Buildings</option>' +
       [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
-    if(cur) bldSel.value = cur;
+    bldSel.value = cur || 'All';
+  }
+
+  const bldgVal = document.getElementById('sel-insp-bldg')?.value || 'All';
+
+  // Populate floor filter based on selected building
+  const floorSel = document.getElementById('sel-insp-floor');
+  if(floorSel){
+    const cur = floorSel.value;
+    const floors = bldgVal !== 'All'
+      ? getFloorsForBuilding(bldgVal)
+      : [...DB.floors].sort((a,z) => a.label.localeCompare(z.label));
+    // Deduplicate by label
+    const seen = new Set();
+    const unique = floors.filter(f=>{ if(seen.has(f.label)) return false; seen.add(f.label); return true; });
+    floorSel.innerHTML = '<option value="All">All Floors</option>' + unique.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
+    floorSel.value = unique.some(f=>f.label===cur) ? cur : 'All';
+  }
+
+  // Populate category filter from sheet
+  const catSel = document.getElementById('sel-insp-cat');
+  if(catSel){
+    const cur = catSel.value;
+    catSel.innerHTML = '<option value="All">All Categories</option>' + getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
+    catSel.value = getCategoryList().includes(cur) ? cur : 'All';
   }
 
   const statusVal = document.getElementById('sel-insp-status')?.value || 'All';
-  const bldgVal   = document.getElementById('sel-insp-bldg')?.value   || 'All';
+  const floorVal  = document.getElementById('sel-insp-floor')?.value  || 'All';
+  const catVal    = document.getElementById('sel-insp-cat')?.value    || 'All';
+
+  syncSelActive('sel-insp-status'); syncSelActive('sel-insp-bldg');
+  syncSelActive('sel-insp-floor');  syncSelActive('sel-insp-cat');
 
   let list = [...DB.inspections].sort((a,b)=> b.date > a.date ? 1 : -1);
   if(statusVal !== 'All') list = list.filter(r => r.status === statusVal);
   if(bldgVal   !== 'All') list = list.filter(r => r.building === bldgVal);
+  if(floorVal  !== 'All') list = list.filter(r => r.floor === floorVal);
+  if(catVal    !== 'All') list = list.filter(r => r.category === catVal);
 
   const lbl = document.getElementById('insp-lbl');
   if(lbl) lbl.textContent = `${list.length} round${list.length!==1?'s':''}`;
@@ -2777,7 +2827,7 @@ function renderInspections(){
           <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
         </svg>
       </div>
-      <div style="font-size:13px">No inspection rounds yet</div>
+      <div style="font-size:13px">No inspection rounds found</div>
       ${can('canStartInspection') ? `<button onclick="openStartInspection()" style="margin-top:8px;padding:10px 20px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:13px;font-weight:700;color:#fff"> Start First Round</button>` : ''}
     </div>`;
     return;
