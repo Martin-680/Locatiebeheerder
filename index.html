@@ -963,7 +963,7 @@ function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
 let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], floors:[], units:[], categories:[] };
-let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null };
+let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null, floor:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
 const pages = { tix:1, ast:1, usr:1, bld:1, sup:1, insp:1 };
@@ -1293,6 +1293,7 @@ function openDrawer(){
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>','Team',"navTo('users');closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>','Assets',"navTo('assets');closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>','Units',"navTo('units');closeDrawer()");
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>','Floors',"navTo('floors');closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-6-7 6v3l-4-3v12z"/><path d="M17 20v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/></svg>','Suppliers',"navTo('suppliers');closeDrawer()");
   if(can('canManageCategories')) html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>','Manage Categories',"openCategories();closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>','Export CSV',"openExportModal();closeDrawer()");
@@ -1337,6 +1338,7 @@ function navTo(s){
   if(s==='suppliers')   renderSuppliers();
   if(s==='inspections') renderInspections();
   if(s==='units')       renderUnits();
+  if(s==='floors')      renderFloors();
 }
 function navBack(){
   if(prevScreen==='insp-round') navTo('inspections');
@@ -1352,6 +1354,7 @@ function applyPermUI(){
   show('btn-new-usr',p.canManageUsers);
   show('btn-new-bld',p.canManageBuildings);
   show('btn-new-unit',p.canManageBuildings);
+  show('btn-new-floor',p.canManageBuildings);
   show('btn-new-sup',p.canManageSuppliers);
   show('btn-new-insp',p.canStartInspection);
   const fab=document.getElementById('fab-quick');
@@ -2493,6 +2496,138 @@ async function saveUnit(){
 }
 
 
+
+/* ══════════════════════════════════════════════════════════
+   FLOORS
+══════════════════════════════════════════════════════════ */
+function renderFloors(){
+  const q = (document.getElementById('floor-search')?.value||'').toLowerCase();
+
+  const bldSel = document.getElementById('sel-floor-bldg');
+  if(bldSel){
+    const cur = bldSel.value;
+    bldSel.innerHTML = '<option value="All">All Buildings</option>'
+      + [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+    bldSel.value = cur;
+  }
+  const bldgVal = bldSel?.value || 'All';
+  syncSelActive('sel-floor-bldg');
+
+  let list = DB.floors.filter(f => {
+    if(bldgVal !== 'All' && f.buildingId !== bldgVal) return false;
+    if(q && !f.label.toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a,z) => {
+    const bldA = DB.buildings.find(b=>b.id===a.buildingId)?.name||'';
+    const bldZ = DB.buildings.find(b=>b.id===z.buildingId)?.name||'';
+    if(bldA !== bldZ) return bldA.localeCompare(bldZ);
+    return a.sortOrder - z.sortOrder || a.label.localeCompare(z.label);
+  });
+
+  document.getElementById('floor-lbl').textContent = `${list.length} floor${list.length!==1?'s':''}`;
+  const c = document.getElementById('floor-list');
+
+  if(!list.length){
+    c.innerHTML = `<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:.4">
+        <rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/>
+      </svg></div><div style="font-size:13px">No floors found</div></div>`;
+    return;
+  }
+
+  c.innerHTML = '<div style="padding:0 14px 8px">' + list.map(f => {
+    const bld   = DB.buildings.find(b=>b.id===f.buildingId);
+    const units = DB.units.filter(u=>u.floorId===f.id);
+    return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div style="font-size:15px;font-weight:700;flex:1;cursor:pointer" onclick="openFloorDetail('${f.id}')">${f.label}</div>
+        ${can('canManageBuildings') ? `<button onclick="editFloor('${f.id}')" style="width:30px;height:30px;border-radius:8px;background:#F1F5F9;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:8px" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>` : ''}
+      </div>
+      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;padding-bottom:4px;cursor:pointer;display:grid;grid-template-columns:repeat(3,1fr)" onclick="openFloorDetail('${f.id}')">
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${f.sortOrder||'—'}</div><div class="bs-lbl">Sort Order</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${units.length}</div><div class="bs-lbl">Units</div></div>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function openFloorDetail(id){
+  const f = DB.floors.find(x=>x.id===id); if(!f) return;
+  const bld   = DB.buildings.find(b=>b.id===f.buildingId);
+  const units = DB.units.filter(u=>u.floorId===f.id);
+
+  document.getElementById('floor-detail-title').textContent = f.label;
+  document.getElementById('floor-detail-body').innerHTML = `
+    <div style="padding:0 18px 12px">
+      <div style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--teal);margin-bottom:4px">${f.id}</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:8px">${f.label}</div>
+    </div>
+    <div style="padding:0 18px">
+      <div class="dr"><span class="dk">Building</span><span class="dv">${bld?.name||'—'}</span></div>
+      <div class="dr"><span class="dk">Sort Order</span><span class="dv">${f.sortOrder||0}</span></div>
+      <div class="dr"><span class="dk">Units</span><span class="dv">${units.length}</span></div>
+    </div>
+    ${units.length ? `
+    <div style="padding:14px 18px 0">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Units (${units.length})</div>
+      ${units.sort((a,z)=>a.label.localeCompare(z.label)).map(u=>`
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-size:10px;color:var(--teal);font-weight:700">${u.id}</div><div style="font-size:13px;font-weight:600">${u.label}</div></div>
+        </div>`).join('')}
+    </div>` : ''}
+    ${can('canManageBuildings') ? `
+    <div style="padding:16px 18px 0;display:flex;gap:9px">
+      <button onclick="editFloor('${f.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>
+    </div>` : ''}
+    <div style="height:24px"></div>`;
+  openMo('mo-floor-detail');
+}
+
+function openNewFloor(){
+  if(!can('canManageBuildings')) return;
+  editingId.floor = null;
+  document.getElementById('floor-modal-title').textContent = 'New Floor';
+  document.getElementById('ff-label').value = '';
+  document.getElementById('ff-sort').value  = '';
+  populateBldSelect('ff-bldg');
+  document.getElementById('ff-bldg').value  = '';
+  openMo('mo-floor');
+}
+
+function editFloor(id){
+  if(!can('canManageBuildings')) return;
+  const f = DB.floors.find(x=>x.id===id); if(!f) return;
+  editingId.floor = id;
+  closeMo('mo-floor-detail');
+  document.getElementById('floor-modal-title').textContent = 'Edit Floor';
+  document.getElementById('ff-label').value = f.label||'';
+  document.getElementById('ff-sort').value  = f.sortOrder||'';
+  populateBldSelect('ff-bldg');
+  const bld = DB.buildings.find(b=>b.id===f.buildingId);
+  document.getElementById('ff-bldg').value  = bld ? bld.name : '';
+  openMo('mo-floor');
+}
+
+async function saveFloor(){
+  const label = document.getElementById('ff-label').value.trim();
+  if(!label){ toast('Floor name required','err'); return; }
+  const bldName = document.getElementById('ff-bldg').value;
+  const bld = DB.buildings.find(b=>b.name===bldName);
+  if(!bld){ toast('Select a building','err'); return; }
+  const sortOrder = parseInt(document.getElementById('ff-sort').value)||0;
+  const data = { label, buildingId: bld.id, sortOrder };
+  if(editingId.floor){
+    Object.assign(DB.floors.find(x=>x.id===editingId.floor), data);
+  } else {
+    DB.floors.push({ id: nextId(DB.floors,'FL'), ...data });
+  }
+  closeMo('mo-floor');
+  await writeSheet('floors');
+  toast(editingId.floor ? 'Floor updated' : 'Floor added');
+  if(currentScreen==='floors') renderFloors();
+}
+
 /* ══════════════════════════════════════════════════════════
    BUILDINGS
 ══════════════════════════════════════════════════════════ */
@@ -3585,6 +3720,28 @@ function exportCSV(type){
   toast(`${type} exported`);
 }
 </script>
+
+<!-- Floor add/edit modal -->
+<div class="mo" id="mo-floor" onclick="mcClick(event,'mo-floor')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt"><span id="floor-modal-title">New Floor</span><button class="mt-close" onclick="closeMo('mo-floor')">✕</button></div>
+    <div class="fg"><label>Floor Name *</label><input class="fi2" id="ff-label" placeholder="e.g. Ground Floor"/></div>
+    <div class="fg"><label>Building *</label><select class="fs2" id="ff-bldg"><option value="">Select…</option></select></div>
+    <div class="fg"><label>Sort Order</label><input class="fi2" type="number" id="ff-sort" placeholder="0"/></div>
+    <button class="btn-p" onclick="saveFloor()">Save Floor</button>
+    <button class="btn-s" onclick="closeMo('mo-floor')">Cancel</button>
+  </div>
+</div>
+
+<!-- Floor detail modal -->
+<div class="mo" id="mo-floor-detail" onclick="mcClick(event,'mo-floor-detail')">
+  <div class="ms" style="max-height:88vh">
+    <div class="mh"></div>
+    <div class="mt"><span id="floor-detail-title">Floor</span><button class="mt-close" onclick="closeMo('mo-floor-detail')">✕</button></div>
+    <div id="floor-detail-body" style="overflow-y:auto;padding-bottom:24px"></div>
+  </div>
+</div>
 
 <!-- Unit form -->
 <div class="mo" id="mo-unit" onclick="mcClick(event,'mo-unit')">
