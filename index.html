@@ -2894,7 +2894,7 @@ function openStartInspection(){
   const catSel = document.getElementById('insp-cat');
   catSel.innerHTML = '<option value="All">All Categories</option>' + getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
   catSel.value = 'All';
-  document.getElementById('insp-asset-preview').textContent = 'Select a building to preview assets';
+  document.getElementById('insp-asset-preview').textContent = 'Select a building to preview assets and units';
   openMo('mo-insp-start');
 }
 
@@ -2951,12 +2951,17 @@ function updateInspPreview(){
   const unit = document.getElementById('insp-unit').value;
   const cat  = document.getElementById('insp-cat').value;
   const prev = document.getElementById('insp-asset-preview');
-  if(!bldg){ prev.textContent = 'Select a building to preview assets'; return; }
+  if(!bldg){ prev.textContent = 'Select a building to preview assets and units'; return; }
   const assets = getInspAssets(bldg, floor, unit, cat);
-  if(!assets.length){
-    prev.innerHTML = `<span style="color:var(--red)">No assets match this selection.</span>`;
+  const units  = getInspUnits(bldg, floor, unit);
+  const total  = assets.length + units.length;
+  if(!total){
+    prev.innerHTML = `<span style="color:var(--red)">No assets or units match this selection.</span>`;
   } else {
-    prev.innerHTML = `<span style="color:var(--green);font-weight:700">${assets.length} asset${assets.length!==1?'s':''}</span> <span style="color:var(--sub)">will be included in this round.</span>`;
+    const parts = [];
+    if(assets.length) parts.push(`<span style="color:var(--green);font-weight:700">${assets.length} asset${assets.length!==1?'s':''}</span>`);
+    if(units.length)  parts.push(`<span style="color:var(--teal);font-weight:700">${units.length} unit${units.length!==1?'s':''}</span>`);
+    prev.innerHTML = parts.join(' + ') + ` <span style="color:var(--sub)">will be included in this round.</span>`;
   }
 }
 
@@ -2970,6 +2975,18 @@ function getInspAssets(bldg, floor, unit, cat){
   });
 }
 
+function getInspUnits(bldg, floor, unit){
+  const bldObj = DB.buildings.find(b=>b.name===bldg);
+  if(!bldObj) return [];
+  return DB.units.filter(u => {
+    const flr = DB.floors.find(f=>f.id===u.floorId);
+    if(flr?.buildingId !== bldObj.id) return false;
+    if(floor && flr?.label !== floor) return false;
+    if(unit && u.label !== unit) return false;
+    return true;
+  }).sort((a,z)=>a.sortOrder-z.sortOrder);
+}
+
 /* ── Launch the round (full-screen checklist) ── */
 function launchInspectionRound(){
   const bldg  = document.getElementById('insp-bldg').value;
@@ -2978,22 +2995,30 @@ function launchInspectionRound(){
   const cat   = document.getElementById('insp-cat').value;
   if(!bldg){ toast('Select a building','err'); return; }
   const assets = getInspAssets(bldg, floor, unit, cat);
-  if(!assets.length){ toast('No assets match this selection','err'); return; }
+  const units  = getInspUnits(bldg, floor, unit);
+  if(!assets.length && !units.length){ toast('No assets or units match this selection','err'); return; }
 
   const inspId = nextId(DB.inspections, 'INS');
+  const assetItems = assets.map(a => ({ type:'asset', assetId: a.id, label: a.label||a.name, category: a.category, unit: a.unit||'', floor: a.floor||'', result: 'Open', note: '' }));
+  const unitItems  = units.map(u => {
+    const flr = DB.floors.find(f=>f.id===u.floorId);
+    return { type:'unit', unitId: u.id, label: u.label, category: 'Unit', unit: u.label, floor: flr?.label||'', result: 'Open', note: '' };
+  });
+
   activeRound = {
     inspId,
     building : bldg,
     floor    : floor,
     unit     : unit,
     category : cat,
-    items    : assets.map(a => ({ assetId: a.id, label: a.label||a.name, category: a.category, unit: a.unit||'', floor: a.floor||'', result: 'Open', note: '' }))
+    items    : [...assetItems, ...unitItems]
   };
 
   closeMo('mo-insp-start');
 
+  const total = activeRound.items.length;
   document.getElementById('insp-round-title').textContent = bldg + (floor ? ' · ' + floor : '') + (unit ? ' · ' + unit : '');
-  document.getElementById('insp-round-sub').textContent   = (cat !== 'All' ? cat + ' · ' : '') + assets.length + ' items';
+  document.getElementById('insp-round-sub').textContent   = (cat !== 'All' ? cat + ' · ' : '') + total + ' items';
 
   renderRound();
   navTo('insp-round');
@@ -3015,19 +3040,29 @@ function renderRound(){
 }
 
 function inspRoundItemHTML(item, idx){
-  const a      = DB.assets.find(x => x.id === item.assetId);
-  const stCls  = { Active:'b-closed', 'Under Maintenance':'b-prog', Decommissioned:'b-cancel' }[a?.status||'Active'] || 'b-closed';
+  const isUnit = item.type === 'unit';
+  const a      = isUnit ? null : DB.assets.find(x => x.id === item.assetId);
   const isDone = item.result !== 'Open';
   const isAppr = item.result === 'Approved';
   const isFail = item.result === 'Failed';
 
-  // Asset card (mirrors astCardHTML)
+  const idLabel  = isUnit ? item.unitId : (a ? a.id : item.assetId);
+  const idColor  = isUnit ? 'var(--teal)' : 'var(--muted)';
+  const typeTag  = isUnit
+    ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(8,145,178,.12);color:var(--teal);margin-bottom:6px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        UNIT
+      </span>`
+    : '';
+
+  // Card header
   const cardTop = `
     <div class="insp-asset-card" id="insp-item-${idx}">
       <div style="padding:13px 14px 0">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
           <div style="min-width:0">
-            <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px">${a ? a.id : item.assetId}</div>
+            ${typeTag}
+            <div style="font-size:10px;color:${idColor};font-weight:600;margin-bottom:2px">${idLabel}</div>
             <div style="font-size:15px;font-weight:700">${item.label}</div>
           </div>
           ${isDone
@@ -3038,8 +3073,11 @@ function inspRoundItemHTML(item, idx){
         <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
           <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${activeRound.building}</div><div class="bs-lbl">Building</div></div>
           <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
-          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
-          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.category}</div><div class="bs-lbl">Category</div></div>
+          ${isUnit
+            ? `<div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">—</div><div class="bs-lbl">Category</div></div>`
+            : `<div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
+               <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.category}</div><div class="bs-lbl">Category</div></div>`
+          }
         </div>
       </div>`;
 
@@ -3167,7 +3205,7 @@ function finishInspectionRound(){
     ${failedItems.map((item, i) => `
       <div style="background:#FEF2F2;border:1px solid rgba(220,38,38,.18);border-radius:var(--rs);padding:11px 14px;margin-bottom:8px">
         <div style="font-size:13px;font-weight:700;margin-bottom:3px">${item.label}</div>
-        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${item.category}${item.unit?' · '+item.unit:''}</div>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${item.type==='unit' ? 'Unit' : item.category}${item.type!=='unit' && item.unit?' · '+item.unit:''}</div>
         <div style="font-size:12px;color:var(--text);background:#fff;border-radius:6px;padding:8px 10px;border:1px solid rgba(220,38,38,.15)">${item.note}</div>
       </div>`).join('')}` : `
     <div style="text-align:center;padding:20px;background:#F0FDF4;border-radius:var(--rs);margin-bottom:12px">
@@ -3279,11 +3317,12 @@ function _prefillTicketFromFailure(item){
   document.getElementById('tf-status').value  = 'Open';
   document.getElementById('tf-pri').value     = 'High';
 
-  // Set category to match asset category if it exists in the sheet categories
-  populateCatSelect('tf-cat', '', item.category);
+  // Set category to match asset/unit category if it exists in the sheet categories
+  const catForTicket = item.type === 'unit' ? '' : item.category;
+  populateCatSelect('tf-cat', '', catForTicket);
   const tfCat = document.getElementById('tf-cat');
-  if(tfCat){
-    const match = getCategoryList().find(c => c.toLowerCase() === (item.category||'').toLowerCase());
+  if(tfCat && catForTicket){
+    const match = getCategoryList().find(c => c.toLowerCase() === catForTicket.toLowerCase());
     tfCat.value = match || (getCategoryList()[0] || '');
   }
 
@@ -3298,19 +3337,27 @@ function _prefillTicketFromFailure(item){
     tfOnFloorChange();
   }
 
-  // Restore asset link
+  // Restore asset link (for asset items) or unit link (for unit items)
   populateAssignSelect('tf-assign');
-  const astSel = document.getElementById('tf-asset');
-  if(item.assetId && astSel){
-    const a = DB.assets.find(x => x.id === item.assetId);
-    if(a){
-      if(![...astSel.options].some(o => o.value === item.assetId)){
-        const opt = document.createElement('option');
-        opt.value = a.id; opt.textContent = `${a.name}${a.unit?' · '+a.unit:''}`;
-        astSel.appendChild(opt);
+  if(item.type === 'unit'){
+    // Pre-select the unit on the ticket form
+    const unitSel = document.getElementById('tf-unit');
+    if(unitSel && item.unit){
+      if([...unitSel.options].some(o => o.value === item.unit)) unitSel.value = item.unit;
+    }
+  } else {
+    const astSel = document.getElementById('tf-asset');
+    if(item.assetId && astSel){
+      const a = DB.assets.find(x => x.id === item.assetId);
+      if(a){
+        if(![...astSel.options].some(o => o.value === item.assetId)){
+          const opt = document.createElement('option');
+          opt.value = a.id; opt.textContent = `${a.name}${a.unit?' · '+a.unit:''}`;
+          astSel.appendChild(opt);
+        }
+        astSel.value = item.assetId;
+        tfOnAssetChange();
       }
-      astSel.value = item.assetId;
-      tfOnAssetChange();
     }
   }
 
@@ -3363,7 +3410,12 @@ function openInspDetail(id){
           </div>
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:600">${item.label}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">${item.category}${item.unit?' · '+item.unit:''}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px">
+              ${item.type==='unit'
+                ? '<span style="font-weight:700;color:var(--teal)">Unit</span>'
+                : (item.category + (item.unit ? ' · ' + item.unit : ''))
+              }
+            </div>
             ${item.note ? `<div style="font-size:12px;color:var(--sub);margin-top:5px;background:#F8FAFF;border-radius:6px;padding:6px 8px;border:1px solid var(--border)">${item.note}</div>` : ''}
           </div>
           <span style="font-size:11px;font-weight:700;flex-shrink:0;color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">${item.result}</span>
