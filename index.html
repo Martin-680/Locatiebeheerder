@@ -2473,7 +2473,7 @@ async function saveUnit(){
   if(editingId.unit){
     Object.assign(DB.units.find(x=>x.id===editingId.unit),data);
   } else {
-    DB.units.push({id:nextId(DB.units,'UNT'),...data});
+    DB.units.push({id:nextId(DB.units,'U'),...data});
   }
   closeMo('mo-unit');
   await writeSheet('units');
