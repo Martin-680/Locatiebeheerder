@@ -912,7 +912,7 @@ const SHEET_ID    = '1UkjXu3yOwPWlb1bKjMnXuCrYkxsvzC6wBZ48nPr1P4A';
 const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email openid';
 
 /* Sheet tab names — must match exactly what you created */
-const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', floors:'Floors', units:'Units' };
+const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', floors:'Floors', units:'Units', categories:'Categories' };
 
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
@@ -924,17 +924,18 @@ const COLS = {
   inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
   floors:    ['id','buildingId','label','sortOrder'],
   units:     ['id','floorId','buildingId','label','sortOrder'],
+  categories:['id','category'],
 };
 
 /* ══════════════════════════════════════════════════════════
    ROLES & PERMISSIONS
 ══════════════════════════════════════════════════════════ */
 const ROLES = {
-  'Property Manager': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:true,  canEditAll:true,  canStartInspection:true  },
-  'Supervisor':       { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:false, canManageBuildings:false, canManageSuppliers:true,  canEditAll:false, canStartInspection:true  },
-  'Maintenance Tech': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false, canStartInspection:true  },
-  'Admin':            { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:false, canEditAll:false, canStartInspection:false },
-  'Contractor':       { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false, canStartInspection:false },
+  'Property Manager': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:true,  canEditAll:true,  canStartInspection:true,  canManageCategories:true  },
+  'Supervisor':       { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:false, canManageBuildings:false, canManageSuppliers:true,  canEditAll:false, canStartInspection:true,  canManageCategories:true  },
+  'Maintenance Tech': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false, canStartInspection:true,  canManageCategories:false },
+  'Admin':            { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:false, canEditAll:false, canStartInspection:false, canManageCategories:false },
+  'Contractor':       { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false, canStartInspection:false, canManageCategories:false },
 };
 const ROLE_COLORS = {'Property Manager':'#8B5CF6','Supervisor':'#06B6D4','Maintenance Tech':'#3B82F6','Admin':'#F59E0B','Contractor':'#64748B'};
 const ROLE_CLASS  = {'Property Manager':'rb-manager','Supervisor':'rb-supervisor','Maintenance Tech':'rb-tech','Admin':'rb-admin','Contractor':'rb-contractor'};
@@ -944,7 +945,7 @@ function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
    STATE
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
-let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], floors:[], units:[] };
+let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], floors:[], units:[], categories:[] };
 let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
@@ -1142,7 +1143,7 @@ function rowsToObjects(rows, cols){
 }
 
 async function loadAllData(){
-  const [users,buildings,assets,tickets,suppliers,inspections,floors,units] = await Promise.all([
+  const [users,buildings,assets,tickets,suppliers,inspections,floors,units,categories] = await Promise.all([
     sheetsGet(`${TABS.users}!A:Z`),
     sheetsGet(`${TABS.buildings}!A:Z`),
     sheetsGet(`${TABS.assets}!A:Z`),
@@ -1151,11 +1152,13 @@ async function loadAllData(){
     sheetsGet(`${TABS.inspections}!A:Z`),
     sheetsGet(`${TABS.floors}!A:Z`),
     sheetsGet(`${TABS.units}!A:Z`),
+    sheetsGet(`${TABS.categories}!A:Z`),
   ]);
   DB.users     = rowsToObjects(users,     COLS.users);
   DB.buildings = rowsToObjects(buildings, COLS.buildings);
   DB.tickets   = rowsToObjects(tickets,   COLS.tickets);
   DB.suppliers = rowsToObjects(suppliers, COLS.suppliers);
+  DB.categories = rowsToObjects(categories, COLS.categories);
   DB.inspections = rowsToObjects(inspections, COLS.inspections).map(r=>{
     try{ r.items = typeof r.items==='string' ? JSON.parse(r.items) : (r.items||[]); }
     catch(e){ r.items=[]; }
@@ -1271,9 +1274,10 @@ function openDrawer(){
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>','Dashboard',"navTo('dashboard');closeDrawer()");
   if(alertCount) html+=`<div class="drawer-item" onclick="navTo('dashboard');closeDrawer()"><div class="drawer-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1">Alerts</div><span class="drawer-item-badge">${alertCount}</span></div>`;
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>','Team',"navTo('users');closeDrawer()");
-  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>','Assets',"navTo('assets');closeDrawer()");
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>','Assets',"navTo('assets');closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>','Units',"navTo('units');closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-6-7 6v3l-4-3v12z"/><path d="M17 20v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/></svg>','Suppliers',"navTo('suppliers');closeDrawer()");
+  if(can('canManageCategories')) html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>','Manage Categories',"openCategories();closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>','Export CSV',"openExportModal();closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>','Refresh Data',"refreshAllData();closeDrawer()");
   html+=`<div class="drawer-sep"></div>`;
@@ -1447,6 +1451,18 @@ function populateMgrSelect(id){
   const cur=el.value;
   el.innerHTML='<option value="">None</option>'+DB.users.filter(u=>u.role==='Property Manager'||u.role==='Supervisor').sort((a,z)=>a.name.localeCompare(z.name)).map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
   if(cur) el.value=cur;
+}
+function getCategoryList(){
+  if(DB.categories && DB.categories.length)
+    return DB.categories.map(c=>c.category).filter(Boolean).sort((a,z)=>a.localeCompare(z));
+  return ['General','Plumbing','Electrical','HVAC','Security','Safety','Structural','Cleaning'];
+}
+function populateCatSelect(id, allowAll=false, currentVal=''){
+  const el=document.getElementById(id); if(!el) return;
+  const cats=getCategoryList();
+  const allOpt=allowAll?'<option value="All">All Categories</option>':'';
+  el.innerHTML=allOpt+cats.map(c=>`<option value="${c}"${c===currentVal?' selected':''}>${c}</option>`).join('');
+  if(currentVal) el.value=currentVal;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1651,6 +1667,13 @@ function renderTix(){
     [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).forEach(b=>{const o=document.createElement('option');o.value=b.name;o.textContent=b.name;bldgSel.appendChild(o);});
     if(bldgVal!=='All') bldgSel.value=bldgVal;
   }
+  // Populate category filter from sheet
+  const tixCatSel=document.getElementById('sel-tix-cat');
+  if(tixCatSel){
+    const prevCat=tixCatSel.value;
+    tixCatSel.innerHTML='<option value="All">All Categories</option>'+getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
+    tixCatSel.value=prevCat;
+  }
   let list=DB.tickets;
   if(statusVal==='mine') list=list.filter(t=>t.assignedTo===currentUser?.name||t.createdBy===currentUser?.name);
   else if(statusVal==='notclosed') list=list.filter(t=>t.status!=='Closed');
@@ -1815,6 +1838,7 @@ function openNewTicket(){
   document.getElementById('tf-pri').value='Medium';
   populateBldSelect('tf-bldg');
   document.getElementById('tf-bldg').value='';
+  populateCatSelect('tf-cat');
   tfOnBldgChange();
   populateAssignSelect('tf-assign');
   openMo('mo-tix');
@@ -1827,6 +1851,7 @@ function editTix(id){
   document.getElementById('btn-dup-tix').style.display='';
   document.getElementById('tf-subj').value=t.subject;
   document.getElementById('tf-pri').value=t.priority;
+  populateCatSelect('tf-cat','',t.category);
   document.getElementById('tf-cat').value=t.category;
   document.getElementById('tf-status').value=t.status;
   document.getElementById('tf-reporter').value=t.reportedBy||'';
@@ -2060,7 +2085,7 @@ function populateAstSupplierSelect(id, selectedId=''){
 }
 function populateAstCategorySelect(id, selected=''){
   const el=document.getElementById(id); if(!el) return;
-  const cats=[...new Set(DB.assets.map(a=>a.category).filter(Boolean))].sort();
+  const cats=getCategoryList();
   el.innerHTML='<option value="">— Select category —</option>'
     +cats.map(c=>`<option value="${c}">${c}</option>`).join('');
   if(selected) el.value=selected;
@@ -2807,10 +2832,9 @@ function openStartInspection(){
   document.getElementById('insp-bldg').value = '';
   document.getElementById('insp-floor').innerHTML = '<option value="">All floors</option>';
   document.getElementById('insp-unit').innerHTML  = '<option value="">All units</option>';
-  // Populate category filter from distinct asset categories
-  const cats = [...new Set(DB.assets.map(a=>a.category).filter(Boolean))].sort();
+  // Populate category filter from sheet categories
   const catSel = document.getElementById('insp-cat');
-  catSel.innerHTML = '<option value="All">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  catSel.innerHTML = '<option value="All">All Categories</option>' + getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
   catSel.value = 'All';
   document.getElementById('insp-asset-preview').textContent = 'Select a building to preview assets';
   openMo('mo-insp-start');
@@ -2822,12 +2846,11 @@ function inspOnBldgChange(){
   const fl = document.getElementById('insp-floor');
   fl.innerHTML = '<option value="">All floors</option>' + floors.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
   document.getElementById('insp-unit').innerHTML = '<option value="">All units</option>';
-  // Refresh category list scoped to this building's assets
+  // Refresh category list from sheet
   const catSel = document.getElementById('insp-cat');
   const prevCat = catSel.value;
-  const cats = [...new Set(DB.assets.filter(a=>!bldg||a.building===bldg).map(a=>a.category).filter(Boolean))].sort();
-  catSel.innerHTML = '<option value="All">All Categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
-  catSel.value = cats.includes(prevCat) ? prevCat : 'All';
+  catSel.innerHTML = '<option value="All">All Categories</option>' + getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
+  catSel.value = prevCat || 'All';
   updateInspPreview();
 }
 
@@ -3308,6 +3331,98 @@ async function doConfirmedDelete(){
 }
 
 /* ══════════════════════════════════════════════════════════
+   CATEGORIES
+══════════════════════════════════════════════════════════ */
+let editingCatId = null;
+
+function openCategories(){
+  if(!can('canManageCategories')){ toast('No permission','err'); return; }
+  editingCatId = null;
+  renderCategoryList();
+  openMo('mo-categories');
+}
+
+function renderCategoryList(){
+  const list = DB.categories.slice().sort((a,z)=>a.category.localeCompare(z.category));
+  const el = document.getElementById('cat-list-body');
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML='<div style="padding:18px;text-align:center;font-size:13px;color:var(--muted)">No categories yet. Add one below.</div>';
+    return;
+  }
+  el.innerHTML = list.map(c=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--indigo);flex-shrink:0"></div>
+        <span style="font-size:14px;font-weight:600">${c.category}</span>
+        <span style="font-size:10px;color:var(--muted);font-weight:500">${c.id}</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="openEditCategory('${c.id}')" style="padding:6px 12px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:8px;font-size:12px;font-weight:700;color:var(--indigo)">Edit</button>
+        <button onclick="deleteCategory('${c.id}')" style="padding:6px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:8px;font-size:12px;font-weight:700;color:var(--red)">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function openAddCategory(){
+  editingCatId = null;
+  document.getElementById('cat-form-title').textContent = 'Add Category';
+  document.getElementById('cat-inp').value = '';
+  document.getElementById('cat-form-section').style.display = 'block';
+  document.getElementById('cat-inp').focus();
+}
+
+function openEditCategory(id){
+  const c = DB.categories.find(x=>x.id===id); if(!c) return;
+  editingCatId = id;
+  document.getElementById('cat-form-title').textContent = 'Edit Category';
+  document.getElementById('cat-inp').value = c.category;
+  document.getElementById('cat-form-section').style.display = 'block';
+  document.getElementById('cat-inp').focus();
+}
+
+function cancelCategoryForm(){
+  document.getElementById('cat-form-section').style.display = 'none';
+  document.getElementById('cat-inp').value = '';
+  editingCatId = null;
+}
+
+async function saveCategory(){
+  const val = (document.getElementById('cat-inp').value||'').trim();
+  if(!val){ toast('Category name required','err'); return; }
+  // Check for duplicate
+  const duplicate = DB.categories.find(c=>c.category.toLowerCase()===val.toLowerCase() && c.id!==editingCatId);
+  if(duplicate){ toast('Category already exists','err'); return; }
+  if(editingCatId){
+    const c = DB.categories.find(x=>x.id===editingCatId);
+    if(c) c.category = val;
+  } else {
+    const nums = DB.categories.map(c=>parseInt((c.id||'').split('-')[1]||0)).filter(n=>!isNaN(n));
+    const newId = 'CAT-' + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3,'0');
+    DB.categories.push({ id: newId, category: val });
+  }
+  cancelCategoryForm();
+  await writeSheet('categories');
+  toast(editingCatId ? 'Category updated' : 'Category added');
+  renderCategoryList();
+}
+
+async function deleteCategory(id){
+  const c = DB.categories.find(x=>x.id===id); if(!c) return;
+  // Warn if category is in use
+  const usedInTickets = DB.tickets.filter(t=>t.category===c.category).length;
+  const usedInAssets  = DB.assets.filter(a=>a.category===c.category).length;
+  const usageMsg = (usedInTickets||usedInAssets)
+    ? ` It is used in ${usedInTickets} ticket(s) and ${usedInAssets} asset(s) — those will keep the category name but it will no longer appear in dropdowns.`
+    : '';
+  if(!confirm(`Delete category "${c.category}"?${usageMsg}`)) return;
+  DB.categories = DB.categories.filter(x=>x.id!==id);
+  await writeSheet('categories');
+  toast('Category deleted');
+  renderCategoryList();
+}
+
+/* ══════════════════════════════════════════════════════════
    EXPORT CSV
 ══════════════════════════════════════════════════════════ */
 function openExportModal(){ openMo('mo-export'); }
@@ -3396,6 +3511,43 @@ function exportCSV(type){
     <div class="mh"></div>
     <div class="mt"><span id="insp-detail-title">Inspection</span><button class="mt-close" onclick="closeMo('mo-insp-detail')">✕</button></div>
     <div id="insp-detail-body" style="overflow-y:auto;padding-bottom:24px"></div>
+  </div>
+</div>
+
+<!-- Categories modal -->
+<div class="mo" id="mo-categories" onclick="mcClick(event,'mo-categories')">
+  <div class="ms" style="max-height:88vh">
+    <div class="mh"></div>
+    <div class="mt">
+      <span style="display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--indigo)"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Manage Categories
+      </span>
+      <button class="mt-close" onclick="closeMo('mo-categories')">✕</button>
+    </div>
+
+    <!-- Category list -->
+    <div id="cat-list-body" style="max-height:340px;overflow-y:auto;border-top:1px solid var(--border)"></div>
+
+    <!-- Add button bar -->
+    <div style="padding:14px 18px 4px">
+      <button onclick="openAddCategory()" style="width:100%;padding:12px;background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:var(--rs);font-size:14px;font-weight:700;color:var(--indigo);display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Category
+      </button>
+    </div>
+
+    <!-- Inline add/edit form (hidden by default) -->
+    <div id="cat-form-section" style="display:none;padding:0 18px 4px;border-top:1px solid var(--border);margin-top:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:14px 0 8px" id="cat-form-title">Add Category</div>
+      <input class="fi2" id="cat-inp" placeholder="e.g. Fire Safety" onkeydown="if(event.key==='Enter'){event.preventDefault();saveCategory();}" style="margin-bottom:10px"/>
+      <div style="display:flex;gap:9px">
+        <button onclick="saveCategory()" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:14px;font-weight:700;color:#fff">Save</button>
+        <button onclick="cancelCategoryForm()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Cancel</button>
+      </div>
+    </div>
+
+    <div style="height:12px"></div>
   </div>
 </div>
 
