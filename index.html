@@ -437,7 +437,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
       <div class="fsel-wrap"><div class="fsel-lbl">Category</div>
         <select class="fsel" id="sel-tix-cat" onchange="setPage('tix',1);renderTix()">
-          <option value="All">All Categories</option><option>General</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Security</option><option>Safety</option><option>Structural</option><option>Cleaning</option>
+          <option value="All">All Categories</option>
         </select>
       </div>
       <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
@@ -715,7 +715,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <select class="fs2" id="tf-pri"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
       </div>
       <div class="fg"><label>Category</label>
-        <select class="fs2" id="tf-cat"><option>General</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Security</option><option>Safety</option><option>Structural</option><option>Cleaning</option></select>
+        <select class="fs2" id="tf-cat"><option value="">— Select category —</option></select>
       </div>
     </div>
     <div class="frow2">
@@ -871,6 +871,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fg"><label>Priority</label>
         <select class="fs2" id="qt-pri"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
       </div>
+    </div>
+    <div class="fg"><label>Category</label>
+      <select class="fs2" id="qt-cat"><option value="">— Select category —</option></select>
     </div>
     <button class="btn-p" onclick="saveQuickTicket()" style="display:inline-flex;align-items:center;gap:8px;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Create Ticket</button>
     <button class="btn-s" onclick="closeMo('mo-quick-tix')">Cancel</button>
@@ -1453,9 +1456,7 @@ function populateMgrSelect(id){
   if(cur) el.value=cur;
 }
 function getCategoryList(){
-  if(DB.categories && DB.categories.length)
-    return DB.categories.map(c=>c.category).filter(Boolean).sort((a,z)=>a.localeCompare(z));
-  return ['General','Plumbing','Electrical','HVAC','Security','Safety','Structural','Cleaning'];
+  return DB.categories.map(c=>c.category).filter(Boolean).sort((a,z)=>a.localeCompare(z));
 }
 function populateCatSelect(id, allowAll=false, currentVal=''){
   const el=document.getElementById(id); if(!el) return;
@@ -1961,6 +1962,7 @@ function openQuickTicket(){
   document.getElementById('qt-subj').value='';
   populateBldSelect('qt-bldg');
   document.getElementById('qt-pri').value='Medium';
+  populateCatSelect('qt-cat');
   openMo('mo-quick-tix');
 }
 async function saveQuickTicket(){
@@ -1969,7 +1971,8 @@ async function saveQuickTicket(){
   if(!subj){toast('Subject required','err');return;}
   if(!bldg){toast('Building required','err');return;}
   const id=nextId(DB.tickets,'TKT');
-  DB.tickets.unshift({id,building:bldg,floor:'',unit:'TBD',subject:subj,status:'Open',priority:document.getElementById('qt-pri').value,category:'General',assignedTo:'',dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:'',supplierId:'',reportedBy:'',notes:'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Quick ticket created'}])});
+  const cat=document.getElementById('qt-cat').value||getCategoryList()[0]||'';
+  DB.tickets.unshift({id,building:bldg,floor:'',unit:'TBD',subject:subj,status:'Open',priority:document.getElementById('qt-pri').value,category:cat,assignedTo:'',dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:'',supplierId:'',reportedBy:'',notes:'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Quick ticket created'}])});
   closeMo('mo-quick-tix');
   await writeSheet('tickets');
   toast(`${id} created`);
@@ -3202,10 +3205,13 @@ function _prefillTicketFromFailure(item){
   document.getElementById('tf-status').value  = 'Open';
   document.getElementById('tf-pri').value     = 'High';
 
-  // Set category to match asset category if it maps to a ticket category
-  const catMap = { HVAC:'HVAC', Electrical:'Electrical', Plumbing:'Plumbing', Security:'Security', Safety:'Safety', Structural:'Structural' };
-  const tfCat  = document.getElementById('tf-cat');
-  if(tfCat) tfCat.value = catMap[item.category] || 'General';
+  // Set category to match asset category if it exists in the sheet categories
+  populateCatSelect('tf-cat', '', item.category);
+  const tfCat = document.getElementById('tf-cat');
+  if(tfCat){
+    const match = getCategoryList().find(c => c.toLowerCase() === (item.category||'').toLowerCase());
+    tfCat.value = match || (getCategoryList()[0] || '');
+  }
 
   populateBldSelect('tf-bldg');
   document.getElementById('tf-bldg').value = activeRound.building;
