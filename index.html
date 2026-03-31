@@ -2752,15 +2752,18 @@ function renderBlds(){
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><div style="font-size:13px">No buildings yet</div></div>';return;}
   c.innerHTML=list.map(b=>{
     const floorCount=DB.floors.filter(f=>f.buildingId===b.id).length;
+    const unitCount=DB.units.filter(u=>u.buildingId===b.id).length;
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
+    const tixBadge=openTix>0?`<span style="background:rgba(217,119,6,.12);color:var(--amber);border:1px solid rgba(217,119,6,.25);border-radius:20px;font-size:11px;font-weight:700;padding:3px 9px;white-space:nowrap;flex-shrink:0">${openTix} open tix</span>`:'';
     return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
       <div class="bc-hdr">
-        <div><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''} ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px">${b.phone}</div>`:''}</div>
+        <div style="min-width:0;flex:1"><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''} ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px">${b.phone}</div>`:''}</div>
+        ${tixBadge}
       </div>
       <div class="bc-body">
         <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
+        <div class="bs"><div class="bs-val">${unitCount}</div><div class="bs-lbl">Units</div></div>
         <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
-        <div class="bs"><div class="bs-val">${openTix}</div><div class="bs-lbl">Open Tix</div></div>
         <div class="bs"><div class="bs-val">${DB.assets.filter(a=>a.building===b.name).length}</div><div class="bs-lbl">Assets</div></div>
       </div>
     </div>`;
