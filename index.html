@@ -2035,15 +2035,18 @@ function goAstPage(p){setPage('ast',p);renderAst();}
 /* ── Shared asset card HTML — used in Assets view, Building view, Floor view ── */
 function astCardHTML(a, onclick){
   const stCls={'Active':'b-closed','Under Maintenance':'b-prog','Decommissioned':'b-cancel'}[a.status]||'b-closed';
+  const openTix=(DB.tickets||[]).filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
+  const tixColor=openTix>0?'var(--amber)':'var(--muted)';
   return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px 0;margin-bottom:8px;cursor:pointer" onclick="${onclick}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
       <div style="min-width:0"><div style="font-size:15px;font-weight:700">${a.name}</div></div>
       <span class="badge ${stCls}" style="flex-shrink:0;margin-left:8px">${a.status}</span>
     </div>
-    <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px;display:grid;grid-template-columns:repeat(3,1fr)">
+    <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px;display:grid;grid-template-columns:repeat(4,1fr)">
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building||'—'}</div><div class="bs-lbl">Building</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;color:${tixColor}">${openTix}</div><div class="bs-lbl">Tickets</div></div>
     </div>
   </div>`;
 }
