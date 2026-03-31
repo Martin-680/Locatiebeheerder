@@ -2496,6 +2496,7 @@ function openNewUnit(){
   populateBldSelect('uf2-bldg');
   document.getElementById('uf2-bldg').value='';
   uf2OnBldgChange();
+  document.getElementById('unit-delete-wrap').style.display='none';
   openMo('mo-unit');
 }
 function editUnit(id){
@@ -2510,6 +2511,7 @@ function editUnit(id){
   document.getElementById('uf2-bldg').value=bld?bld.name:'';
   uf2OnBldgChange();
   document.getElementById('uf2-floor').value=u.floorId||'';
+  document.getElementById('unit-delete-wrap').style.display=can('canEditAll')?'block':'none';
   openMo('mo-unit');
 }
 function uf2OnBldgChange(){
@@ -3629,15 +3631,15 @@ function openInspDetail(id){
 function confirmDelete(type,id){
   if(!can('canEditAll')) return;
   pendingDelete={type,id};
-  const names={ticket:'ticket',asset:'asset',supplier:'supplier',user:'user',building:'building',inspection:'inspection round'};
+  const names={ticket:'ticket',asset:'asset',supplier:'supplier',user:'user',building:'building',inspection:'inspection round',unit:'unit'};
   document.getElementById('confirm-msg').textContent=`Are you sure you want to permanently delete this ${names[type]||type}? This cannot be undone.`;
-  closeMo('mo-tix-detail'); closeMo('mo-ast-detail'); closeMo('mo-sup-detail'); closeMo('mo-insp-detail');
+  closeMo('mo-tix-detail'); closeMo('mo-ast-detail'); closeMo('mo-sup-detail'); closeMo('mo-insp-detail'); closeMo('mo-unit');
   openMo('mo-confirm');
 }
 async function doConfirmedDelete(){
   if(!pendingDelete) return;
   const {type,id}=pendingDelete;
-  const map={ticket:'tickets',asset:'assets',supplier:'suppliers',user:'users',building:'buildings',inspection:'inspections'};
+  const map={ticket:'tickets',asset:'assets',supplier:'suppliers',user:'users',building:'buildings',inspection:'inspections',unit:'units'};
   const key=map[type];
   if(key) DB[key]=DB[key].filter(x=>x.id!==id);
   closeMo('mo-confirm');
@@ -3804,6 +3806,9 @@ function exportCSV(type){
     <div class="fg"><label>Sort Order</label><input class="fi2" type="number" id="uf2-sort" placeholder="0"/></div>
     <button class="btn-p" onclick="saveUnit()">Save Unit</button>
     <button class="btn-s" onclick="closeMo('mo-unit')">Cancel</button>
+    <div id="unit-delete-wrap" style="display:none;padding-top:4px">
+      <button onclick="confirmDelete('unit', editingId.unit)" style="width:100%;padding:13px;background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.22);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--red)">Delete Unit</button>
+    </div>
   </div>
 </div>
 
