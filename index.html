@@ -3806,8 +3806,8 @@ function exportCSV(type){
     <div class="fg"><label>Sort Order</label><input class="fi2" type="number" id="uf2-sort" placeholder="0"/></div>
     <button class="btn-p" onclick="saveUnit()">Save Unit</button>
     <button class="btn-s" onclick="closeMo('mo-unit')">Cancel</button>
-    <div id="unit-delete-wrap" style="display:none;padding-top:4px">
-      <button onclick="confirmDelete('unit', editingId.unit)" style="width:100%;padding:13px;background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.22);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--red)">Delete Unit</button>
+    <div id="unit-delete-wrap" style="display:none">
+      <button onclick="confirmDelete('unit', editingId.unit)" style="width:calc(100% - 36px);margin:4px 18px;padding:13px;background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.22);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--red);display:block">Delete Unit</button>
     </div>
   </div>
 </div>
