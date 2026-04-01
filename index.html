@@ -1028,37 +1028,16 @@ function setStatus(msg,err=false){
   el.innerHTML=err?`<span class="ag-error">${msg}</span>`:msg;
 }
 
-function gapiLoaded(){
-  setStatus('<span class="ag-spinner"></span>');
-  gapi.load('client', async ()=>{
-    try {
-      await gapi.client.init({});
-      await gapi.client.load('https://sheets.googleapis.com/$discovery/rest?version=v4');
-      // GIS token client
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: handleToken,
-      });
-      // Try silent restore
-      const saved = sessionStorage.getItem('pm_token');
-      if(saved){
-        accessToken = saved;
-        gapi.client.setToken({ access_token: accessToken });
-        await checkUserAccess();
-      } else {
-        setStatus('');
-      }
-    } catch(e){
-      setStatus('Failed to load Google API. Please refresh the page.', true);
-      console.error('gapiLoaded error:', e);
-    }
-  });
-}
-
 function signIn(){
   if(!tokenClient){
-    setStatus('Google API still loading — please wait a moment and try again.', true);
+    // Not ready yet — wait up to 5s and retry
+    setStatus('<span class="ag-spinner"></span>');
+    let attempts = 0;
+    const wait = setInterval(()=>{
+      attempts++;
+      if(tokenClient){ clearInterval(wait); tokenClient.requestAccessToken({ prompt:'consent' }); return; }
+      if(attempts > 10){ clearInterval(wait); setStatus('Google API failed to load. Please refresh the page.', true); }
+    }, 500);
     return;
   }
   setStatus('<span class="ag-spinner"></span>');
@@ -3927,7 +3906,39 @@ function exportCSV(type){
 </div>
 
 <!-- Google Identity Services + GAPI -->
+<script>
+// Wait for both GAPI and GIS to be ready before initialising auth
+let _gapiReady = false, _gisReady = false;
+function _tryInitAuth(){
+  if(!_gapiReady || !_gisReady) return;
+  gapi.load('client', async ()=>{
+    try {
+      await gapi.client.init({});
+      await gapi.client.load('https://sheets.googleapis.com/$discovery/rest?version=v4');
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: handleToken,
+      });
+      // Try silent restore
+      const saved = sessionStorage.getItem('pm_token');
+      if(saved){
+        accessToken = saved;
+        gapi.client.setToken({ access_token: accessToken });
+        await checkUserAccess();
+      } else {
+        setStatus('');
+      }
+    } catch(e){
+      setStatus('Failed to load Google API. Please refresh the page.', true);
+      console.error('gapiLoaded error:', e);
+    }
+  });
+}
+function gapiLoaded(){ _gapiReady = true; setStatus('<span class="ag-spinner"></span>'); _tryInitAuth(); }
+function gisLoaded()  { _gisReady  = true; _tryInitAuth(); }
+</script>
 <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
 </body>
 </html>
