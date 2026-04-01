@@ -982,6 +982,11 @@ function dbg(msg, color){
   if(el) el.innerHTML = _dbgLines.slice(-12).join('<br>');
   console.log('[PM]', msg);
 }
+// Fire immediately — tells us JS is running and shows the page URL
+window.addEventListener('DOMContentLoaded', ()=>{
+  dbg('JS running. URL: '+location.href.slice(0,60), '#FBBF24');
+  dbg('Protocol: '+location.protocol, location.protocol==='https:'?'#34D399':'#F87171');
+});
 
 /* ══════════════════════════════════════════════════════════
    AUTH INIT — called by onload of external scripts
