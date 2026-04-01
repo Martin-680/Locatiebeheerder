@@ -687,13 +687,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="floor-search" placeholder="Search floors…" oninput="renderFloors()"/></div>
-    <div class="fbar">
-      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
-        <select class="fsel" id="sel-floor-bldg" onchange="renderFloors()">
-          <option value="All">All Buildings</option>
-        </select>
-      </div>
-    </div>
     <div id="floor-list"></div>
   </div>
 
@@ -965,7 +958,7 @@ const COLS = {
   tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
-  floors:    ['id','buildingId','label','sortOrder'],
+  floors:    ['id','label','sortOrder'],
   units:     ['id','floorId','buildingId','label','sortOrder'],
   categories:['id','category'],
 };
@@ -1399,11 +1392,9 @@ function populateBldSelect(id){
   el.innerHTML='<option value="">Select…</option>'+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
   if(DB.buildings.find(b=>b.name===cur)) el.value=cur;
 }
-/* ── getFloorsForBuilding: returns sorted floors from DB for a given building id or name ── */
+/* ── getFloorsForBuilding: returns all floors sorted by sortOrder (floors are now global, not per-building) ── */
 function getFloorsForBuilding(bldgIdOrName){
-  const b = DB.buildings.find(x => x.id === bldgIdOrName || x.name === bldgIdOrName);
-  if(!b) return [];
-  return DB.floors.filter(f => f.buildingId === b.id).sort((a,z) => a.sortOrder - z.sortOrder);
+  return [...DB.floors].sort((a,z) => a.sortOrder - z.sortOrder);
 }
 function populateSubs(subId, bldId){
   const bldEl = document.getElementById(bldId); if(!bldEl) return;
@@ -1427,13 +1418,15 @@ function tfOnBldgChange(){
 }
 function tfOnFloorChange(){
   const floorLabel=document.getElementById('tf-sub').value;
-  const floor=DB.floors.find(f=>f.label===floorLabel);
-  const floorId=floor?floor.id:'';
   // Reset downstream
   document.getElementById('tf-asset').innerHTML='<option value="">None</option>';
   document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
-  // Populate units from DB.units
-  const unitList=floorId ? DB.units.filter(u=>u.floorId===floorId) : [];
+  // Populate units from DB.units filtered by building + floor label
+  const bldg=document.getElementById('tf-bldg').value;
+  const bld=DB.buildings.find(b=>b.name===bldg);
+  const unitList=floorLabel && bld
+    ? DB.units.filter(u=>u.buildingId===bld.id && DB.floors.find(f=>f.id===u.floorId)?.label===floorLabel)
+    : (bld ? DB.units.filter(u=>u.buildingId===bld.id) : []);
   const unitSel=document.getElementById('tf-unit');
   if(unitList.length){
     unitSel.innerHTML='<option value="">— Select unit —</option>'+unitList.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
@@ -2135,7 +2128,11 @@ function afOnBldgChange(){
 }
 function afOnFloorChange(){
   const floorId=document.getElementById('af-sub').value;
-  const unitList=floorId ? DB.units.filter(u=>u.floorId===floorId).sort((a,z)=>a.sortOrder-z.sortOrder) : [];
+  const bldName=document.getElementById('af-bldg').value;
+  const bld=DB.buildings.find(b=>b.name===bldName);
+  const unitList=floorId && bld
+    ? DB.units.filter(u=>u.floorId===floorId && u.buildingId===bld.id).sort((a,z)=>a.sortOrder-z.sortOrder)
+    : (bld ? DB.units.filter(u=>u.buildingId===bld.id).sort((a,z)=>a.sortOrder-z.sortOrder) : []);
   const sel=document.getElementById('af-loc');
   sel.innerHTML='<option value="">— Select unit —</option>'+unitList.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
 }
@@ -2381,15 +2378,13 @@ function renderUnits(){
 
   const bldgVal  = bldSel?.value || 'All';
 
-  // Populate floor filter scoped to selected building
+  // Populate floor filter (global floors)
   const flrSel = document.getElementById('sel-unit-floor');
   if(flrSel){
     const cur = flrSel.value;
-    const floors = bldgVal === 'All'
-      ? DB.floors
-      : DB.floors.filter(f => f.buildingId === bldgVal);
+    const floors = [...DB.floors].sort((a,z)=>a.sortOrder-z.sortOrder);
     flrSel.innerHTML = '<option value="All">All Floors</option>'
-      + floors.sort((a,z)=>a.sortOrder-z.sortOrder).map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+      + floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
     flrSel.value = floors.find(f=>f.id===cur) ? cur : 'All';
   }
 
@@ -2549,26 +2544,10 @@ function renderFloors(){
   if(!document.getElementById('floor-list')) return;
   const q = (document.getElementById('floor-search')?.value||'').toLowerCase();
 
-  const bldSel = document.getElementById('sel-floor-bldg');
-  if(bldSel){
-    const cur = bldSel.value;
-    bldSel.innerHTML = '<option value="All">All Buildings</option>'
-      + [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
-    bldSel.value = cur;
-  }
-  const bldgVal = bldSel?.value || 'All';
-  syncSelActive('sel-floor-bldg');
-
   let list = DB.floors.filter(f => {
-    if(bldgVal !== 'All' && f.buildingId !== bldgVal) return false;
     if(q && !f.label.toLowerCase().includes(q)) return false;
     return true;
-  }).sort((a,z) => {
-    const bldA = DB.buildings.find(b=>b.id===a.buildingId)?.name||'';
-    const bldZ = DB.buildings.find(b=>b.id===z.buildingId)?.name||'';
-    if(bldA !== bldZ) return bldA.localeCompare(bldZ);
-    return a.sortOrder - z.sortOrder || a.label.localeCompare(z.label);
-  });
+  }).sort((a,z) => a.sortOrder - z.sortOrder || a.label.localeCompare(z.label));
 
   document.getElementById('floor-lbl').textContent = `${list.length} floor${list.length!==1?'s':''}`;
   const c = document.getElementById('floor-list');
@@ -2582,18 +2561,16 @@ function renderFloors(){
   }
 
   c.innerHTML = '<div style="padding:0 14px 8px">' + list.map(f => {
-    const bld    = DB.buildings.find(b=>b.id===f.buildingId);
     const units  = DB.units.filter(u=>u.floorId===f.id);
     const unitLabels = units.map(u=>u.label);
-    const assets = DB.assets.filter(a=>unitLabels.includes(a.unit) && a.building===(bld?.name||''));
-    const tickets= DB.tickets.filter(t=>unitLabels.some(ul=>t.unit===ul) && t.building===(bld?.name||'') && t.status!=='Closed');
+    const assets = DB.assets.filter(a=>unitLabels.includes(a.unit));
+    const tickets= DB.tickets.filter(t=>t.floor===f.label && t.status!=='Closed');
     return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
         <div style="font-size:15px;font-weight:700;flex:1;cursor:pointer" onclick="openFloorDetail('${f.id}')">${f.label}</div>
         ${can('canManageBuildings') ? `<button onclick="editFloor('${f.id}')" style="width:30px;height:30px;border-radius:8px;background:#F1F5F9;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:8px" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>` : ''}
       </div>
-      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;padding-bottom:4px;cursor:pointer;display:grid;grid-template-columns:repeat(4,1fr)" onclick="openFloorDetail('${f.id}')">
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
+      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;padding-bottom:4px;cursor:pointer;display:grid;grid-template-columns:repeat(3,1fr)" onclick="openFloorDetail('${f.id}')">
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${units.length}</div><div class="bs-lbl">Units</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${assets.length}</div><div class="bs-lbl">Assets</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;color:${tickets.length?'var(--red)':'var(--text)'}">${tickets.length}</div><div class="bs-lbl">Tickets</div></div>
@@ -2604,7 +2581,6 @@ function renderFloors(){
 
 function openFloorDetail(id){
   const f = DB.floors.find(x=>x.id===id); if(!f) return;
-  const bld   = DB.buildings.find(b=>b.id===f.buildingId);
   const units = DB.units.filter(u=>u.floorId===f.id);
 
   document.getElementById('floor-detail-title').textContent = f.label;
@@ -2614,9 +2590,8 @@ function openFloorDetail(id){
       <div style="font-size:20px;font-weight:700;margin-bottom:8px">${f.label}</div>
     </div>
     <div style="padding:0 18px">
-      <div class="dr"><span class="dk">Building</span><span class="dv">${bld?.name||'—'}</span></div>
       <div class="dr"><span class="dk">Sort Order</span><span class="dv">${f.sortOrder||0}</span></div>
-      <div class="dr"><span class="dk">Units</span><span class="dv">${units.length}</span></div>
+      <div class="dr"><span class="dk">Units on this floor</span><span class="dv">${units.length}</span></div>
     </div>
     ${units.length ? `
     <div style="padding:14px 18px 0">
@@ -2640,8 +2615,6 @@ function openNewFloor(){
   document.getElementById('floor-modal-title').textContent = 'New Floor';
   document.getElementById('ff-label').value = '';
   document.getElementById('ff-sort').value  = '';
-  populateBldSelect('ff-bldg');
-  document.getElementById('ff-bldg').value  = '';
   openMo('mo-floor');
 }
 
@@ -2653,20 +2626,14 @@ function editFloor(id){
   document.getElementById('floor-modal-title').textContent = 'Edit Floor';
   document.getElementById('ff-label').value = f.label||'';
   document.getElementById('ff-sort').value  = f.sortOrder||'';
-  populateBldSelect('ff-bldg');
-  const bld = DB.buildings.find(b=>b.id===f.buildingId);
-  document.getElementById('ff-bldg').value  = bld ? bld.name : '';
   openMo('mo-floor');
 }
 
 async function saveFloor(){
   const label = document.getElementById('ff-label').value.trim();
   if(!label){ toast('Floor name required','err'); return; }
-  const bldName = document.getElementById('ff-bldg').value;
-  const bld = DB.buildings.find(b=>b.name===bldName);
-  if(!bld){ toast('Select a building','err'); return; }
   const sortOrder = parseInt(document.getElementById('ff-sort').value)||0;
-  const data = { label, buildingId: bld.id, sortOrder };
+  const data = { label, sortOrder };
   if(editingId.floor){
     Object.assign(DB.floors.find(x=>x.id===editingId.floor), data);
   } else {
@@ -2683,7 +2650,8 @@ async function saveFloor(){
 ══════════════════════════════════════════════════════════ */
 function openBldDetail(id){
   const b=DB.buildings.find(x=>x.id===id); if(!b) return;
-  const floorCount=DB.floors.filter(f=>f.buildingId===b.id).length;
+  const floorCount=DB.floors.length;
+  const unitCount=DB.units.filter(u=>u.buildingId===b.id).length;
   const allTix=DB.tickets.filter(t=>t.building===b.name);
   const openTix=allTix.filter(t=>t.status!=='Closed');
   const allAsts=DB.assets.filter(a=>a.building===b.name);
@@ -2707,7 +2675,7 @@ function openBldDetail(id){
     </div>
     <div class="bc-body">
       <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
-      <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
+      <div class="bs"><div class="bs-val">${unitCount}</div><div class="bs-lbl">Units</div></div>
       <div class="bs"><div class="bs-val">${openTix.length}</div><div class="bs-lbl">Open Tix</div></div>
       <div class="bs"><div class="bs-val">${allAsts.length}</div><div class="bs-lbl">Assets</div></div>
     </div>
@@ -2751,7 +2719,7 @@ function renderBlds(){
   const c=document.getElementById('bld-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><div style="font-size:13px">No buildings yet</div></div>';return;}
   c.innerHTML=list.map(b=>{
-    const floorCount=DB.floors.filter(f=>f.buildingId===b.id).length;
+    const floorCount=DB.floors.length;
     const unitCount=DB.units.filter(u=>u.buildingId===b.id).length;
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
     const tixBadge=openTix>0?`<span style="background:rgba(217,119,6,.12);color:var(--amber);border:1px solid rgba(217,119,6,.25);border-radius:20px;font-size:11px;font-weight:700;padding:3px 9px;white-space:nowrap;flex-shrink:0">${openTix} open tix</span>`:'';
@@ -3098,12 +3066,11 @@ function inspOnBldgChange(){
   const floors = getFloorsForBuilding(bldg);
   const fl = document.getElementById('insp-floor');
   fl.innerHTML = '<option value="">All floors</option>' + floors.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
-  // Populate all units for this building (All floors is default)
+  // Populate all units for this building
   const unitSel = document.getElementById('insp-unit');
   const bldObj = DB.buildings.find(b=>b.name===bldg);
   if(bldObj){
-    const bldFloorIds = DB.floors.filter(f=>f.buildingId===bldObj.id).map(f=>f.id);
-    const units = DB.units.filter(u=>bldFloorIds.includes(u.floorId)).sort((a,z)=>a.sortOrder-z.sortOrder);
+    const units = DB.units.filter(u=>u.buildingId===bldObj.id).sort((a,z)=>a.sortOrder-z.sortOrder);
     const seen = new Set();
     const unique = units.filter(u=>{ if(seen.has(u.label)) return false; seen.add(u.label); return true; });
     unitSel.innerHTML = '<option value="">All units</option>' + unique.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
@@ -3124,14 +3091,13 @@ function inspOnFloorChange(){
   const unitSel = document.getElementById('insp-unit');
   const bldObj = DB.buildings.find(b=>b.name===bldg);
   if(floorLabel && bldObj){
-    // Specific floor selected — show only that floor's units
-    const flrObj = DB.floors.find(f=>f.label===floorLabel && f.buildingId===bldObj.id);
-    const units  = flrObj ? DB.units.filter(u=>u.floorId===flrObj.id).sort((a,z)=>a.sortOrder-z.sortOrder) : [];
+    // Specific floor selected — show only that floor's units within this building
+    const flrObj = DB.floors.find(f=>f.label===floorLabel);
+    const units  = flrObj ? DB.units.filter(u=>u.floorId===flrObj.id && u.buildingId===bldObj.id).sort((a,z)=>a.sortOrder-z.sortOrder) : [];
     unitSel.innerHTML = '<option value="">All units</option>' + units.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
   } else if(bldObj){
-    // All floors — show all units for the building (deduplicated by label)
-    const bldFloorIds = DB.floors.filter(f=>f.buildingId===bldObj.id).map(f=>f.id);
-    const units = DB.units.filter(u=>bldFloorIds.includes(u.floorId)).sort((a,z)=>a.sortOrder-z.sortOrder);
+    // All floors — show all units for the building
+    const units = DB.units.filter(u=>u.buildingId===bldObj.id).sort((a,z)=>a.sortOrder-z.sortOrder);
     const seen = new Set();
     const unique = units.filter(u=>{ if(seen.has(u.label)) return false; seen.add(u.label); return true; });
     unitSel.innerHTML = '<option value="">All units</option>' + unique.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
@@ -3174,9 +3140,11 @@ function getInspUnits(bldg, floor, unit){
   const bldObj = DB.buildings.find(b=>b.name===bldg);
   if(!bldObj) return [];
   return DB.units.filter(u => {
-    const flr = DB.floors.find(f=>f.id===u.floorId);
-    if(flr?.buildingId !== bldObj.id) return false;
-    if(floor && flr?.label !== floor) return false;
+    if(u.buildingId !== bldObj.id) return false;
+    if(floor){
+      const flr = DB.floors.find(f=>f.id===u.floorId);
+      if(flr?.label !== floor) return false;
+    }
     if(unit && u.label !== unit) return false;
     return true;
   }).sort((a,z)=>a.sortOrder-z.sortOrder);
@@ -3780,7 +3748,6 @@ function exportCSV(type){
     <div class="mh"></div>
     <div class="mt"><span id="floor-modal-title">New Floor</span><button class="mt-close" onclick="closeMo('mo-floor')">✕</button></div>
     <div class="fg"><label>Floor Name *</label><input class="fi2" id="ff-label" placeholder="e.g. Ground Floor"/></div>
-    <div class="fg"><label>Building *</label><select class="fs2" id="ff-bldg"><option value="">Select…</option></select></div>
     <div class="fg"><label>Sort Order</label><input class="fi2" type="number" id="ff-sort" placeholder="0"/></div>
     <button class="btn-p" onclick="saveFloor()">Save Floor</button>
     <button class="btn-s" onclick="closeMo('mo-floor')">Cancel</button>
