@@ -1205,7 +1205,7 @@ async function loadAllData(){
     ...r,
     floors: r.floors
       ? (typeof r.floors==='string'
-          ? r.floors.split(',').map(s=>s.trim()).filter(Boolean)
+          ? r.floors.split('|').map(s=>s.trim()).filter(Boolean)
           : r.floors)
       : []
   }));
@@ -1252,9 +1252,10 @@ function objToRow(obj, cols){
     let v = obj[col];
     if(v===undefined||v===null) return '';
     if(typeof v==='boolean') return v?'TRUE':'FALSE';
-    // Store subs, expertise and building floors as plain CSV — no brackets or quotes
+    // Store building floors as pipe-separated IDs
     if(Array.isArray(v)){
-      if(col==='subs'||col==='expertise'||col==='floors') return v.join(', ');
+      if(col==='subs'||col==='expertise') return v.join(', ');
+      if(col==='floors') return v.join('|');
       return JSON.stringify(v); // activity stays as JSON
     }
     return String(v);
@@ -2707,8 +2708,7 @@ function openBldDetail(id){
         ${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''}
         ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px"><a href="tel:${b.phone}" onclick="event.stopPropagation()" style="color:var(--blue);font-weight:700;text-decoration:none">${b.phone}</a></div>`:''}
         ${b.manager?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">Manager: <strong>${b.manager}</strong></div>`:''}
-        ${floorCount?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">${(b.floors||[]).map(f=>`<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:rgba(37,99,235,.1);color:var(--blue)">${f}</span>`).join('')}</div>`:''}
-    </div>
+      </div>
     <div class="bc-body">
       <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
       <div class="bs"><div class="bs-val">${unitCount}</div><div class="bs-lbl">Units</div></div>
@@ -2773,22 +2773,22 @@ function renderBlds(){
     </div>`;
   }).join('');
 }
-function populateBldFloorPills(selectedLabels){
+function populateBldFloorPills(selectedIds){
   const wrap = document.getElementById('bf-floors-pills'); if(!wrap) return;
   const floors = [...DB.floors].sort((a,z)=>(a.sortOrder||0)-(z.sortOrder||0)||a.label.localeCompare(z.label));
   if(!floors.length){ wrap.innerHTML='<span style="font-size:12px;color:var(--muted)">No floors defined yet</span>'; return; }
-  const sel = new Set(Array.isArray(selectedLabels) ? selectedLabels : []);
+  const sel = new Set(Array.isArray(selectedIds) ? selectedIds : []);
   wrap.innerHTML = floors.map(f=>`
-    <div class="pill${sel.has(f.label)?' selected':''}" onclick="toggleBldFloorPill(this,'${f.label.replace(/'/g,"\\'")}')">
+    <div class="pill${sel.has(f.id)?' selected':''}" onclick="toggleBldFloorPill(this,'${f.id}')">
       <span class="pill-check">✓</span>${f.label}
     </div>`).join('');
 }
-function toggleBldFloorPill(el, label){
+function toggleBldFloorPill(el, id){
   el.classList.toggle('selected');
 }
 function getBldSelectedFloors(){
   const wrap = document.getElementById('bf-floors-pills'); if(!wrap) return [];
-  return [...wrap.querySelectorAll('.pill.selected')].map(p=>p.textContent.trim().replace(/^✓/,'').trim());
+  return [...wrap.querySelectorAll('.pill.selected')].map(p=>p.getAttribute('onclick').match(/'([^']+)'/)?.[1]||'').filter(Boolean);
 }
 function openNewBuilding(){
   if(!can('canManageBuildings')) return;
