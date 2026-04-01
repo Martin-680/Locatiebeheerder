@@ -354,6 +354,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
   </button>
   <div class="ag-status" id="ag-status"></div>
   <div id="ag-debug" style="margin-top:16px;width:100%;max-width:320px;background:#0F172A;color:#94A3B8;font-family:monospace;font-size:11px;border-radius:10px;padding:12px 14px;line-height:1.9;word-break:break-all;min-height:60px"></div>
+  <script>
+  // Inline — runs immediately, no dependencies
+  (function(){
+    var el = document.getElementById('ag-debug');
+    if(el) el.innerHTML = '<span style="color:#FBBF24">Page loaded. Protocol: ' + location.protocol + '</span>';
+  })();
+  </script>
 </div>
 
 <!-- Access Denied -->
@@ -367,7 +374,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
 <div id="app" style="display:none">
 
-  <!-- ═══════ DASHBOARD ═══════ -->
+  <!-- ======= DASHBOARD ======= -->
   <div id="screen-dashboard" class="screen active">
     <div class="topbar">
       <div class="topbar-inner">
@@ -413,7 +420,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div style="height:80px"></div>
   </div>
 
-  <!-- ═══════ TICKETS ═══════ -->
+  <!-- ======= TICKETS ======= -->
   <div id="screen-tickets" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
@@ -465,7 +472,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="tix-list"></div>
   </div>
 
-  <!-- ═══════ ASSETS ═══════ -->
+  <!-- ======= ASSETS ======= -->
   <div id="screen-assets" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
@@ -506,7 +513,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="ast-list"></div>
   </div>
 
-  <!-- ═══════ TEAM ═══════ -->
+  <!-- ======= TEAM ======= -->
   <div id="screen-users" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
@@ -521,7 +528,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="usr-list"></div>
   </div>
 
-  <!-- ═══════ BUILDINGS ═══════ -->
+  <!-- ======= BUILDINGS ======= -->
   <div id="screen-buildings" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
@@ -535,7 +542,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="bld-list"></div>
   </div>
 
-  <!-- ═══════ INSPECTIONS ═══════ -->
+  <!-- ======= INSPECTIONS ======= -->
   <div id="screen-inspections" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
@@ -576,7 +583,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="insp-list"></div>
   </div>
 
-  <!-- ═══════ INSPECTION ROUND (full-screen, no nav) ═══════ -->
+  <!-- ======= INSPECTION ROUND (full-screen, no nav) ======= -->
   <div id="screen-insp-round" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
@@ -597,7 +604,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="insp-card-wrap" id="insp-round-body"></div>
   </div>
 
-  <!-- ═══════ SUPPLIERS ═══════ -->
+  <!-- ======= SUPPLIERS ======= -->
   <div id="screen-suppliers" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
@@ -635,7 +642,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="sup-list"></div>
   </div>
 
-  <!-- ═══════ FLOOR VIEW (no nav) ═══════ -->
+  <!-- ======= FLOOR VIEW (no nav) ======= -->
   <div id="screen-floor" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
@@ -652,7 +659,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="floor-view-body" style="padding-bottom:16px"></div>
   </div>
 
-  <!-- ═══════ UNITS ═══════ -->
+  <!-- ======= UNITS ======= -->
   <div id="screen-units" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
@@ -679,7 +686,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="unit-list"></div>
   </div>
 
-  <!-- ═══════ FLOORS SCREEN ═══════ -->
+  <!-- ======= FLOORS SCREEN ======= -->
   <div id="screen-floors" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
@@ -694,7 +701,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="floor-list"></div>
   </div>
 
-  <!-- ═══════ NAV ═══════ -->
+  <!-- ======= NAV ======= -->
   <nav class="bottom-nav" style="grid-template-columns:repeat(3,1fr)">
     <button class="ni active" onclick="navTo('dashboard')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dash</button>
     <button class="ni" onclick="navTo('tickets')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M2 9a2 2 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2 2 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/><line x1="9" y1="9" x2="9" y2="15"/></svg></span>Tickets<span class="ni-badge" id="open-badge" style="display:none"></span></button>
@@ -706,7 +713,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
 </div>
 
-<!-- ═══════ DRAWER ═══════ -->
+<!-- ======= DRAWER ======= -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-head">
@@ -718,7 +725,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
   <div class="drawer-footer">PropManager Pro · v2.0 · Google Sheets</div>
 </div>
 
-<!-- ═══════ MODALS ═══════ -->
+<!-- ======= MODALS ======= -->
 
 <!-- KPI drill-down -->
 <div class="mo" id="mo-kpi-list" onclick="mcClick(event,'mo-kpi-list')">
@@ -948,14 +955,14 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    CONFIG
-══════════════════════════════════════════════════════════ */
+========================================================== */
 const CLIENT_ID   = '806872056167-d9r8u2mq154725634o1nbpu93mdpt5ff.apps.googleusercontent.com';
 const SHEET_ID    = '1UkjXu3yOwPWlb1bKjMnXuCrYkxsvzC6wBZ48nPr1P4A';
 const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email openid';
 
-/* Sheet tab names — must match exactly what you created */
+/* Sheet tab names - must match exactly what you created */
 const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', floors:'Floors', units:'Units', categories:'Categories' };
 
 /* Column orders for each sheet (row index 0 = header) */
@@ -971,9 +978,9 @@ const COLS = {
   categories:['id','category'],
 };
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    DEBUG LOGGER
-══════════════════════════════════════════════════════════ */
+========================================================== */
 const _dbgLines = [];
 function dbg(msg, color){
   const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -982,37 +989,37 @@ function dbg(msg, color){
   if(el) el.innerHTML = _dbgLines.slice(-12).join('<br>');
   console.log('[PM]', msg);
 }
-// Fire immediately — tells us JS is running and shows the page URL
+// Fire immediately - tells us JS is running and shows the page URL
 window.addEventListener('DOMContentLoaded', ()=>{
   dbg('JS running. URL: '+location.href.slice(0,60), '#FBBF24');
   dbg('Protocol: '+location.protocol, location.protocol==='https:'?'#34D399':'#F87171');
 });
 
-/* ══════════════════════════════════════════════════════════
-   AUTH INIT — called by onload of external scripts
-══════════════════════════════════════════════════════════ */
+/* ==========================================================
+   AUTH INIT - called by onload of external scripts
+========================================================== */
 let _gapiReady = false, _gisReady = false;
-function gapiLoaded(){ dbg('GAPI script loaded ✓','#34D399'); _gapiReady = true; _tryInitAuth(); }
-function gisLoaded(){  dbg('GIS script loaded ✓','#34D399');  _gisReady  = true; _tryInitAuth(); }
+function gapiLoaded(){ dbg('GAPI script loaded OK','#34D399'); _gapiReady = true; _tryInitAuth(); }
+function gisLoaded(){  dbg('GIS script loaded OK','#34D399');  _gisReady  = true; _tryInitAuth(); }
 function _tryInitAuth(){
-  if(!_gapiReady || !_gisReady){ dbg('Waiting for both scripts…'); return; }
-  dbg('Both scripts ready — init client…','#60A5FA');
+  if(!_gapiReady || !_gisReady){ dbg('Waiting for both scripts...'); return; }
+  dbg('Both scripts ready - init client...','#60A5FA');
   setStatus('<span class="ag-spinner"></span>');
   gapi.load('client', async ()=>{
     try {
-      dbg('gapi.client loading…');
+      dbg('gapi.client loading...');
       await gapi.client.init({});
       await gapi.client.load('https://sheets.googleapis.com/$discovery/rest?version=v4');
-      dbg('Sheets API loaded ✓','#34D399');
+      dbg('Sheets API loaded OK','#34D399');
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: handleToken,
       });
-      dbg('tokenClient ready ✓ — tap button','#FBBF24');
+      dbg('tokenClient ready OK - tap button','#FBBF24');
       const saved = sessionStorage.getItem('pm_token');
       if(saved){
-        dbg('Restoring saved token…');
+        dbg('Restoring saved token...');
         accessToken = saved;
         gapi.client.setToken({ access_token: accessToken });
         await checkUserAccess();
@@ -1021,15 +1028,15 @@ function _tryInitAuth(){
       }
     } catch(e){
       dbg('INIT ERROR: ' + (e.message||JSON.stringify(e)),'#F87171');
-      setStatus('Failed to load Google API — ' + (e.message||e), true);
+      setStatus('Failed to load Google API - ' + (e.message||e), true);
       console.error('init error:', e);
     }
   });
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    ROLES & PERMISSIONS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 const ROLES = {
   'Property Manager': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:true,  canEditAll:true,  canStartInspection:true,  canManageCategories:true  },
   'Supervisor':       { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:false, canManageBuildings:false, canManageSuppliers:true,  canEditAll:false, canStartInspection:true,  canManageCategories:true  },
@@ -1041,9 +1048,9 @@ const ROLE_COLORS = {'Property Manager':'#8B5CF6','Supervisor':'#06B6D4','Mainte
 const ROLE_CLASS  = {'Property Manager':'rb-manager','Supervisor':'rb-supervisor','Maintenance Tech':'rb-tech','Admin':'rb-admin','Contractor':'rb-contractor'};
 function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    STATE
-══════════════════════════════════════════════════════════ */
+========================================================== */
 let tokenClient, accessToken=null, currentUser=null;
 let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], floors:[], units:[], categories:[] };
 let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null, floor:null };
@@ -1052,14 +1059,14 @@ const PAGE_SIZE = 10;
 const pages = { tix:1, ast:1, usr:1, bld:1, sup:1, insp:1 };
 const today = new Date();
 const d=(n)=>{const x=new Date(today);x.setDate(x.getDate()-n);return x.toISOString().split('T')[0];};
-const df=(s)=>s?new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
+const df=(s)=>s?new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'-';
 const daysSince=(s)=>s?Math.floor((today-new Date(s))/86400000):0;
 function setPage(k,p){pages[k]=p;}
 function nextId(arr,prefix){ const nums=arr.map(x=>parseInt((x.id||'').split('-')[1]||0)).filter(n=>!isNaN(n)); return `${prefix}-${String((nums.length?Math.max(...nums):0)+1).padStart(3,'0')}`; }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    SYNC BAR / TOAST
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function showSync(){ document.getElementById('sync-bar').classList.add('active'); }
 function hideSync(){ document.getElementById('sync-bar').classList.remove('active'); }
 let _tid=0;
@@ -1074,22 +1081,22 @@ function toast(msg,type=''){
   setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},2800);
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    GOOGLE IDENTITY / AUTH
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function setStatus(msg,err=false){
   const el=document.getElementById('ag-status');
   el.innerHTML=err?`<span class="ag-error">${msg}</span>`:msg;
 }
 
 function signIn(){
-  dbg('Button tapped ✓','#FBBF24');
+  dbg('Button tapped OK','#FBBF24');
   if(!tokenClient){
-    dbg('ERROR: tokenClient null — not ready yet','#F87171');
-    setStatus('Still loading — please try again in a moment.', true);
+    dbg('ERROR: tokenClient null - not ready yet','#F87171');
+    setStatus('Still loading - please try again in a moment.', true);
     return;
   }
-  dbg('Calling requestAccessToken…','#60A5FA');
+  dbg('Calling requestAccessToken...','#60A5FA');
   try {
     tokenClient.requestAccessToken({ prompt: 'select_account' });
   } catch(e){
@@ -1098,9 +1105,9 @@ function signIn(){
 }
 
 async function handleToken(resp){
-  dbg('handleToken — error:'+(resp.error||'none'));
+  dbg('handleToken - error:'+(resp.error||'none'));
   if(resp.error){ dbg('Token error: '+resp.error,'#F87171'); setStatus('Sign-in failed: '+resp.error, true); return; }
-  dbg('Token OK ✓','#34D399');
+  dbg('Token OK OK','#34D399');
   accessToken = resp.access_token;
   sessionStorage.setItem('pm_token', accessToken);
   gapi.client.setToken({ access_token: accessToken });
@@ -1141,7 +1148,7 @@ async function checkUserAccess(){
 }
 
 async function refreshAllData(){
-  toast('Refreshing data…');
+  toast('Refreshing data...');
   try {
     await loadAllData();
     if(currentScreen==='dashboard') renderDash();
@@ -1184,9 +1191,9 @@ function launchApp(){
   });
 }
 
-/* ══════════════════════════════════════════════════════════
-   GOOGLE SHEETS API — READ
-══════════════════════════════════════════════════════════ */
+/* ==========================================================
+   GOOGLE SHEETS API - READ
+========================================================== */
 async function sheetsGet(range){
   showSync();
   try {
@@ -1209,7 +1216,7 @@ function rowsToObjects(rows, cols){
       if(col==='activity' && val){
         try{ val=JSON.parse(val); }catch(e){ val=[]; }
       }
-      // subs and expertise stored as plain CSV — just split, strip any stray brackets/quotes
+      // subs and expertise stored as plain CSV - just split, strip any stray brackets/quotes
       if((col==='subs'||col==='expertise') && val){
         if(val.startsWith('[')){ try{ val=JSON.parse(val); }catch(e){ val=val.replace(/[\[\]"]/g,'').split(',').map(s=>s.trim()).filter(Boolean); } }
         else { val=val.split(',').map(s=>s.trim()).filter(Boolean); }
@@ -1278,9 +1285,9 @@ async function loadSheet(key){
   DB[key] = rowsToObjects(rows, COLS[key]);
 }
 
-/* ══════════════════════════════════════════════════════════
-   GOOGLE SHEETS API — WRITE
-══════════════════════════════════════════════════════════ */
+/* ==========================================================
+   GOOGLE SHEETS API - WRITE
+========================================================== */
 function objToRow(obj, cols){
   return cols.map(col=>{
     let v = obj[col];
@@ -1335,16 +1342,16 @@ async function writeSheet(key){
   }
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    MODAL HELPERS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function openMo(id){ document.getElementById(id)?.classList.add('open'); document.body.style.overflow='hidden'; }
 function closeMo(id){ document.getElementById(id)?.classList.remove('open'); document.body.style.overflow=''; }
 function mcClick(e,id){ if(e.target.id===id) closeMo(id); }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    DRAWER
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function openDrawer(){
   const us = document.getElementById('drawer-user-section');
   if(currentUser){
@@ -1388,9 +1395,9 @@ function closeDrawer(){ document.getElementById('drawer-overlay').classList.remo
   document.addEventListener('touchend',()=>{dragging=false;},{passive:true});
 })();
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    NAVIGATION
-══════════════════════════════════════════════════════════ */
+========================================================== */
 let currentScreen='dashboard';
 let prevScreen='dashboard';
 function navTo(s){
@@ -1435,31 +1442,31 @@ function applyPermUI(){
   if(fab) fab.style.display=p.canCreateTickets?'flex':'none';
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    POPULATE HELPERS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function populateBldSelect(id){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
-  el.innerHTML='<option value="">Select…</option>'+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+  el.innerHTML='<option value="">Select...</option>'+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
   if(DB.buildings.find(b=>b.name===cur)) el.value=cur;
 }
-/* ── getFloorsForBuilding: returns all floors sorted by sortOrder (floors are now global, not per-building) ── */
+/*    getFloorsForBuilding: returns all floors sorted by sortOrder (floors are now global, not per-building)    */
 function getFloorsForBuilding(bldgIdOrName){
   return [...DB.floors].sort((a,z) => a.sortOrder - z.sortOrder);
 }
-/* ── populateFloorSelect: central helper to fill any floor <select> from DB.floors ──
+/*    populateFloorSelect: central helper to fill any floor <select> from DB.floors   
      id              : element id
-     opts.valueBy    : 'id' | 'label' (default 'label') — what goes in option value
-     opts.placeholder: text for the blank first option (default '— Select floor —')
+     opts.valueBy    : 'id' | 'label' (default 'label') - what goes in option value
+     opts.placeholder: text for the blank first option (default '- Select floor -')
      opts.includeAll : true = first option is "All Floors" with value "All"
-     opts.preserve   : true (default) — keep current value if it still exists
+     opts.preserve   : true (default) - keep current value if it still exists
 */
 function populateFloorSelect(id, opts){
   opts = opts || {};
   const el = document.getElementById(id); if(!el) return;
   const valueBy     = opts.valueBy     !== undefined ? opts.valueBy     : 'label';
-  const placeholder = opts.placeholder !== undefined ? opts.placeholder : '— Select floor —';
+  const placeholder = opts.placeholder !== undefined ? opts.placeholder : '- Select floor -';
   const includeAll  = opts.includeAll  !== undefined ? opts.includeAll  : false;
   const preserve    = opts.preserve    !== undefined ? opts.preserve    : true;
   const cur = el.value;
@@ -1479,18 +1486,18 @@ function populateFloorSelect(id, opts){
 
 /* Legacy shim */
 function populateSubs(subId, bldId){
-  populateFloorSelect(subId, { valueBy:'id', placeholder:'— Select floor —' });
+  populateFloorSelect(subId, { valueBy:'id', placeholder:'- Select floor -' });
 }
 
-/* ── Ticket form cascade functions ── */
+/*    Ticket form cascade functions    */
 function tfOnBldgChange(){
   const bldg=document.getElementById('tf-bldg').value;
   // Reset downstream
-  document.getElementById('tf-unit').innerHTML='<option value="">— Select unit —</option>';
+  document.getElementById('tf-unit').innerHTML='<option value="">- Select unit -</option>';
   document.getElementById('tf-asset').innerHTML='<option value="">None</option>';
   document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
   // Populate floor from DB.floors
-  populateFloorSelect('tf-sub', { valueBy:'label', placeholder:'— Select floor —' });
+  populateFloorSelect('tf-sub', { valueBy:'label', placeholder:'- Select floor -' });
 }
 function tfOnFloorChange(){
   const floorLabel=document.getElementById('tf-sub').value;
@@ -1505,9 +1512,9 @@ function tfOnFloorChange(){
     : (bld ? DB.units.filter(u=>u.buildingId===bld.id) : []);
   const unitSel=document.getElementById('tf-unit');
   if(unitList.length){
-    unitSel.innerHTML='<option value="">— Select unit —</option>'+unitList.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
+    unitSel.innerHTML='<option value="">- Select unit -</option>'+unitList.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
   } else {
-    unitSel.innerHTML='<option value="">— None —</option>';
+    unitSel.innerHTML='<option value="">- None -</option>';
   }
 }
 function tfOnUnitChange(){
@@ -1525,7 +1532,7 @@ function tfOnUnitChange(){
     return true;
   });
   const astSel=document.getElementById('tf-asset');
-  astSel.innerHTML='<option value="">None</option>'+assets.map(a=>`<option value="${a.id}">${a.name}${a.unit?' · '+a.unit:''}</option>`).join('');
+  astSel.innerHTML='<option value="">None</option>'+assets.map(a=>`<option value="${a.id}">${a.name}${a.unit?' - '+a.unit:''}</option>`).join('');
 }
 function tfOnAssetChange(){
   const assetId=document.getElementById('tf-asset').value;
@@ -1540,10 +1547,10 @@ function tfOnAssetChange(){
     }).sort((a,z)=>a.name.localeCompare(z.name));
     const others=DB.suppliers.filter(s=>s.status!=='Inactive'&&!matched.find(m=>m.id===s.id)).sort((a,z)=>a.name.localeCompare(z.name));
     supSel.innerHTML='<option value="">None</option>'
-      +(matched.length?'<optgroup label="Matching expertise">'+matched.map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('')+'</optgroup>':'')
-      +(others.length?'<optgroup label="All suppliers">'+others.map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('')+'</optgroup>':'');
+      +(matched.length?'<optgroup label="Matching expertise">'+matched.map(s=>`<option value="${s.id}">${s.name} (  ${s.ratePerHour}/hr)</option>`).join('')+'</optgroup>':'')
+      +(others.length?'<optgroup label="All suppliers">'+others.map(s=>`<option value="${s.id}">${s.name} (  ${s.ratePerHour}/hr)</option>`).join('')+'</optgroup>':'');
   } else {
-    supSel.innerHTML='<option value="">None</option>'+DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)).map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('');
+    supSel.innerHTML='<option value="">None</option>'+DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)).map(s=>`<option value="${s.id}">${s.name} (  ${s.ratePerHour}/hr)</option>`).join('');
   }
 }
 function populateAssignSelect(id){
@@ -1555,13 +1562,13 @@ function populateAssignSelect(id){
 function populateAssetSelect(id){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
-  el.innerHTML='<option value="">None</option>'+[...DB.assets].sort((a,z)=>a.name.localeCompare(z.name)).map(a=>`<option value="${a.id}">${a.id} – ${a.name}</option>`).join('');
+  el.innerHTML='<option value="">None</option>'+[...DB.assets].sort((a,z)=>a.name.localeCompare(z.name)).map(a=>`<option value="${a.id}">${a.id} - ${a.name}</option>`).join('');
   if(cur) el.value=cur;
 }
 function populateSupplierSelect(id){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
-  el.innerHTML='<option value="">None</option>'+DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)).map(s=>`<option value="${s.id}">${s.name} (€ ${s.ratePerHour}/hr)</option>`).join('');
+  el.innerHTML='<option value="">None</option>'+DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)).map(s=>`<option value="${s.id}">${s.name} (  ${s.ratePerHour}/hr)</option>`).join('');
   if(cur) el.value=cur;
 }
 function populateMgrSelect(id){
@@ -1581,9 +1588,9 @@ function populateCatSelect(id, allowAll=false, currentVal=''){
   if(currentVal) el.value=currentVal;
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    PAGINATION
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function renderPagination(key,total,fn){
   const cur=pages[key], totalPages=Math.ceil(total/PAGE_SIZE)||1;
   if(totalPages<=1) return '';
@@ -1591,17 +1598,17 @@ function renderPagination(key,total,fn){
   let btns='',range=[];
   for(let i=1;i<=totalPages;i++){
     if(i===1||i===totalPages||Math.abs(i-cur)<=1) range.push(i);
-    else if(range[range.length-1]!=='…') range.push('…');
+    else if(range[range.length-1]!=='...') range.push('...');
   }
   range.forEach(p=>{
-    if(p==='…') btns+=`<span class="pg-dots">…</span>`;
+    if(p==='...') btns+=`<span class="pg-dots">...</span>`;
     else btns+=`<button class="pg-btn${p===cur?' active':''}" onclick="${fn}(${p})">${p}</button>`;
   });
   return`<div class="pgbar">
-    <button class="pg-btn" onclick="${fn}(${cur-1})" ${cur===1?'disabled':''}>‹</button>
+    <button class="pg-btn" onclick="${fn}(${cur-1})" ${cur===1?'disabled':''}> </button>
     ${btns}
-    <button class="pg-btn" onclick="${fn}(${cur+1})" ${cur===totalPages?'disabled':''}>›</button>
-    <span class="pg-info">${start}–${end} of ${total}</span>
+    <button class="pg-btn" onclick="${fn}(${cur+1})" ${cur===totalPages?'disabled':''}> </button>
+    <span class="pg-info">${start}-${end} of ${total}</span>
   </div>`;
 }
 
@@ -1617,9 +1624,9 @@ function animCount(id,n){
   },30);
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    ALERTS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function getAlertCount(){
   let n=0;
   if(DB.tickets.filter(t=>t.priority==='Critical'&&t.status!=='Closed').length) n++;
@@ -1633,14 +1640,14 @@ function renderAlerts(){
   const el=document.getElementById('dash-alerts'); if(!el) return;
   const alerts=[];
   const critOpen=DB.tickets.filter(t=>t.priority==='Critical'&&t.status!=='Closed');
-  if(critOpen.length) alerts.push({type:'crit',icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;color:var(--red)"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',title:`${critOpen.length} Critical ticket${critOpen.length>1?'s':''} need attention`,sub:critOpen.slice(0,2).map(t=>t.subject).join(' · '),action:`navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-pri').value='Critical';document.getElementById('sel-tix-status').value='notclosed';setPage('tix',1);renderTix();},100)`});
+  if(critOpen.length) alerts.push({type:'crit',icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;color:var(--red)"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',title:`${critOpen.length} Critical ticket${critOpen.length>1?'s':''} need attention`,sub:critOpen.slice(0,2).map(t=>t.subject).join(' - '),action:`navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-pri').value='Critical';document.getElementById('sel-tix-status').value='notclosed';setPage('tix',1);renderTix();},100)`});
   const overdue=DB.tickets.filter(t=>t.status!=='Closed'&&daysSince(t.dateOpened)>7);
   if(overdue.length) alerts.push({type:'warn',icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;color:var(--amber)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',title:`${overdue.length} ticket${overdue.length>1?'s':''} open longer than 7 days`,sub:`Oldest: ${Math.max(...overdue.map(t=>daysSince(t.dateOpened)))} days`,action:`navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-sort').value='days';document.getElementById('sel-tix-status').value='Open';setPage('tix',1);renderTix();},100)`});
   const soon=new Date(today); soon.setDate(soon.getDate()+30);
   const expired=DB.assets.filter(a=>a.warrantyExpiry&&new Date(a.warrantyExpiry)<today);
-  if(expired.length) alerts.push({type:'crit',icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;color:var(--red)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',title:`${expired.length} warranty expired`,sub:expired.slice(0,2).map(a=>a.name).join(' · '),action:`navTo('assets');setTimeout(()=>{document.getElementById('sel-ast-status').value='Active';setPage('ast',1);renderAst();},100)`});
+  if(expired.length) alerts.push({type:'crit',icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;color:var(--red)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',title:`${expired.length} warranty expired`,sub:expired.slice(0,2).map(a=>a.name).join(' - '),action:`navTo('assets');setTimeout(()=>{document.getElementById('sel-ast-status').value='Active';setPage('ast',1);renderAst();},100)`});
   const expiring=DB.assets.filter(a=>a.warrantyExpiry&&new Date(a.warrantyExpiry)>=today&&new Date(a.warrantyExpiry)<=soon);
-  if(expiring.length) alerts.push({type:'warn',icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;color:var(--amber)"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',title:`${expiring.length} warranty expiring within 30 days`,sub:expiring.slice(0,2).map(a=>a.name).join(' · '),action:`navTo('assets');setTimeout(()=>{document.getElementById('sel-ast-status').value='Active';setPage('ast',1);renderAst();},100)`});
+  if(expiring.length) alerts.push({type:'warn',icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;color:var(--amber)"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',title:`${expiring.length} warranty expiring within 30 days`,sub:expiring.slice(0,2).map(a=>a.name).join(' - '),action:`navTo('assets');setTimeout(()=>{document.getElementById('sel-ast-status').value='Active';setPage('ast',1);renderAst();},100)`});
   const unassigned=DB.tickets.filter(t=>t.status!=='Closed'&&!t.assignedTo).length;
   if(unassigned) alerts.push({type:'crit',icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;color:var(--red)"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>',title:`${unassigned} unassigned ticket${unassigned>1?'s':''}`,sub:'Tap to view open unassigned tickets',action:`navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-status').value='Open';setPage('tix',1);renderTix();},100)`});
   if(!alerts.length){el.innerHTML='';return;}
@@ -1652,9 +1659,9 @@ function renderAlerts(){
   document.querySelectorAll('.burger-dot').forEach(d=>d.style.display=alerts.length?'block':'none');
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    DASHBOARD
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function renderDash(){
   document.getElementById('dash-date').textContent=today.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
   const open=DB.tickets.filter(t=>t.status==='Open').length;
@@ -1726,9 +1733,9 @@ function goToTicketsFiltered(){
   renderTix();
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    GLOBAL SEARCH
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function renderGlobalSearch(){
   const q=(document.getElementById('global-search')?.value||'').trim().toLowerCase();
   const clearBtn=document.getElementById('gs-clear');
@@ -1747,15 +1754,15 @@ function renderGlobalSearch(){
   }
   if(sups.length){
     html+=`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Suppliers</div>`;
-    sups.forEach(s=>{html+=`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="navTo('suppliers');setTimeout(()=>openSupDetail('${s.id}'),200)"><div><div style="font-size:13px;font-weight:600">${s.name}</div></div><span style="font-size:12px;color:var(--green);font-weight:600">€ ${s.ratePerHour}/hr</span></div>`;});
+    sups.forEach(s=>{html+=`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="navTo('suppliers');setTimeout(()=>openSupDetail('${s.id}'),200)"><div><div style="font-size:13px;font-weight:600">${s.name}</div></div><span style="font-size:12px;color:var(--green);font-weight:600">  ${s.ratePerHour}/hr</span></div>`;});
   }
   if(res) res.innerHTML=html;
 }
 function clearGlobalSearch(){ const inp=document.getElementById('global-search');if(inp)inp.value='';document.getElementById('global-results').innerHTML='';document.getElementById('gs-clear').style.display='none'; }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    TICKETS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function clearTixFilters(){
   ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=id==='sel-tix-status'?'All':'All';});
   const search=document.getElementById('tsearch');if(search)search.value='';
@@ -1817,7 +1824,7 @@ function tixItemHTML(t,clickable=true){
   const stCls={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Cancelled:'b-cancel',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
   const fn=clickable?`openTixDetail('${t.id}')`:`navTo('tickets')`;
   const daysColor = days && daysSince(t.dateOpened)>7 ? 'color:var(--amber);' : '';
-  const floorLabel = DB.floors.find(f=>f.id===t.floor)?.label || DB.floors.find(f=>f.label===t.floor)?.label || t.floor || '—';
+  const floorLabel = DB.floors.find(f=>f.id===t.floor)?.label || DB.floors.find(f=>f.label===t.floor)?.label || t.floor || '-';
   return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
@@ -1829,8 +1836,8 @@ function tixItemHTML(t,clickable=true){
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.building}</div><div class="bs-lbl">Building</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${floorLabel}</div><div class="bs-lbl">Floor</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.unit||'—'}</div><div class="bs-lbl">Location</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;${daysColor}">${days||'—'}</div><div class="bs-lbl">Age</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.unit||'-'}</div><div class="bs-lbl">Location</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;${daysColor}">${days||'-'}</div><div class="bs-lbl">Age</div></div>
       </div>
     </div>
   </div>`;
@@ -1866,17 +1873,17 @@ function openTixDetail(id){
     <div style="padding:0 18px">
       <div class="dr"><span class="dk">Building</span><span class="dv">${t.building}</span></div>
       ${t.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${DB.floors.find(f=>f.id===t.floor)?.label||DB.floors.find(f=>f.label===t.floor)?.label||t.floor}</span></div>`:''}
-      <div class="dr"><span class="dk">Unit / Area</span><span class="dv">${t.unit||'—'}</span></div>
-      <div class="dr"><span class="dk">Assigned To</span><span class="dv">${t.assignedTo||'—'}</span></div>
+      <div class="dr"><span class="dk">Unit / Area</span><span class="dv">${t.unit||'-'}</span></div>
+      <div class="dr"><span class="dk">Assigned To</span><span class="dv">${t.assignedTo||'-'}</span></div>
       <div class="dr"><span class="dk">Opened</span><span class="dv">${df(t.dateOpened)}</span></div>
       ${t.status==='Closed'?`<div class="dr"><span class="dk">Closed</span><span class="dv">${df(t.dateClosed)}</span></div>`:`<div class="dr"><span class="dk">Days Open</span><span class="dv" style="color:var(--amber)">${daysSince(t.dateOpened)} days</span></div>`}
-      <div class="dr"><span class="dk">Asset</span><span class="dv">${ast?ast.id+' – '+ast.name:'None'}</span></div>
-      <div class="dr"><span class="dk">Supplier</span><span class="dv">${sup?`<span style="color:var(--pink)">${sup.name}</span> <span style="font-size:11px;color:var(--muted)">(€ ${sup.ratePerHour}/hr)</span>`:'None'}</span></div>
-      ${sup?`<div class="dr"><span class="dk">Sup. Phone</span><span class="dv">${sup.phone?`<a href="tel:${sup.phone}" style="color:var(--blue)">${sup.phone}</a>`:'—'}</span></div>`:''}
-      ${sup?`<div class="dr"><span class="dk">Sup. Email</span><span class="dv">${sup.email?`<a href="mailto:${sup.email}" style="color:var(--blue)">${sup.email}</a>`:'—'}</span></div>`:''}
-      <div class="dr"><span class="dk">Reported By</span><span class="dv">${t.reportedBy||'—'}</span></div>
-      <div class="dr"><span class="dk">Notes</span><span class="dv">${t.notes||'—'}</span></div>
-      <div class="dr"><span class="dk">Created By</span><span class="dv">${t.createdBy||'—'}</span></div>
+      <div class="dr"><span class="dk">Asset</span><span class="dv">${ast?ast.id+' - '+ast.name:'None'}</span></div>
+      <div class="dr"><span class="dk">Supplier</span><span class="dv">${sup?`<span style="color:var(--pink)">${sup.name}</span> <span style="font-size:11px;color:var(--muted)">(  ${sup.ratePerHour}/hr)</span>`:'None'}</span></div>
+      ${sup?`<div class="dr"><span class="dk">Sup. Phone</span><span class="dv">${sup.phone?`<a href="tel:${sup.phone}" style="color:var(--blue)">${sup.phone}</a>`:'-'}</span></div>`:''}
+      ${sup?`<div class="dr"><span class="dk">Sup. Email</span><span class="dv">${sup.email?`<a href="mailto:${sup.email}" style="color:var(--blue)">${sup.email}</a>`:'-'}</span></div>`:''}
+      <div class="dr"><span class="dk">Reported By</span><span class="dv">${t.reportedBy||'-'}</span></div>
+      <div class="dr"><span class="dk">Notes</span><span class="dv">${t.notes||'-'}</span></div>
+      <div class="dr"><span class="dk">Created By</span><span class="dv">${t.createdBy||'-'}</span></div>
     </div>
     <div style="padding:14px 18px 0;display:flex;flex-direction:column;gap:14px">
       ${can('canCreateTickets')||can('canEditAll')?`<div>
@@ -1898,7 +1905,7 @@ function openTixDetail(id){
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Activity Log</div>
       <div id="act-log-${t.id}">${actHTML}</div>
       ${can('canCreateTickets')||can('canCloseTickets')?`<div style="margin-top:10px;display:flex;gap:8px">
-        <input id="act-inp-${t.id}" placeholder="Add a comment…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addComment('${t.id}');}" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-size:13px;color:var(--text);outline:none;font-family:inherit"/>
+        <input id="act-inp-${t.id}" placeholder="Add a comment..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addComment('${t.id}');}" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;font-size:13px;color:var(--text);outline:none;font-family:inherit"/>
         <button onclick="addComment('${t.id}')" style="padding:10px 14px;background:var(--blue);border-radius:var(--rs);font-weight:700;font-size:13px;color:#fff">Post</button>
       </div>`:''}
     </div>
@@ -1937,7 +1944,7 @@ async function quickProgTix(id){
   const t=DB.tickets.find(x=>x.id===id); if(!t) return;
   t.status='In Progress';
   if(!Array.isArray(t.activity)) t.activity=[];
-  t.activity.push({ts:new Date().toISOString(),user:currentUser.name,action:'Status → In Progress'});
+  t.activity.push({ts:new Date().toISOString(),user:currentUser.name,action:'Status   In Progress'});
   closeMo('mo-tix-detail');
   await writeSheet('tickets');
   toast('In Progress');
@@ -1973,18 +1980,18 @@ function editTix(id){
   document.getElementById('tf-status').value=t.status;
   document.getElementById('tf-reporter').value=t.reportedBy||'';
   document.getElementById('tf-notes').value=t.notes||'';
-  // Cascade: building → floor → unit → asset → supplier
+  // Cascade: building   floor   unit   asset   supplier
   populateBldSelect('tf-bldg');
   document.getElementById('tf-bldg').value=t.building;
   tfOnBldgChange();
   document.getElementById('tf-sub').value = DB.floors.find(f=>f.label===t.floor)?.label || DB.floors.find(f=>f.id===t.floor)?.label || '';
   tfOnFloorChange();
-  // Restore unit value — set after populating
+  // Restore unit value - set after populating
   const unitSel=document.getElementById('tf-unit');
   if([...unitSel.options].some(o=>o.value===t.unit)){
     unitSel.value=t.unit;
   } else if(t.unit){
-    // unit not in list — add it as an option so it's preserved
+    // unit not in list - add it as an option so it's preserved
     const opt=document.createElement('option');
     opt.value=t.unit; opt.textContent=t.unit;
     unitSel.appendChild(opt);
@@ -1995,7 +2002,7 @@ function editTix(id){
   const astSel=document.getElementById('tf-asset');
   if(t.assetId&&![...astSel.options].some(o=>o.value===t.assetId)){
     const a=DB.assets.find(x=>x.id===t.assetId);
-    if(a){const opt=document.createElement('option');opt.value=a.id;opt.textContent=`${a.name}${a.unit?' · '+a.unit:''}`;astSel.appendChild(opt);}
+    if(a){const opt=document.createElement('option');opt.value=a.id;opt.textContent=`${a.name}${a.unit?' - '+a.unit:''}`;astSel.appendChild(opt);}
   }
   astSel.value=t.assetId||'';
   tfOnAssetChange();
@@ -2003,7 +2010,7 @@ function editTix(id){
   const supSel=document.getElementById('tf-supplier');
   if(t.supplierId&&![...supSel.options].some(o=>o.value===t.supplierId)){
     const s=DB.suppliers.find(x=>x.id===t.supplierId);
-    if(s){const opt=document.createElement('option');opt.value=s.id;opt.textContent=`${s.name} (€ ${s.ratePerHour}/hr)`;supSel.appendChild(opt);}
+    if(s){const opt=document.createElement('option');opt.value=s.id;opt.textContent=`${s.name} (  ${s.ratePerHour}/hr)`;supSel.appendChild(opt);}
   }
   supSel.value=t.supplierId||'';
   populateAssignSelect('tf-assign');
@@ -2032,7 +2039,7 @@ async function saveTix(){
       t.reportedBy=document.getElementById('tf-reporter').value;
       t.notes=document.getElementById('tf-notes').value;
       if(!Array.isArray(t.activity)) t.activity=[];
-      if(prevStatus!==status) t.activity.push({ts:new Date().toISOString(),user:currentUser.name,action:`Status: ${prevStatus} → ${status}`});
+      if(prevStatus!==status) t.activity.push({ts:new Date().toISOString(),user:currentUser.name,action:`Status: ${prevStatus}   ${status}`});
       else t.activity.push({ts:new Date().toISOString(),user:currentUser.name,action:'Ticket updated'});
     }
   } else {
@@ -2096,12 +2103,12 @@ async function saveQuickTicket(){
   if(currentScreen==='dashboard') renderDash();
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    ASSETS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function goAstPage(p){setPage('ast',p);renderAst();}
 
-/* ── Shared asset card HTML — used in Assets view, Building view, Floor view ── */
+/*    Shared asset card HTML - used in Assets view, Building view, Floor view    */
 function astCardHTML(a, onclick){
   const stCls={'Active':'b-closed','Under Maintenance':'b-prog','Decommissioned':'b-cancel'}[a.status]||'b-closed';
   const openTix=(DB.tickets||[]).filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
@@ -2112,9 +2119,9 @@ function astCardHTML(a, onclick){
       <span class="badge ${stCls}" style="flex-shrink:0;margin-left:8px">${a.status}</span>
     </div>
     <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px;display:grid;grid-template-columns:repeat(4,1fr)">
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building||'—'}</div><div class="bs-lbl">Building</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building||'-'}</div><div class="bs-lbl">Building</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'-'}</div><div class="bs-lbl">Floor</div></div>
+      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit||'-'}</div><div class="bs-lbl">Unit</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;color:${tixColor}">${openTix}</div><div class="bs-lbl">Tickets</div></div>
     </div>
   </div>`;
@@ -2180,11 +2187,11 @@ function openAstDetail(id){
     <div style="padding:0 18px">
       <div class="dr"><span class="dk">Building</span><span class="dv">${a.building}</span></div>
       ${a.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${a.floor}</span></div>`:''}
-      <div class="dr"><span class="dk">Unit</span><span class="dv">${a.unit||'—'}</span></div>
-      <div class="dr"><span class="dk">Supplier</span><span class="dv">${a.supplierName||'—'}</span></div>
-      <div class="dr"><span class="dk">Category</span><span class="dv">${a.category||'—'}</span></div>
-      <div class="dr"><span class="dk">Manufacturer</span><span class="dv">${a.manufacturer||'—'}</span></div>
-      <div class="dr"><span class="dk">Model</span><span class="dv">${a.model||'—'}</span></div>
+      <div class="dr"><span class="dk">Unit</span><span class="dv">${a.unit||'-'}</span></div>
+      <div class="dr"><span class="dk">Supplier</span><span class="dv">${a.supplierName||'-'}</span></div>
+      <div class="dr"><span class="dk">Category</span><span class="dv">${a.category||'-'}</span></div>
+      <div class="dr"><span class="dk">Manufacturer</span><span class="dv">${a.manufacturer||'-'}</span></div>
+      <div class="dr"><span class="dk">Model</span><span class="dv">${a.model||'-'}</span></div>
       <div class="dr"><span class="dk">Warranty</span><span class="dv">${df(a.warrantyExpiry)}</span></div>
       <div class="dr"><span class="dk">Purchased</span><span class="dv">${df(a.purchaseDate)}</span></div>
       <div class="dr"><span class="dk">Last Serviced</span><span class="dv">${df(a.lastServiced)}</span></div>
@@ -2200,7 +2207,7 @@ function openAstDetail(id){
 function afOnBldgChange(){
   populateSubs('af-sub','af-bldg');
   document.getElementById('af-sub').value='';
-  document.getElementById('af-loc').innerHTML='<option value="">— Select unit —</option>';
+  document.getElementById('af-loc').innerHTML='<option value="">- Select unit -</option>';
 }
 function afOnFloorChange(){
   const floorId=document.getElementById('af-sub').value;
@@ -2210,18 +2217,18 @@ function afOnFloorChange(){
     ? DB.units.filter(u=>u.floorId===floorId && u.buildingId===bld.id).sort((a,z)=>a.sortOrder-z.sortOrder)
     : (bld ? DB.units.filter(u=>u.buildingId===bld.id).sort((a,z)=>a.sortOrder-z.sortOrder) : []);
   const sel=document.getElementById('af-loc');
-  sel.innerHTML='<option value="">— Select unit —</option>'+unitList.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+  sel.innerHTML='<option value="">- Select unit -</option>'+unitList.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
 }
 function populateAstSupplierSelect(id, selectedId=''){
   const el=document.getElementById(id); if(!el) return;
-  el.innerHTML='<option value="">— Select supplier —</option>'
+  el.innerHTML='<option value="">- Select supplier -</option>'
     +DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
   if(selectedId) el.value=selectedId;
 }
 function populateAstCategorySelect(id, selected=''){
   const el=document.getElementById(id); if(!el) return;
   const cats=getCategoryList();
-  el.innerHTML='<option value="">— Select category —</option>'
+  el.innerHTML='<option value="">- Select category -</option>'
     +cats.map(c=>`<option value="${c}">${c}</option>`).join('');
   if(selected) el.value=selected;
 }
@@ -2232,7 +2239,7 @@ function openNewAsset(){
   ['af-name','af-mfr','af-model','af-warr','af-pdate','af-lsvc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('af-status').value='Active';
   document.getElementById('af-acat').value='';
-  document.getElementById('af-loc').innerHTML='<option value="">— Select unit —</option>';
+  document.getElementById('af-loc').innerHTML='<option value="">- Select unit -</option>';
   populateBldSelect('af-bldg');
   document.getElementById('af-bldg').value='';
   populateSubs('af-sub','af-bldg');
@@ -2313,9 +2320,9 @@ async function saveAst(){
   if(currentScreen==='assets') renderAst();
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    USERS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function goUsrPage(p){setPage('usr',p);renderUsers();}
 function renderUsers(){
   const q=(document.getElementById('usearch')?.value||'').toLowerCase();
@@ -2376,9 +2383,9 @@ async function saveUser(){
   if(currentScreen==='users') renderUsers();
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    FLOOR VIEW
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function openFloorView(buildingName, buildingId, floorEnc){
   const floor = decodeURIComponent(floorEnc);
   document.getElementById('floor-view-title').textContent = floor;
@@ -2393,40 +2400,40 @@ function openFloorView(buildingName, buildingId, floorEnc){
 
   let html = '';
 
-  // ── Building info strip ──
+  //    Building info strip   
   html += `<div style="margin:12px 14px 4px;padding:14px 16px;background:linear-gradient(135deg,rgba(37,99,235,.07),rgba(79,70,229,.04));border:1.5px solid var(--border);border-radius:var(--r)">
     <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Building</div>
     <div style="font-size:16px;font-weight:800;font-family:'Outfit',sans-serif">${buildingName}</div>
     <div style="font-size:12px;color:var(--sub);margin-top:2px">${building?.address||''}</div>
   </div>`;
 
-  // ── Tickets ──
-  html += `<div class="sh"><span class="sh-title">Tickets (${tickets.length})</span><span class="sh-link" onclick="navTo('tickets')">All →</span></div>`;
+  //    Tickets   
+  html += `<div class="sh"><span class="sh-title">Tickets (${tickets.length})</span><span class="sh-link" onclick="navTo('tickets')">All  </span></div>`;
   if(tickets.length){
     html += '<div class="tlist">' + tickets.map(t=>tixItemHTML(t,true)).join('') + '</div>';
   } else {
     html += '<div class="empty" style="padding:20px 24px"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M2 9a2 2 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2 2 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/><line x1="9" y1="9" x2="9" y2="15"/></svg></div><div style="font-size:12px">No tickets for this floor</div></div>';
   }
 
-  // ── Assets ──
-  html += `<div class="sh"><span class="sh-title">Assets (${assets.length})</span><span class="sh-link" onclick="navTo('assets')">All →</span></div>`;
+  //    Assets   
+  html += `<div class="sh"><span class="sh-title">Assets (${assets.length})</span><span class="sh-link" onclick="navTo('assets')">All  </span></div>`;
   if(assets.length){
     html += '<div style="padding:0 14px 8px">' + assets.map(a=>astCardHTML(a,`openAstDetail('${a.id}')`)).join('') + '</div>';
   } else {
     html += '<div class="empty" style="padding:20px 24px"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div style="font-size:12px">No assets for this floor</div></div>';
   }
 
-  // ── Suppliers linked via tickets on this floor ──
+  //    Suppliers linked via tickets on this floor   
   const linkedSupIds = [...new Set(tickets.filter(t=>t.supplierId).map(t=>t.supplierId))];
   const linkedSups = DB.suppliers.filter(s=>linkedSupIds.includes(s.id));
   const stCol={Active:'var(--green)',Preferred:'var(--amber)',Inactive:'var(--muted)'};
-  html += `<div class="sh"><span class="sh-title">Suppliers (${linkedSups.length})</span><span class="sh-link" onclick="navTo('suppliers')">All →</span></div>`;
+  html += `<div class="sh"><span class="sh-title">Suppliers (${linkedSups.length})</span><span class="sh-link" onclick="navTo('suppliers')">All  </span></div>`;
   if(linkedSups.length){
     html += linkedSups.map(s=>`
       <div class="sup-card" onclick="openSupDetail('${s.id}')">
         <div class="sup-hdr">
-          <div><div class="sup-name">${s.name}</div><div class="sup-contact">${s.contact||'—'}</div></div>
-          <div style="text-align:right"><div class="sup-rate">€ ${s.ratePerHour}/hr</div><span class="badge" style="background:${stCol[s.status]||'var(--green)'}18;color:${stCol[s.status]||'var(--green)'};margin-top:4px">${s.status}</span></div>
+          <div><div class="sup-name">${s.name}</div><div class="sup-contact">${s.contact||'-'}</div></div>
+          <div style="text-align:right"><div class="sup-rate">  ${s.ratePerHour}/hr</div><span class="badge" style="background:${stCol[s.status]||'var(--green)'}18;color:${stCol[s.status]||'var(--green)'};margin-top:4px">${s.status}</span></div>
         </div>
       </div>`).join('');
   } else {
@@ -2437,9 +2444,9 @@ function openFloorView(buildingName, buildingId, floorEnc){
   navTo('floor');
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    UNITS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function renderUnits(){
   const q = (document.getElementById('unit-search')?.value||'').toLowerCase();
 
@@ -2510,8 +2517,8 @@ function renderUnits(){
         </div>
       </div>
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;padding-bottom:4px;cursor:pointer" onclick="openUnitDetail('${u.id}')">
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${flr?.label||'—'}</div><div class="bs-lbl">Floor</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bld?.name||'-'}</div><div class="bs-lbl">Building</div></div>
+        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${flr?.label||'-'}</div><div class="bs-lbl">Floor</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${assets.length}</div><div class="bs-lbl">Assets</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;color:${openTix.length?'var(--red)':'var(--text)'}">${openTix.length}</div><div class="bs-lbl">Tickets</div></div>
       </div>
@@ -2533,8 +2540,8 @@ function openUnitDetail(id){
       <div style="font-size:20px;font-weight:700;margin-bottom:8px">${u.label}</div>
     </div>
     <div style="padding:0 18px">
-      <div class="dr"><span class="dk">Building</span><span class="dv">${bld?.name||'—'}</span></div>
-      <div class="dr"><span class="dk">Floor</span><span class="dv">${flr?.label||'—'}</span></div>
+      <div class="dr"><span class="dk">Building</span><span class="dv">${bld?.name||'-'}</span></div>
+      <div class="dr"><span class="dk">Floor</span><span class="dv">${flr?.label||'-'}</span></div>
       <div class="dr"><span class="dk">Assets</span><span class="dv">${assets.length}</span></div>
       <div class="dr"><span class="dk">Open Tickets</span><span class="dv" style="color:${openTix.length?'var(--red)':'var(--green)'};font-weight:700">${openTix.length}</span></div>
     </div>
@@ -2584,7 +2591,7 @@ function editUnit(id){
   openMo('mo-unit');
 }
 function uf2OnBldgChange(){
-  populateFloorSelect('uf2-floor', { valueBy:'id', placeholder:'— Select floor —' });
+  populateFloorSelect('uf2-floor', { valueBy:'id', placeholder:'- Select floor -' });
 }
 async function saveUnit(){
   const label=document.getElementById('uf2-label').value.trim();
@@ -2608,9 +2615,9 @@ async function saveUnit(){
 
 
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    FLOORS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function renderFloors(){
   if(!document.getElementById('floor-list')) return;
   const q = (document.getElementById('floor-search')?.value||'').toLowerCase();
@@ -2716,9 +2723,9 @@ async function saveFloor(){
   if(currentScreen==='floors') renderFloors();
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    BUILDINGS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function openBldDetail(id){
   const b=DB.buildings.find(x=>x.id===id); if(!b) return;
   const floorCount=(b.floors&&b.floors.length)||0;
@@ -2733,13 +2740,13 @@ function openBldDetail(id){
 
   let html='';
 
-  // ── Building card (mirrors list card) ──
+  //    Building card (mirrors list card)   
   html+=`<div class="bc-wrap" style="cursor:default;margin-top:12px" onclick="event.stopPropagation()">
     <div class="bc-hdr">
       <div>
         <div class="bc-name">${b.name}</div>
         ${b.address?`<div class="bc-addr">${b.address}</div>`:''}
-        ${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''}
+        ${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' - ')}</div>`:''}
         ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px"><a href="tel:${b.phone}" onclick="event.stopPropagation()" style="color:var(--blue);font-weight:700;text-decoration:none">${b.phone}</a></div>`:''}
         ${b.manager?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">Manager: <strong>${b.manager}</strong></div>`:''}
       </div>
@@ -2751,7 +2758,7 @@ function openBldDetail(id){
     </div>
   </div>`;
 
-  // ── Assets Affected ──
+  //    Assets Affected   
   const affectedAsts=[...new Map(
     openTix.filter(t=>t.assetId).map(t=>DB.assets.find(a=>a.id===t.assetId&&a.building===b.name)).filter(Boolean).map(a=>[a.id,a])
   ).values()];
@@ -2760,16 +2767,16 @@ function openBldDetail(id){
     html+='<div style="padding:0 14px 8px">'+affectedAsts.map(a=>astCardHTML(a,`openAstDetail('${a.id}')`)).join('')+'</div>';
   }
 
-  // ── Open Tickets ──
-  html+=`<div class="sh"><span class="sh-title">Open Tickets (${openTix.length})</span><span class="sh-link" onclick="navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-bldg').value='${b.name}';renderTix();},150)">All →</span></div>`;
+  //    Open Tickets   
+  html+=`<div class="sh"><span class="sh-title">Open Tickets (${openTix.length})</span><span class="sh-link" onclick="navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-bldg').value='${b.name}';renderTix();},150)">All  </span></div>`;
   if(openTix.length){
     html+='<div class="tlist">'+openTix.slice(0,10).map(t=>tixItemHTML(t,true)).join('')+'</div>';
   } else {
     html+='<div class="empty" style="padding:20px 24px"><div style="font-size:12px;color:var(--muted)">No open tickets</div></div>';
   }
 
-  // ── Assets ──
-  html+=`<div class="sh"><span class="sh-title">Assets (${allAsts.length})</span><span class="sh-link" onclick="navTo('assets')">All →</span></div>`;
+  //    Assets   
+  html+=`<div class="sh"><span class="sh-title">Assets (${allAsts.length})</span><span class="sh-link" onclick="navTo('assets')">All  </span></div>`;
   if(allAsts.length){
     html+='<div style="padding:0 14px 8px">'+allAsts.map(a=>astCardHTML(a,`openAstDetail('${a.id}')`)).join('')+'</div>';
   } else {
@@ -2797,7 +2804,7 @@ function renderBlds(){
     return`<div style="margin:0 14px 12px">
       <div class="bc-wrap" style="margin:0" onclick="openBldDetail('${b.id}')">
         <div class="bc-hdr">
-          <div style="min-width:0;flex:1"><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''} ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px">${b.phone}</div>`:''}</div>
+          <div style="min-width:0;flex:1"><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'-'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' - ')}</div>`:''} ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px">${b.phone}</div>`:''}</div>
           ${tixBadge}
         </div>
         <div class="bc-body">
@@ -2823,7 +2830,7 @@ function populateBldFloorPills(selectedIds){
   const sel = new Set(Array.isArray(selectedIds) ? selectedIds : []);
   wrap.innerHTML = floors.map(f=>`
     <div class="pill${sel.has(f.id)?' selected':''}" onclick="toggleBldFloorPill(this,'${f.id}')">
-      <span class="pill-check">✓</span>${f.label}
+      <span class="pill-check">OK</span>${f.label}
     </div>`).join('');
 }
 function toggleBldFloorPill(el, id){
@@ -2870,9 +2877,9 @@ async function saveBld(){
   if(currentScreen==='buildings') renderBlds();
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    SUPPLIERS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function goSupPage(p){setPage('sup',p);renderSuppliers();}
 function clearSupFilters(){
   const s=document.getElementById('ssearch'); if(s) s.value='';
@@ -2931,13 +2938,13 @@ function renderSuppliers(){
           <div class="sup-name">${s.name}</div>
           ${exp.length?`<div style="font-size:11px;color:var(--sub);margin-top:2px;line-height:1.4">${exp.join(', ')}</div>`:''}
           <div style="display:flex;gap:16px;margin:6px 0 4px;align-items:flex-end">
-            <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Rate/hr</div><div class="sup-rate">€ ${s.ratePerHour||0}</div></div>
+            <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Rate/hr</div><div class="sup-rate">  ${s.ratePerHour||0}</div></div>
             <div style="width:1px;height:32px;background:var(--border);flex-shrink:0"></div>
-            <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Transport</div><div style="font-size:13px;font-weight:700;color:var(--sub)">€ ${s.transportCost||0}</div></div>
+            <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Transport</div><div style="font-size:13px;font-weight:700;color:var(--sub)">  ${s.transportCost||0}</div></div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-            ${s.phone?`<span style="font-size:12px;color:var(--sub)">${s.phone}</span><span style="color:var(--border2);font-size:12px">·</span>`:''}
-            <span class="sup-contact" style="margin:0">${s.contact||'—'}</span>
+            ${s.phone?`<span style="font-size:12px;color:var(--sub)">${s.phone}</span><span style="color:var(--border2);font-size:12px">-</span>`:''}
+            <span class="sup-contact" style="margin:0">${s.contact||'-'}</span>
           </div>
         </div>
         <span class="badge" style="background:${stCol[s.status]||'var(--green)'}18;color:${stCol[s.status]||'var(--green)'};flex-shrink:0">${s.status}</span>
@@ -2962,13 +2969,13 @@ function openSupDetail(id){
       <span class="badge" style="background:${stCol[s.status]||'var(--green)'}18;color:${stCol[s.status]||'var(--green)'}">${s.status}</span>
     </div>
     <div style="padding:0 18px">
-      <div class="dr"><span class="dk">Contact</span><span class="dv">${s.contact||'—'}</span></div>
-      <div class="dr"><span class="dk">Rate</span><span class="dv" style="color:var(--green)">€ ${s.ratePerHour}/hr + € ${s.transportCost} transport</span></div>
-      <div class="dr"><span class="dk">Phone</span><span class="dv">${s.phone||'—'}</span></div>
-      <div class="dr"><span class="dk">Email</span><span class="dv">${s.email||'—'}</span></div>
-      <div class="dr"><span class="dk">Address</span><span class="dv">${s.address||'—'}</span></div>
+      <div class="dr"><span class="dk">Contact</span><span class="dv">${s.contact||'-'}</span></div>
+      <div class="dr"><span class="dk">Rate</span><span class="dv" style="color:var(--green)">  ${s.ratePerHour}/hr +   ${s.transportCost} transport</span></div>
+      <div class="dr"><span class="dk">Phone</span><span class="dv">${s.phone||'-'}</span></div>
+      <div class="dr"><span class="dk">Email</span><span class="dv">${s.email||'-'}</span></div>
+      <div class="dr"><span class="dk">Address</span><span class="dv">${s.address||'-'}</span></div>
       <div class="dr"><span class="dk">Rating</span><span class="dv">${Array.from({length:parseInt(s.rating)||0}).map(()=>'<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>').join('')}</span></div>
-      <div class="dr"><span class="dk">Expertise</span><span class="dv">${exp.join(', ')||'—'}</span></div>
+      <div class="dr"><span class="dk">Expertise</span><span class="dv">${exp.join(', ')||'-'}</span></div>
     </div>
     <div style="padding:12px 18px 0;display:flex;gap:9px">
       ${can('canManageSuppliers')?`<button onclick="editSupplier('${s.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>`:''}
@@ -3018,14 +3025,14 @@ async function saveSupplier(){
   if(currentScreen==='suppliers') renderSuppliers();
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    INSPECTIONS
-══════════════════════════════════════════════════════════ */
+========================================================== */
 
-/* ── State for the active round ── */
+/*    State for the active round    */
 let activeRound = null; // { inspId, building, floor, category, items:[{assetId,label,category,result,note}] }
 
-/* ── List view ── */
+/*    List view    */
 function clearInspFilters(){
   ['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='All';
@@ -3116,8 +3123,8 @@ function inspListCardHTML(r){
   return `<div class="insp-list-card" onclick="openInspDetail('${r.id}')">
     <div class="insp-list-hdr">
       <div>
-        <div class="insp-list-title">${r.building}${r.floor ? ' · ' + r.floor : ''}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
-        <div class="insp-list-sub">${df(r.date)} · ${r.inspector}</div>
+        <div class="insp-list-title">${r.building}${r.floor ? ' - ' + r.floor : ''}${r.category && r.category !== 'All' ? ' - ' + r.category : ''}</div>
+        <div class="insp-list-sub">${df(r.date)} - ${r.inspector}</div>
       </div>
       <span class="badge" style="background:${stBg};color:${stColor};flex-shrink:0">${stLabel}</span>
     </div>
@@ -3136,7 +3143,7 @@ function inspListCardHTML(r){
   </div>`;
 }
 
-/* ── Start-round modal ── */
+/*    Start-round modal    */
 function openStartInspection(){
   if(!can('canStartInspection')){ toast('No permission to start inspections','err'); return; }
   const bldEl = document.getElementById('insp-bldg');
@@ -3181,12 +3188,12 @@ function inspOnFloorChange(){
   const unitSel = document.getElementById('insp-unit');
   const bldObj = DB.buildings.find(b=>b.name===bldg);
   if(floorLabel && bldObj){
-    // Specific floor selected — show only that floor's units within this building
+    // Specific floor selected - show only that floor's units within this building
     const flrObj = DB.floors.find(f=>f.label===floorLabel);
     const units  = flrObj ? DB.units.filter(u=>u.floorId===flrObj.id && u.buildingId===bldObj.id).sort((a,z)=>a.sortOrder-z.sortOrder) : [];
     unitSel.innerHTML = '<option value="">All units</option>' + units.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
   } else if(bldObj){
-    // All floors — show all units for the building
+    // All floors - show all units for the building
     const units = DB.units.filter(u=>u.buildingId===bldObj.id).sort((a,z)=>a.sortOrder-z.sortOrder);
     const seen = new Set();
     const unique = units.filter(u=>{ if(seen.has(u.label)) return false; seen.add(u.label); return true; });
@@ -3240,7 +3247,7 @@ function getInspUnits(bldg, floor, unit){
   }).sort((a,z)=>a.sortOrder-z.sortOrder);
 }
 
-/* ── Launch the round (full-screen checklist) ── */
+/*    Launch the round (full-screen checklist)    */
 function launchInspectionRound(){
   const bldg  = document.getElementById('insp-bldg').value;
   const floor = document.getElementById('insp-floor').value;
@@ -3270,14 +3277,14 @@ function launchInspectionRound(){
   closeMo('mo-insp-start');
 
   const total = activeRound.items.length;
-  document.getElementById('insp-round-title').textContent = bldg + (floor ? ' · ' + floor : '') + (unit ? ' · ' + unit : '');
-  document.getElementById('insp-round-sub').textContent   = (cat !== 'All' ? cat + ' · ' : '') + total + ' items';
+  document.getElementById('insp-round-title').textContent = bldg + (floor ? ' - ' + floor : '') + (unit ? ' - ' + unit : '');
+  document.getElementById('insp-round-sub').textContent   = (cat !== 'All' ? cat + ' - ' : '') + total + ' items';
 
   renderRound();
   navTo('insp-round');
 }
 
-/* ── Render the full checklist ── */
+/*    Render the full checklist    */
 function renderRound(){
   if(!activeRound) return;
   const items  = activeRound.items;
@@ -3286,7 +3293,7 @@ function renderRound(){
   const pct    = total ? Math.round(checked / total * 100) : 0;
 
   document.getElementById('insp-round-progbar').style.width = pct + '%';
-  document.getElementById('insp-round-counter').textContent = `${checked} of ${total} checked · ${pct}%`;
+  document.getElementById('insp-round-counter').textContent = `${checked} of ${total} checked - ${pct}%`;
 
   const body = document.getElementById('insp-round-body');
   body.innerHTML = items.map((item, idx) => inspRoundItemHTML(item, idx)).join('');
@@ -3319,16 +3326,16 @@ function inspRoundItemHTML(item, idx){
             <div style="font-size:15px;font-weight:700">${item.label}</div>
           </div>
           ${isDone
-            ? `<span id="insp-chip-${idx}" class="insp-done-chip ${isAppr ? 'insp-chip-ok' : 'insp-chip-fail'}">${isAppr ? '✓ Approved' : '✕ Failed'}</span>`
+            ? `<span id="insp-chip-${idx}" class="insp-done-chip ${isAppr ? 'insp-chip-ok' : 'insp-chip-fail'}">${isAppr ? 'OK Approved' : '  Failed'}</span>`
             : `<span id="insp-chip-${idx}" class="badge b-open">Open</span>`
           }
         </div>
         <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
           <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${activeRound.building}</div><div class="bs-lbl">Building</div></div>
-          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
+          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.floor||'-'}</div><div class="bs-lbl">Floor</div></div>
           ${isUnit
-            ? `<div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">—</div><div class="bs-lbl">Category</div></div>`
-            : `<div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
+            ? `<div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">-</div><div class="bs-lbl">Category</div></div>`
+            : `<div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.unit||'-'}</div><div class="bs-lbl">Unit</div></div>
                <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.category}</div><div class="bs-lbl">Category</div></div>`
           }
         </div>
@@ -3348,7 +3355,7 @@ function inspRoundItemHTML(item, idx){
           </button>
         </div>
         <div class="insp-note-wrap${isFail?' show':''}" id="insp-note-wrap-${idx}">
-          <textarea class="insp-note-inp" id="insp-note-${idx}" placeholder="Describe the issue (required for failures)…" oninput="onInspNoteInput(${idx})">${item.note||''}</textarea>
+          <textarea class="insp-note-inp" id="insp-note-${idx}" placeholder="Describe the issue (required for failures)..." oninput="onInspNoteInput(${idx})">${item.note||''}</textarea>
         </div>
       </div>
     </div>`;
@@ -3356,7 +3363,7 @@ function inspRoundItemHTML(item, idx){
   return cardTop + resultBar;
 }
 
-/* ── Set result on a checklist item ── */
+/*    Set result on a checklist item    */
 function setInspResult(idx, result){
   if(!activeRound) return;
   const item = activeRound.items[idx];
@@ -3380,10 +3387,10 @@ function setInspResult(idx, result){
   if(chip){
     if(item.result === 'Approved'){
       chip.className = 'insp-done-chip insp-chip-ok';
-      chip.innerHTML = '✓ Approved';
+      chip.innerHTML = 'OK Approved';
     } else if(item.result === 'Failed'){
       chip.className = 'insp-done-chip insp-chip-fail';
-      chip.innerHTML = '✕ Failed';
+      chip.innerHTML = '  Failed';
     } else {
       chip.className = 'badge b-open';
       chip.innerHTML = 'Open';
@@ -3398,17 +3405,17 @@ function setInspResult(idx, result){
   const bar = document.getElementById('insp-round-progbar');
   if(bar) bar.style.width = pct + '%';
   const counter = document.getElementById('insp-round-counter');
-  if(counter) counter.textContent = `${checked} of ${total} checked · ${pct}%`;
+  if(counter) counter.textContent = `${checked} of ${total} checked - ${pct}%`;
 }
 
-/* ── Sync note text back to state on every keystroke ── */
+/*    Sync note text back to state on every keystroke    */
 function onInspNoteInput(idx){
   if(!activeRound) return;
   const el = document.getElementById('insp-note-' + idx);
   if(el) activeRound.items[idx].note = el.value;
 }
 
-/* ── Finish button → summary modal ── */
+/*    Finish button   summary modal    */
 function finishInspectionRound(){
   if(!activeRound) return;
 
@@ -3458,21 +3465,21 @@ function finishInspectionRound(){
     ${failedItems.map((item, i) => `
       <div style="background:#FEF2F2;border:1px solid rgba(220,38,38,.18);border-radius:var(--rs);padding:11px 14px;margin-bottom:8px">
         <div style="font-size:13px;font-weight:700;margin-bottom:3px">${item.label}</div>
-        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${item.type==='unit' ? 'Unit' : item.category}${item.type!=='unit' && item.unit?' · '+item.unit:''}</div>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${item.type==='unit' ? 'Unit' : item.category}${item.type!=='unit' && item.unit?' - '+item.unit:''}</div>
         <div style="font-size:12px;color:var(--text);background:#fff;border-radius:6px;padding:8px 10px;border:1px solid rgba(220,38,38,.15)">${item.note}</div>
       </div>`).join('')}` : `
     <div style="text-align:center;padding:20px;background:#F0FDF4;border-radius:var(--rs);margin-bottom:12px">
-      <div style="font-size:28px;margin-bottom:6px">✅</div>
+      <div style="font-size:28px;margin-bottom:6px"> </div>
       <div style="font-size:14px;font-weight:700;color:var(--green)">All Clear!</div>
       <div style="font-size:12px;color:var(--sub);margin-top:4px">No failures in this round.</div>
     </div>`}
-    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px">${total} item${total!==1?'s':''} · ${activeRound.building} · ${df(today.toISOString().split('T')[0])}</div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px">${total} item${total!==1?'s':''} - ${activeRound.building} - ${df(today.toISOString().split('T')[0])}</div>
   `;
 
   openMo('mo-insp-summary');
 }
 
-/* ── Continue an In Progress round ── */
+/*    Continue an In Progress round    */
 function continueInspection(id){
   if(!can('canStartInspection')) return;
   const r = DB.inspections.find(x => x.id === id); if(!r) return;
@@ -3489,14 +3496,14 @@ function continueInspection(id){
 
   closeMo('mo-insp-detail');
 
-  document.getElementById('insp-round-title').textContent = r.building + (r.floor ? ' · ' + r.floor : '');
-  document.getElementById('insp-round-sub').textContent   = (r.category && r.category !== 'All' ? r.category + ' · ' : '') + items.length + ' items';
+  document.getElementById('insp-round-title').textContent = r.building + (r.floor ? ' - ' + r.floor : '');
+  document.getElementById('insp-round-sub').textContent   = (r.category && r.category !== 'All' ? r.category + ' - ' : '') + items.length + ' items';
 
   renderRound();
   navTo('insp-round');
 }
 
-/* ── Save the completed round to DB + Sheets ── */
+/*    Save the completed round to DB + Sheets    */
 async function saveInspectionRound(){
   if(!activeRound) return;
 
@@ -3534,7 +3541,7 @@ async function saveInspectionRound(){
     await writeSheet('inspections');
     toast('Inspection round saved');
   } catch(e){
-    toast('Save failed – check Sheets permissions','err');
+    toast('Save failed - check Sheets permissions','err');
     return;
   }
 
@@ -3542,7 +3549,7 @@ async function saveInspectionRound(){
   navTo('inspections');
 }
 
-/* ── Create a ticket from a failure (called from round screen) ── */
+/*    Create a ticket from a failure (called from round screen)    */
 function createTicketFromFailure(idx){
   if(!activeRound || !can('canCreateTickets')) return;
   const item = activeRound.items[idx];
@@ -3605,7 +3612,7 @@ function _prefillTicketFromFailure(item){
       if(a){
         if(![...astSel.options].some(o => o.value === item.assetId)){
           const opt = document.createElement('option');
-          opt.value = a.id; opt.textContent = `${a.name}${a.unit?' · '+a.unit:''}`;
+          opt.value = a.id; opt.textContent = `${a.name}${a.unit?' - '+a.unit:''}`;
           astSel.appendChild(opt);
         }
         astSel.value = item.assetId;
@@ -3618,7 +3625,7 @@ function _prefillTicketFromFailure(item){
   openMo('mo-tix');
 }
 
-/* ── Inspection detail modal (history view) ── */
+/*    Inspection detail modal (history view)    */
 function openInspDetail(id){
   const r = DB.inspections.find(x => x.id === id); if(!r) return;
   const items    = Array.isArray(r.items) ? r.items : [];
@@ -3632,7 +3639,7 @@ function openInspDetail(id){
   document.getElementById('insp-detail-body').innerHTML = `
     <div style="padding:0 18px 8px">
       <div style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--teal);margin-bottom:4px">${r.id}</div>
-      <div style="font-size:19px;font-weight:700;margin-bottom:6px">${r.building}${r.floor?' · '+r.floor:''}</div>
+      <div style="font-size:19px;font-weight:700;margin-bottom:6px">${r.building}${r.floor?' - '+r.floor:''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
         <span class="badge" style="background:${stBg};color:${stColor}">${r.status}</span>
         ${r.category && r.category !== 'All' ? `<span class="badge" style="background:rgba(99,102,241,.12);color:#818CF8">${r.category}</span>` : ''}
@@ -3666,7 +3673,7 @@ function openInspDetail(id){
             <div style="font-size:11px;color:var(--muted);margin-top:1px">
               ${item.type==='unit'
                 ? '<span style="font-weight:700;color:var(--teal)">Unit</span>'
-                : (item.category + (item.unit ? ' · ' + item.unit : ''))
+                : (item.category + (item.unit ? ' - ' + item.unit : ''))
               }
             </div>
             ${item.note ? `<div style="font-size:12px;color:var(--sub);margin-top:5px;background:#F8FAFF;border-radius:6px;padding:6px 8px;border:1px solid var(--border)">${item.note}</div>` : ''}
@@ -3686,9 +3693,9 @@ function openInspDetail(id){
   openMo('mo-insp-detail');
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    DELETE
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function confirmDelete(type,id){
   if(!can('canEditAll')) return;
   pendingDelete={type,id};
@@ -3715,9 +3722,9 @@ async function doConfirmedDelete(){
   pendingDelete=null;
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    CATEGORIES
-══════════════════════════════════════════════════════════ */
+========================================================== */
 let editingCatId = null;
 
 function openCategories(){
@@ -3798,7 +3805,7 @@ async function deleteCategory(id){
   const usedInTickets = DB.tickets.filter(t=>t.category===c.category).length;
   const usedInAssets  = DB.assets.filter(a=>a.category===c.category).length;
   const usageMsg = (usedInTickets||usedInAssets)
-    ? ` It is used in ${usedInTickets} ticket(s) and ${usedInAssets} asset(s) — those will keep the category name but it will no longer appear in dropdowns.`
+    ? ` It is used in ${usedInTickets} ticket(s) and ${usedInAssets} asset(s) - those will keep the category name but it will no longer appear in dropdowns.`
     : '';
   if(!confirm(`Delete category "${c.category}"?${usageMsg}`)) return;
   DB.categories = DB.categories.filter(x=>x.id!==id);
@@ -3807,9 +3814,9 @@ async function deleteCategory(id){
   renderCategoryList();
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ==========================================================
    EXPORT CSV
-══════════════════════════════════════════════════════════ */
+========================================================== */
 function openExportModal(){ openMo('mo-export'); }
 function exportCSV(type){
   let rows=[],headers=[];
@@ -3881,7 +3888,7 @@ function exportCSV(type){
   </div>
 </div>
 
-<!-- ═══════ INSPECTION MODALS ═══════ -->
+<!-- ======= INSPECTION MODALS ======= -->
 
 <!-- Start Inspection Round -->
 <div class="mo" id="mo-insp-start" onclick="mcClick(event,'mo-insp-start')">
