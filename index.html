@@ -1030,18 +1030,10 @@ function setStatus(msg,err=false){
 
 function signIn(){
   if(!tokenClient){
-    // Not ready yet — wait up to 5s and retry
-    setStatus('<span class="ag-spinner"></span>');
-    let attempts = 0;
-    const wait = setInterval(()=>{
-      attempts++;
-      if(tokenClient){ clearInterval(wait); tokenClient.requestAccessToken({ prompt:'consent' }); return; }
-      if(attempts > 10){ clearInterval(wait); setStatus('Google API failed to load. Please refresh the page.', true); }
-    }, 500);
+    setStatus('Still loading — please try again in a moment.', true);
     return;
   }
-  setStatus('<span class="ag-spinner"></span>');
-  tokenClient.requestAccessToken({ prompt: 'consent' });
+  tokenClient.requestAccessToken({ prompt: 'select_account' });
 }
 
 async function handleToken(resp){
@@ -3906,11 +3898,16 @@ function exportCSV(type){
 </div>
 
 <!-- Google Identity Services + GAPI -->
+<!-- Google Identity Services + GAPI -->
+<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" defer></script>
+<script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" defer></script>
 <script>
-// Wait for both GAPI and GIS to be ready before initialising auth
 let _gapiReady = false, _gisReady = false;
+function gapiLoaded(){ _gapiReady = true; _tryInitAuth(); }
+function gisLoaded(){  _gisReady  = true; _tryInitAuth(); }
 function _tryInitAuth(){
   if(!_gapiReady || !_gisReady) return;
+  setStatus('<span class="ag-spinner"></span>');
   gapi.load('client', async ()=>{
     try {
       await gapi.client.init({});
@@ -3920,7 +3917,6 @@ function _tryInitAuth(){
         scope: SCOPES,
         callback: handleToken,
       });
-      // Try silent restore
       const saved = sessionStorage.getItem('pm_token');
       if(saved){
         accessToken = saved;
@@ -3930,15 +3926,11 @@ function _tryInitAuth(){
         setStatus('');
       }
     } catch(e){
-      setStatus('Failed to load Google API. Please refresh the page.', true);
-      console.error('gapiLoaded error:', e);
+      setStatus('Failed to load Google API. Please refresh.', true);
+      console.error('init error:', e);
     }
   });
 }
-function gapiLoaded(){ _gapiReady = true; setStatus('<span class="ag-spinner"></span>'); _tryInitAuth(); }
-function gisLoaded()  { _gisReady  = true; _tryInitAuth(); }
 </script>
-<script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" async defer></script>
 </body>
 </html>
