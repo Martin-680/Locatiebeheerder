@@ -221,7 +221,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .btn-s{width:calc(100% - 36px);margin:8px 18px 4px;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub);display:block;}
 .btn-danger{width:calc(100% - 36px);margin:4px 18px;padding:13px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:var(--rs);font-size:14px;font-weight:700;color:var(--red);display:block;}
 
-/* ── DETAIL ROWS ── */
+/* ── PILL MULTI-SELECT ── */
+.pill-wrap{display:flex;flex-wrap:wrap;gap:7px;padding:8px 4px 4px;}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#F8FAFF;color:var(--sub);transition:all .15s;user-select:none;-webkit-user-select:none;}
+.pill:active{transform:scale(.95);}
+.pill.selected{background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(79,70,229,.08));border-color:var(--blue);color:var(--blue);}
+.pill-check{font-size:10px;display:none;}
+.pill.selected .pill-check{display:inline;}
 .dr{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);gap:12px;}
 .dk{font-size:12px;color:var(--muted);flex-shrink:0;padding-top:1px;}
 .dv{font-size:13px;color:var(--text);text-align:right;font-weight:500;flex:1;min-width:0;word-break:break-word;}
@@ -854,6 +860,10 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fg"><label>Manager</label><select class="fs2" id="bf-mgr"></select></div>
       <div class="fg"><label>Phone</label><input class="fi2" id="bf-phone" placeholder="555-XXXX"/></div>
     </div>
+    <div class="fg">
+      <label>Floors</label>
+      <div id="bf-floors-pills" class="pill-wrap" style="background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);min-height:44px;padding:8px 10px;"></div>
+    </div>
     <button class="btn-p" onclick="saveBld()">Save Building</button>
     <button class="btn-s" onclick="closeMo('mo-bld')">Cancel</button>
   </div>
@@ -953,7 +963,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
-  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
+  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone','floors'],
   assets:    ['id','label','building','floor','unit','supplier','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
@@ -1191,7 +1201,14 @@ async function loadAllData(){
     sheetsGet(`${TABS.categories}!A:Z`),
   ]);
   DB.users     = rowsToObjects(users,     COLS.users);
-  DB.buildings = rowsToObjects(buildings, COLS.buildings);
+  DB.buildings = rowsToObjects(buildings, COLS.buildings).map(r=>({
+    ...r,
+    floors: r.floors
+      ? (typeof r.floors==='string'
+          ? r.floors.split(',').map(s=>s.trim()).filter(Boolean)
+          : r.floors)
+      : []
+  }));
   DB.tickets   = rowsToObjects(tickets,   COLS.tickets);
   DB.suppliers = rowsToObjects(suppliers, COLS.suppliers);
   DB.categories = rowsToObjects(categories, COLS.categories);
@@ -1235,9 +1252,9 @@ function objToRow(obj, cols){
     let v = obj[col];
     if(v===undefined||v===null) return '';
     if(typeof v==='boolean') return v?'TRUE':'FALSE';
-    // Store subs and expertise as plain CSV — no brackets or quotes
+    // Store subs, expertise and building floors as plain CSV — no brackets or quotes
     if(Array.isArray(v)){
-      if(col==='subs'||col==='expertise') return v.join(', ');
+      if(col==='subs'||col==='expertise'||col==='floors') return v.join(', ');
       return JSON.stringify(v); // activity stays as JSON
     }
     return String(v);
@@ -2669,7 +2686,7 @@ async function saveFloor(){
 ══════════════════════════════════════════════════════════ */
 function openBldDetail(id){
   const b=DB.buildings.find(x=>x.id===id); if(!b) return;
-  const floorCount=DB.floors.length;
+  const floorCount=(b.floors&&b.floors.length)||0;
   const unitCount=DB.units.filter(u=>u.buildingId===b.id).length;
   const allTix=DB.tickets.filter(t=>t.building===b.name);
   const openTix=allTix.filter(t=>t.status!=='Closed');
@@ -2690,7 +2707,7 @@ function openBldDetail(id){
         ${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''}
         ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px"><a href="tel:${b.phone}" onclick="event.stopPropagation()" style="color:var(--blue);font-weight:700;text-decoration:none">${b.phone}</a></div>`:''}
         ${b.manager?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">Manager: <strong>${b.manager}</strong></div>`:''}
-      </div>
+        ${floorCount?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">${(b.floors||[]).map(f=>`<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:rgba(37,99,235,.1);color:var(--blue)">${f}</span>`).join('')}</div>`:''}
     </div>
     <div class="bc-body">
       <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
@@ -2738,7 +2755,7 @@ function renderBlds(){
   const c=document.getElementById('bld-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><div style="font-size:13px">No buildings yet</div></div>';return;}
   c.innerHTML=list.map(b=>{
-    const floorCount=DB.floors.length;
+    const floorCount=(b.floors&&b.floors.length)||0;
     const unitCount=DB.units.filter(u=>u.buildingId===b.id).length;
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
     const tixBadge=openTix>0?`<span style="background:rgba(217,119,6,.12);color:var(--amber);border:1px solid rgba(217,119,6,.25);border-radius:20px;font-size:11px;font-weight:700;padding:3px 9px;white-space:nowrap;flex-shrink:0">${openTix} open tix</span>`:'';
@@ -2756,12 +2773,30 @@ function renderBlds(){
     </div>`;
   }).join('');
 }
+function populateBldFloorPills(selectedLabels){
+  const wrap = document.getElementById('bf-floors-pills'); if(!wrap) return;
+  const floors = [...DB.floors].sort((a,z)=>(a.sortOrder||0)-(z.sortOrder||0)||a.label.localeCompare(z.label));
+  if(!floors.length){ wrap.innerHTML='<span style="font-size:12px;color:var(--muted)">No floors defined yet</span>'; return; }
+  const sel = new Set(Array.isArray(selectedLabels) ? selectedLabels : []);
+  wrap.innerHTML = floors.map(f=>`
+    <div class="pill${sel.has(f.label)?' selected':''}" onclick="toggleBldFloorPill(this,'${f.label.replace(/'/g,"\\'")}')">
+      <span class="pill-check">✓</span>${f.label}
+    </div>`).join('');
+}
+function toggleBldFloorPill(el, label){
+  el.classList.toggle('selected');
+}
+function getBldSelectedFloors(){
+  const wrap = document.getElementById('bf-floors-pills'); if(!wrap) return [];
+  return [...wrap.querySelectorAll('.pill.selected')].map(p=>p.textContent.trim().replace(/^✓/,'').trim());
+}
 function openNewBuilding(){
   if(!can('canManageBuildings')) return;
   editingId.bld=null;
   document.getElementById('bld-modal-title').textContent='Add Building';
   ['bf-name','bf-addr','bf-daysopen','bf-timeopen','bf-units','bf-year','bf-phone'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   populateMgrSelect('bf-mgr');
+  populateBldFloorPills([]);
   openMo('mo-bld');
 }
 function editBld(id){
@@ -2777,12 +2812,13 @@ function editBld(id){
   document.getElementById('bf-year').value=b.yearBuilt||'';
   document.getElementById('bf-phone').value=b.phone||'';
   populateMgrSelect('bf-mgr'); document.getElementById('bf-mgr').value=b.manager||'';
+  populateBldFloorPills(b.floors||[]);
   openMo('mo-bld');
 }
 async function saveBld(){
   const name=document.getElementById('bf-name').value.trim();
   if(!name){toast('Building name required','err');return;}
-  const data={name,address:document.getElementById('bf-addr').value,daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,yearBuilt:parseInt(document.getElementById('bf-year').value)||'',manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value};
+  const data={name,address:document.getElementById('bf-addr').value,daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,yearBuilt:parseInt(document.getElementById('bf-year').value)||'',manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value,floors:getBldSelectedFloors()};
   if(editingId.bld){ Object.assign(DB.buildings.find(x=>x.id===editingId.bld),data); }
   else { DB.buildings.push({id:nextId(DB.buildings,'BLD'),...data}); }
   closeMo('mo-bld');
