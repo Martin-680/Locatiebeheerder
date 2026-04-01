@@ -353,9 +353,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     Sign in with Google
   </button>
   <div class="ag-status" id="ag-status"></div>
-  <div style="margin-top:24px;padding:12px 16px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.15);border-radius:10px;font-size:12px;color:var(--sub);text-align:center;max-width:280px;line-height:1.6">
-    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;vertical-align:middle;margin-right:4px;color:var(--blue)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Your Google account must be added to the Users sheet by an administrator before you can sign in.
-  </div>
+  <div id="ag-debug" style="margin-top:16px;width:100%;max-width:320px;background:#0F172A;color:#94A3B8;font-family:monospace;font-size:11px;border-radius:10px;padding:12px 14px;line-height:1.9;word-break:break-all;min-height:60px"></div>
 </div>
 
 <!-- Access Denied -->
@@ -974,25 +972,42 @@ const COLS = {
 };
 
 /* ══════════════════════════════════════════════════════════
+   DEBUG LOGGER
+══════════════════════════════════════════════════════════ */
+const _dbgLines = [];
+function dbg(msg, color){
+  const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  _dbgLines.push(`<span style="color:${color||'#94A3B8'}">[${time}] ${msg}</span>`);
+  const el = document.getElementById('ag-debug');
+  if(el) el.innerHTML = _dbgLines.slice(-12).join('<br>');
+  console.log('[PM]', msg);
+}
+
+/* ══════════════════════════════════════════════════════════
    AUTH INIT — called by onload of external scripts
 ══════════════════════════════════════════════════════════ */
 let _gapiReady = false, _gisReady = false;
-function gapiLoaded(){ _gapiReady = true; _tryInitAuth(); }
-function gisLoaded(){  _gisReady  = true; _tryInitAuth(); }
+function gapiLoaded(){ dbg('GAPI script loaded ✓','#34D399'); _gapiReady = true; _tryInitAuth(); }
+function gisLoaded(){  dbg('GIS script loaded ✓','#34D399');  _gisReady  = true; _tryInitAuth(); }
 function _tryInitAuth(){
-  if(!_gapiReady || !_gisReady) return;
+  if(!_gapiReady || !_gisReady){ dbg('Waiting for both scripts…'); return; }
+  dbg('Both scripts ready — init client…','#60A5FA');
   setStatus('<span class="ag-spinner"></span>');
   gapi.load('client', async ()=>{
     try {
+      dbg('gapi.client loading…');
       await gapi.client.init({});
       await gapi.client.load('https://sheets.googleapis.com/$discovery/rest?version=v4');
+      dbg('Sheets API loaded ✓','#34D399');
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: handleToken,
       });
+      dbg('tokenClient ready ✓ — tap button','#FBBF24');
       const saved = sessionStorage.getItem('pm_token');
       if(saved){
+        dbg('Restoring saved token…');
         accessToken = saved;
         gapi.client.setToken({ access_token: accessToken });
         await checkUserAccess();
@@ -1000,6 +1015,7 @@ function _tryInitAuth(){
         setStatus('');
       }
     } catch(e){
+      dbg('INIT ERROR: ' + (e.message||JSON.stringify(e)),'#F87171');
       setStatus('Failed to load Google API — ' + (e.message||e), true);
       console.error('init error:', e);
     }
@@ -1062,15 +1078,24 @@ function setStatus(msg,err=false){
 }
 
 function signIn(){
+  dbg('Button tapped ✓','#FBBF24');
   if(!tokenClient){
+    dbg('ERROR: tokenClient null — not ready yet','#F87171');
     setStatus('Still loading — please try again in a moment.', true);
     return;
   }
-  tokenClient.requestAccessToken({ prompt: 'select_account' });
+  dbg('Calling requestAccessToken…','#60A5FA');
+  try {
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
+  } catch(e){
+    dbg('requestAccessToken threw: '+(e.message||e),'#F87171');
+  }
 }
 
 async function handleToken(resp){
-  if(resp.error){ setStatus('Sign-in failed. Please try again.', true); return; }
+  dbg('handleToken — error:'+(resp.error||'none'));
+  if(resp.error){ dbg('Token error: '+resp.error,'#F87171'); setStatus('Sign-in failed: '+resp.error, true); return; }
+  dbg('Token OK ✓','#34D399');
   accessToken = resp.access_token;
   sessionStorage.setItem('pm_token', accessToken);
   gapi.client.setToken({ access_token: accessToken });
@@ -1091,10 +1116,10 @@ async function checkUserAccess(){
       document.getElementById('auth-gate').classList.add('hidden');
       document.getElementById('access-denied').classList.add('show');
       // Show debug info so user can see exactly what's happening
-      const dbg = document.getElementById('debug-info');
-      if(dbg){
+      const dbgEl = document.getElementById('debug-info');
+      if(dbgEl){
         const usersInSheet = DB.users.map(u=>u.email||'(no email)').join(', ') || '(no users found in sheet)';
-        dbg.innerHTML=`<div style="margin-top:16px;padding:14px;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:10px;text-align:left;font-size:12px;font-family:monospace;line-height:1.8;word-break:break-all">
+        dbgEl.innerHTML=`<div style="margin-top:16px;padding:14px;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:10px;text-align:left;font-size:12px;font-family:monospace;line-height:1.8;word-break:break-all">
           <div><b style="color:#1E40AF">Your Google email:</b><br/><span style="color:#0F172A">${email||'(could not retrieve)'}</span></div>
           <div style="margin-top:8px"><b style="color:#1E40AF">Emails in Users sheet:</b><br/><span style="color:#0F172A">${usersInSheet}</span></div>
           <div style="margin-top:8px"><b style="color:#1E40AF">Total rows in Users sheet:</b> <span style="color:#0F172A">${DB.users.length}</span></div>
