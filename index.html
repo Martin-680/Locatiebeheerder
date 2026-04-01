@@ -2758,19 +2758,32 @@ function renderBlds(){
     const floorCount=(b.floors&&b.floors.length)||0;
     const unitCount=DB.units.filter(u=>u.buildingId===b.id).length;
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
+    const assetCount=DB.assets.filter(a=>a.building===b.name).length;
     const tixBadge=openTix>0?`<span style="background:rgba(217,119,6,.12);color:var(--amber);border:1px solid rgba(217,119,6,.25);border-radius:20px;font-size:11px;font-weight:700;padding:3px 9px;white-space:nowrap;flex-shrink:0">${openTix} open tix</span>`:'';
-    return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
-      <div class="bc-hdr">
-        <div style="min-width:0;flex:1"><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''} ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px">${b.phone}</div>`:''}</div>
-        ${tixBadge}
+    return`<div style="margin:0 14px 12px">
+      <div class="bc-wrap" style="margin:0" onclick="openBldDetail('${b.id}')">
+        <div class="bc-hdr">
+          <div style="min-width:0;flex:1"><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''} ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px">${b.phone}</div>`:''}</div>
+          ${tixBadge}
+        </div>
+        <div class="bc-body">
+          <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
+          <div class="bs"><div class="bs-val">${unitCount}</div><div class="bs-lbl">Units</div></div>
+          <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
+        </div>
       </div>
-      <div class="bc-body">
-        <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
-        <div class="bs"><div class="bs-val">${unitCount}</div><div class="bs-lbl">Units</div></div>
-        <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
-        <div class="bs"><div class="bs-val">${DB.assets.filter(a=>a.building===b.name).length}</div><div class="bs-lbl">Assets</div></div>
+      <div style="display:flex;gap:8px;margin-top:6px;padding:0 2px">
+        <div style="flex:1;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);cursor:pointer" onclick="navTo('assets');setTimeout(()=>{document.getElementById('sel-ast-bldg').value='${b.name}';renderAst();},150)">
+          <span style="font-size:18px;font-weight:800;font-family:'Outfit',sans-serif;color:var(--teal)">${assetCount}</span>
+          <span style="font-size:12px;color:var(--sub);font-weight:500">Assets</span>
+        </div>
+        <div style="flex:1;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border:1.5px solid ${openTix?'rgba(217,119,6,.35)':'var(--border)'};border-radius:var(--rs);cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-bldg').value='${b.name}';renderTix();},150)">
+          <span style="font-size:18px;font-weight:800;font-family:'Outfit',sans-serif;color:${openTix?'var(--amber)':'var(--muted)'}">${openTix}</span>
+          <span style="font-size:12px;color:var(--sub);font-weight:500">Open Tickets</span>
+        </div>
       </div>
     </div>`;
+  }).join('');
   }).join('');
 }
 function populateBldFloorPills(selectedIds){
