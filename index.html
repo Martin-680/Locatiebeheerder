@@ -1396,12 +1396,38 @@ function populateBldSelect(id){
 function getFloorsForBuilding(bldgIdOrName){
   return [...DB.floors].sort((a,z) => a.sortOrder - z.sortOrder);
 }
+/* ── populateFloorSelect: central helper to fill any floor <select> from DB.floors ──
+     id              : element id
+     opts.valueBy    : 'id' | 'label' (default 'label') — what goes in option value
+     opts.placeholder: text for the blank first option (default '— Select floor —')
+     opts.includeAll : true = first option is "All Floors" with value "All"
+     opts.preserve   : true (default) — keep current value if it still exists
+*/
+function populateFloorSelect(id, opts){
+  opts = opts || {};
+  const el = document.getElementById(id); if(!el) return;
+  const valueBy     = opts.valueBy     !== undefined ? opts.valueBy     : 'label';
+  const placeholder = opts.placeholder !== undefined ? opts.placeholder : '— Select floor —';
+  const includeAll  = opts.includeAll  !== undefined ? opts.includeAll  : false;
+  const preserve    = opts.preserve    !== undefined ? opts.preserve    : true;
+  const cur = el.value;
+  const floors = [...DB.floors].sort((a,z) => ((a.sortOrder||0) - (z.sortOrder||0)) || a.label.localeCompare(z.label));
+  const allOpt  = includeAll  ? '<option value="All">All Floors</option>' : '';
+  const blankOpt= !includeAll ? '<option value="">' + placeholder + '</option>' : '';
+  el.innerHTML = allOpt + blankOpt
+    + floors.map(function(f){
+        var val = valueBy === 'id' ? f.id : f.label;
+        return '<option value="' + val + '">' + f.label + '</option>';
+      }).join('');
+  if(preserve){
+    var vals = Array.from(el.options).map(function(o){ return o.value; });
+    el.value = vals.includes(cur) ? cur : (includeAll ? 'All' : '');
+  }
+}
+
+/* Legacy shim */
 function populateSubs(subId, bldId){
-  const bldEl = document.getElementById(bldId); if(!bldEl) return;
-  const sel   = document.getElementById(subId);  if(!sel)   return;
-  const floors = getFloorsForBuilding(bldEl.value);
-  sel.innerHTML = '<option value="">— Select floor —</option>'
-    + floors.map(f => `<option value="${f.id}">${f.label}</option>`).join('');
+  populateFloorSelect(subId, { valueBy:'id', placeholder:'— Select floor —' });
 }
 
 /* ── Ticket form cascade functions ── */
@@ -1412,9 +1438,7 @@ function tfOnBldgChange(){
   document.getElementById('tf-asset').innerHTML='<option value="">None</option>';
   document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
   // Populate floor from DB.floors
-  const floors=getFloorsForBuilding(bldg);
-  const floorSel=document.getElementById('tf-sub');
-  floorSel.innerHTML='<option value="">— Select floor —</option>'+floors.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
+  populateFloorSelect('tf-sub', { valueBy:'label', placeholder:'— Select floor —' });
 }
 function tfOnFloorChange(){
   const floorLabel=document.getElementById('tf-sub').value;
@@ -2382,10 +2406,8 @@ function renderUnits(){
   const flrSel = document.getElementById('sel-unit-floor');
   if(flrSel){
     const cur = flrSel.value;
-    const floors = [...DB.floors].sort((a,z)=>a.sortOrder-z.sortOrder);
-    flrSel.innerHTML = '<option value="All">All Floors</option>'
-      + floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
-    flrSel.value = floors.find(f=>f.id===cur) ? cur : 'All';
+    populateFloorSelect('sel-unit-floor', { valueBy:'id', includeAll:true, preserve:false });
+    flrSel.value = Array.from(flrSel.options).some(o=>o.value===cur) ? cur : 'All';
   }
 
   const floorVal = flrSel?.value || 'All';
@@ -2510,10 +2532,7 @@ function editUnit(id){
   openMo('mo-unit');
 }
 function uf2OnBldgChange(){
-  const bldName=document.getElementById('uf2-bldg').value;
-  const floors=getFloorsForBuilding(bldName);
-  const sel=document.getElementById('uf2-floor');
-  sel.innerHTML='<option value="">— Select floor —</option>'+floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+  populateFloorSelect('uf2-floor', { valueBy:'id', placeholder:'— Select floor —' });
 }
 async function saveUnit(){
   const label=document.getElementById('uf2-label').value.trim();
@@ -2949,18 +2968,12 @@ function renderInspections(){
 
   const bldgVal = document.getElementById('sel-insp-bldg')?.value || 'All';
 
-  // Populate floor filter based on selected building
+  // Populate floor filter
   const floorSel = document.getElementById('sel-insp-floor');
   if(floorSel){
     const cur = floorSel.value;
-    const floors = bldgVal !== 'All'
-      ? getFloorsForBuilding(bldgVal)
-      : [...DB.floors].sort((a,z) => a.label.localeCompare(z.label));
-    // Deduplicate by label
-    const seen = new Set();
-    const unique = floors.filter(f=>{ if(seen.has(f.label)) return false; seen.add(f.label); return true; });
-    floorSel.innerHTML = '<option value="All">All Floors</option>' + unique.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
-    floorSel.value = unique.some(f=>f.label===cur) ? cur : 'All';
+    populateFloorSelect('sel-insp-floor', { valueBy:'label', includeAll:true, preserve:false });
+    floorSel.value = Array.from(floorSel.options).some(o=>o.value===cur) ? cur : 'All';
   }
 
   // Populate category filter from sheet
@@ -3051,7 +3064,7 @@ function openStartInspection(){
   if(bldEl) bldEl.value = '';
   populateBldSelect('insp-bldg');
   document.getElementById('insp-bldg').value = '';
-  document.getElementById('insp-floor').innerHTML = '<option value="">All floors</option>';
+  populateFloorSelect('insp-floor', { valueBy:'label', placeholder:'All floors' });
   document.getElementById('insp-unit').innerHTML  = '<option value="">All units</option>';
   // Populate category filter from sheet categories
   const catSel = document.getElementById('insp-cat');
@@ -3063,9 +3076,7 @@ function openStartInspection(){
 
 function inspOnBldgChange(){
   const bldg = document.getElementById('insp-bldg').value;
-  const floors = getFloorsForBuilding(bldg);
-  const fl = document.getElementById('insp-floor');
-  fl.innerHTML = '<option value="">All floors</option>' + floors.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
+  populateFloorSelect('insp-floor', { valueBy:'label', placeholder:'All floors' });
   // Populate all units for this building
   const unitSel = document.getElementById('insp-unit');
   const bldObj = DB.buildings.find(b=>b.name===bldg);
