@@ -974,6 +974,39 @@ const COLS = {
 };
 
 /* ══════════════════════════════════════════════════════════
+   AUTH INIT — called by onload of external scripts
+══════════════════════════════════════════════════════════ */
+let _gapiReady = false, _gisReady = false;
+function gapiLoaded(){ _gapiReady = true; _tryInitAuth(); }
+function gisLoaded(){  _gisReady  = true; _tryInitAuth(); }
+function _tryInitAuth(){
+  if(!_gapiReady || !_gisReady) return;
+  setStatus('<span class="ag-spinner"></span>');
+  gapi.load('client', async ()=>{
+    try {
+      await gapi.client.init({});
+      await gapi.client.load('https://sheets.googleapis.com/$discovery/rest?version=v4');
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: handleToken,
+      });
+      const saved = sessionStorage.getItem('pm_token');
+      if(saved){
+        accessToken = saved;
+        gapi.client.setToken({ access_token: accessToken });
+        await checkUserAccess();
+      } else {
+        setStatus('');
+      }
+    } catch(e){
+      setStatus('Failed to load Google API — ' + (e.message||e), true);
+      console.error('init error:', e);
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
    ROLES & PERMISSIONS
 ══════════════════════════════════════════════════════════ */
 const ROLES = {
@@ -3897,40 +3930,8 @@ function exportCSV(type){
   </div>
 </div>
 
-<!-- Google Identity Services + GAPI -->
-<!-- Google Identity Services + GAPI -->
-<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" defer></script>
-<script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" defer></script>
-<script>
-let _gapiReady = false, _gisReady = false;
-function gapiLoaded(){ _gapiReady = true; _tryInitAuth(); }
-function gisLoaded(){  _gisReady  = true; _tryInitAuth(); }
-function _tryInitAuth(){
-  if(!_gapiReady || !_gisReady) return;
-  setStatus('<span class="ag-spinner"></span>');
-  gapi.load('client', async ()=>{
-    try {
-      await gapi.client.init({});
-      await gapi.client.load('https://sheets.googleapis.com/$discovery/rest?version=v4');
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: handleToken,
-      });
-      const saved = sessionStorage.getItem('pm_token');
-      if(saved){
-        accessToken = saved;
-        gapi.client.setToken({ access_token: accessToken });
-        await checkUserAccess();
-      } else {
-        setStatus('');
-      }
-    } catch(e){
-      setStatus('Failed to load Google API. Please refresh.', true);
-      console.error('init error:', e);
-    }
-  });
-}
-</script>
+<!-- Google Identity Services + GAPI — loaded last, after all JS is defined -->
+<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+<script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
 </body>
 </html>
