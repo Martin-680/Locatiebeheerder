@@ -409,13 +409,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
 
-    <div class="sh fu"><span class="sh-title">Affected by Building</span></div>
-    <div style="margin:0 14px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+    <div class="sh fu" id="bldg-grid-sh" style="display:none"><span class="sh-title">Tickets by Building</span></div>
+    <div id="bldg-grid-wrap" style="display:none;margin:0 14px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;background:var(--card2);border-bottom:1.5px solid var(--border);padding:9px 14px">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Floors</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Units</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
       </div>
       <div id="bldg-grid"></div>
     </div>
@@ -1627,22 +1627,32 @@ function renderDash(){
   renderAlerts();
   // Building grid
   const bg=document.getElementById('bldg-grid');
+  const bgWrap=document.getElementById('bldg-grid-wrap');
+  const bgSh=document.getElementById('bldg-grid-sh');
   if(bg){
-    if(!DB.buildings.length){
-      bg.innerHTML='<div style="padding:14px;font-size:13px;color:var(--muted);text-align:center">No buildings found</div>';
+    const bldgsWithTix=DB.buildings.filter(b=>DB.tickets.some(t=>t.building===b.name));
+    if(!bldgsWithTix.length){
+      if(bgWrap) bgWrap.style.display='none';
+      if(bgSh)   bgSh.style.display='none';
     } else {
-      bg.innerHTML=DB.buildings.map((b,i)=>{
-        const floors=DB.floors.filter(f=>f.buildingId===b.id).length;
-        const assets=DB.assets.filter(a=>a.buildingId===b.id||a.building===b.name).length;
-        const unitFloorIds=DB.floors.filter(f=>f.buildingId===b.id).map(f=>f.id);
-        const units=DB.units.filter(u=>unitFloorIds.includes(u.floorId)).length;
-        const border=i<DB.buildings.length-1?'border-bottom:1px solid var(--border)':'';
+      if(bgWrap) bgWrap.style.display='';
+      if(bgSh)   bgSh.style.display='';
+      bg.innerHTML=bldgsWithTix.map((b,i)=>{
+        const bTix=DB.tickets.filter(t=>t.building===b.name);
+        const tTotal=bTix.length;
+        const affFloors=new Set(bTix.map(t=>t.floor).filter(f=>f&&f.trim()&&f!=='—')).size;
+        const affUnits=new Set(bTix.map(t=>t.unit).filter(u=>u&&u.trim()&&u!=='—'&&u!=='TBD')).size;
+        const affAssets=new Set(bTix.map(t=>t.assetId).filter(a=>a&&a.trim())).size;
+        const border=i<bldgsWithTix.length-1?'border-bottom:1px solid var(--border)':'';
         const safeId=b.id.replace(/'/g,"\\'");
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;${border};cursor:pointer;transition:background .15s" onclick="dashGoBuilding('${safeId}')">
-          <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
-          <div style="font-size:13px;font-weight:700;color:var(--blue);text-align:center">${floors}</div>
-          <div style="font-size:13px;font-weight:700;color:var(--teal);text-align:center">${assets}</div>
-          <div style="font-size:13px;font-weight:700;color:var(--indigo);text-align:center">${units}</div>
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;${border};cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''" onclick="dashGoBuilding('${safeId}')">
+          <div>
+            <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px">${tTotal} ticket${tTotal!==1?'s':''}</div>
+          </div>
+          <div style="text-align:center;align-self:center"><span style="font-size:15px;font-weight:800;color:var(--blue)">${affFloors}</span></div>
+          <div style="text-align:center;align-self:center"><span style="font-size:15px;font-weight:800;color:var(--indigo)">${affUnits}</span></div>
+          <div style="text-align:center;align-self:center"><span style="font-size:15px;font-weight:800;color:var(--teal)">${affAssets}</span></div>
         </div>`;
       }).join('');
     }
