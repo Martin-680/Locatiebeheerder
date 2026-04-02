@@ -986,7 +986,7 @@ const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
-  tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
+  tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections: ['id','buildingId','floorId','categoryId','date','inspector','status','items','notes'],
   floors:    ['id','buildingId','label','sortOrder'],
@@ -1221,13 +1221,25 @@ async function loadAllData(){
     sheetsGet(`${TABS.units}!A:Z`),
     sheetsGet(`${TABS.categories}!A:Z`),
   ]);
-  DB.users     = rowsToObjects(users,     COLS.users);
-  DB.buildings = rowsToObjects(buildings, COLS.buildings);
-  DB.tickets   = rowsToObjects(tickets,   COLS.tickets);
-  DB.suppliers = rowsToObjects(suppliers, COLS.suppliers);
+  DB.users      = rowsToObjects(users,     COLS.users);
+  DB.buildings  = rowsToObjects(buildings, COLS.buildings);
+  DB.suppliers  = rowsToObjects(suppliers, COLS.suppliers);
   DB.categories = rowsToObjects(categories, COLS.categories);
-  DB.floors = rowsToObjects(floors, COLS.floors).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
-  DB.units  = rowsToObjects(units,  COLS.units).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
+  DB.floors     = rowsToObjects(floors, COLS.floors).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
+  DB.units      = rowsToObjects(units,  COLS.units).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
+  DB.tickets = rowsToObjects(tickets, COLS.tickets).map(r=>{
+    const bld = DB.buildings.find(b=>b.id===r.buildingId);
+    const flr = DB.floors.find(f=>f.id===r.floorId);
+    const unt = DB.units.find(u=>u.id===r.unitId);
+    const cat = DB.categories.find(x=>x.id===r.categoryId);
+    return {
+      ...r,
+      building : bld ? bld.name     : r.buildingId,
+      floor    : flr ? flr.label    : r.floorId,
+      unit     : unt ? unt.label    : r.unitId,
+      category : cat ? cat.category : r.categoryId,
+    };
+  });
   DB.inspections = rowsToObjects(inspections, COLS.inspections).map(r=>{
     try{ r.items = typeof r.items==='string' ? JSON.parse(r.items) : (r.items||[]); }
     catch(e){ r.items=[]; }
@@ -1293,6 +1305,22 @@ async function writeSheet(key){
       supplierId : a.supplierId,
       categoryId : a.categoryId,
     }));
+  }
+  // Tickets: resolve display names back to IDs before writing
+  if(key === 'tickets'){
+    records = records.map(t => {
+      const bld = DB.buildings.find(b=>b.name===t.building);
+      const flr = DB.floors.find(f=>f.label===t.floor);
+      const unt = DB.units.find(u=>u.label===t.unit && (flr ? u.floorId===flr.id : true));
+      const cat = DB.categories.find(x=>x.id===t.categoryId || x.category===t.category);
+      return {
+        ...t,
+        buildingId : bld ? bld.id : (t.buildingId || t.building),
+        floorId    : flr ? flr.id : (t.floorId    || t.floor),
+        unitId     : unt ? unt.id : (t.unitId     || t.unit),
+        categoryId : cat ? cat.id : (t.categoryId || t.category),
+      };
+    });
   }
   // Inspections: resolve display names back to IDs before writing
   if(key === 'inspections'){
@@ -1549,10 +1577,16 @@ function getCategoryList(){
 }
 function populateCatSelect(id, allowAll=false, currentVal=''){
   const el=document.getElementById(id); if(!el) return;
-  const cats=getCategoryList();
   const allOpt=allowAll?'<option value="All">All Categories</option>':'';
-  el.innerHTML=allOpt+cats.map(c=>`<option value="${c}"${c===currentVal?' selected':''}>${c}</option>`).join('');
-  if(currentVal) el.value=currentVal;
+  el.innerHTML=allOpt+[...DB.categories].sort((a,z)=>a.category.localeCompare(z.category))
+    .map(x=>`<option value="${x.id}">${x.category}</option>`).join('');
+  if(currentVal){
+    // currentVal may be an ID or a name — handle both
+    const byId=DB.categories.find(x=>x.id===currentVal);
+    const byName=DB.categories.find(x=>x.category===currentVal);
+    const match=byId||byName;
+    if(match) el.value=match.id;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1981,8 +2015,7 @@ function editTix(id){
   document.getElementById('btn-dup-tix').style.display='';
   document.getElementById('tf-subj').value=t.subject;
   document.getElementById('tf-pri').value=t.priority;
-  populateCatSelect('tf-cat','',t.category);
-  document.getElementById('tf-cat').value=t.category;
+  populateCatSelect('tf-cat','',t.categoryId||t.category);
   document.getElementById('tf-status').value=t.status;
   document.getElementById('tf-reporter').value=t.reportedBy||'';
   document.getElementById('tf-notes').value=t.notes||'';
@@ -2031,11 +2064,23 @@ async function saveTix(){
     const t=DB.tickets.find(x=>x.id===editingId.tix);
     if(t){
       const prevStatus=t.status;
-      t.building=document.getElementById('tf-bldg').value;
-      t.floor=document.getElementById('tf-sub').value;
-      t.unit=document.getElementById('tf-unit').value||'TBD';
+      const _bldName=document.getElementById('tf-bldg').value;
+      const _flrLabel=document.getElementById('tf-sub').value;
+      const _untLabel=document.getElementById('tf-unit').value||'TBD';
+      const _catId=document.getElementById('tf-cat').value;
+      const _bld=DB.buildings.find(b=>b.name===_bldName);
+      const _flr=DB.floors.find(f=>f.label===_flrLabel);
+      const _unt=DB.units.find(u=>u.label===_untLabel&&(_flr?u.floorId===_flr.id:true));
+      const _cat=DB.categories.find(x=>x.id===_catId);
+      t.buildingId=_bld?_bld.id:_bldName;
+      t.floorId=_flr?_flr.id:_flrLabel;
+      t.unitId=_unt?_unt.id:_untLabel;
+      t.categoryId=_catId;
+      t.building=_bldName;
+      t.floor=_flrLabel;
+      t.unit=_untLabel;
+      t.category=_cat?_cat.category:_catId;
       t.subject=subj; t.priority=document.getElementById('tf-pri').value;
-      t.category=document.getElementById('tf-cat').value;
       t.assignedTo=document.getElementById('tf-assign').value;
       t.status=status;
       if(status==='Closed'&&!t.dateClosed) t.dateClosed=today.toISOString().split('T')[0];
@@ -2050,7 +2095,15 @@ async function saveTix(){
     }
   } else {
     const id=nextId(DB.tickets,'TKT');
-    DB.tickets.unshift({id,building:document.getElementById('tf-bldg').value,floor:document.getElementById('tf-sub').value,unit:document.getElementById('tf-unit').value||'TBD',subject:subj,status,priority:document.getElementById('tf-pri').value,category:document.getElementById('tf-cat').value,assignedTo:document.getElementById('tf-assign').value,dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}])});
+    const _nb=document.getElementById('tf-bldg').value;
+    const _nf=document.getElementById('tf-sub').value;
+    const _nu=document.getElementById('tf-unit').value||'TBD';
+    const _nc=document.getElementById('tf-cat').value;
+    const _nbld=DB.buildings.find(b=>b.name===_nb);
+    const _nflr=DB.floors.find(f=>f.label===_nf);
+    const _nunt=DB.units.find(u=>u.label===_nu&&(_nflr?u.floorId===_nflr.id:true));
+    const _ncat=DB.categories.find(x=>x.id===_nc);
+    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nb,floorId:_nflr?_nflr.id:_nf,unitId:_nunt?_nunt.id:_nu,subject:subj,status,priority:document.getElementById('tf-pri').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}]),building:_nb,floor:_nf,unit:_nu,category:_ncat?_ncat.category:_nc});
   }
   closeMo('mo-tix');
   await writeSheet('tickets');
@@ -2100,8 +2153,10 @@ async function saveQuickTicket(){
   if(!subj){toast('Subject required','err');return;}
   if(!bldg){toast('Building required','err');return;}
   const id=nextId(DB.tickets,'TKT');
-  const cat=document.getElementById('qt-cat').value||getCategoryList()[0]||'';
-  DB.tickets.unshift({id,building:bldg,floor:'',unit:'TBD',subject:subj,status:'Open',priority:document.getElementById('qt-pri').value,category:cat,assignedTo:'',dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:'',supplierId:'',reportedBy:'',notes:'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Quick ticket created'}])});
+  const cat=document.getElementById('qt-cat').value||(DB.categories[0]?.id||'');
+  const _qbld=DB.buildings.find(b=>b.name===bldg);
+  const _qcat=DB.categories.find(x=>x.id===cat);
+  DB.tickets.unshift({id,buildingId:_qbld?_qbld.id:bldg,floorId:'',unitId:'TBD',categoryId:cat,building:bldg,floor:'',unit:'TBD',category:_qcat?_qcat.category:cat,subject:subj,status:'Open',priority:document.getElementById('qt-pri').value,assignedTo:'',dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:'',supplierId:'',reportedBy:'',notes:'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Quick ticket created'}])});
   closeMo('mo-quick-tix');
   await writeSheet('tickets');
   toast(`${id} created`);
@@ -3645,8 +3700,9 @@ function _prefillTicketFromFailure(item){
   populateCatSelect('tf-cat', '', catForTicket);
   const tfCat = document.getElementById('tf-cat');
   if(tfCat && catForTicket){
-    const match = getCategoryList().find(c => c.toLowerCase() === catForTicket.toLowerCase());
-    tfCat.value = match || (getCategoryList()[0] || '');
+    const match = DB.categories.find(x => x.category.toLowerCase() === catForTicket.toLowerCase());
+    if(match) tfCat.value = match.id;
+    else if(DB.categories.length) tfCat.value = DB.categories[0].id;
   }
 
   populateBldSelect('tf-bldg');
@@ -3865,7 +3921,7 @@ async function saveCategory(){
 async function deleteCategory(id){
   const c = DB.categories.find(x=>x.id===id); if(!c) return;
   // Warn if category is in use
-  const usedInTickets = DB.tickets.filter(t=>t.category===c.category).length;
+  const usedInTickets = DB.tickets.filter(t=>t.categoryId===c.id).length;
   const usedInAssets  = DB.assets.filter(a=>a.categoryId===c.id).length;
   const usageMsg = (usedInTickets||usedInAssets)
     ? ` It is used in ${usedInTickets} ticket(s) and ${usedInAssets} asset(s) — those will keep the category name but it will no longer appear in dropdowns.`
