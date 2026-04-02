@@ -985,10 +985,10 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
-  assets:    ['id','label','building','floor','unit','supplier','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
+  assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
-  inspections: ['id','buildingId','floorId','categoryId','date','inspector','status','items','notes'],
+  inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
   floors:    ['id','buildingId','label','sortOrder'],
   units:     ['id','floorId','buildingId','label','sortOrder'],
   categories:['id','category'],
@@ -1229,32 +1229,24 @@ async function loadAllData(){
   DB.inspections = rowsToObjects(inspections, COLS.inspections).map(r=>{
     try{ r.items = typeof r.items==='string' ? JSON.parse(r.items) : (r.items||[]); }
     catch(e){ r.items=[]; }
-    const bld = DB.buildings.find(b=>b.id===r.buildingId);
-    const flr = DB.floors.find(f=>f.id===r.floorId);
-    const cat = DB.categories.find(x=>x.id===r.categoryId);
-    r.building = bld ? bld.name     : r.buildingId;
-    r.floor    = flr ? flr.label    : r.floorId;
-    r.category = cat ? cat.category : r.categoryId;
     return r;
   });
   DB.floors = rowsToObjects(floors, COLS.floors).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
   DB.units  = rowsToObjects(units,  COLS.units).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
   DB.assets = rowsToObjects(assets, COLS.assets).map(r=>{
-    const bld = DB.buildings.find(b=>b.id===r.building);
-    const flr = DB.floors.find(f=>f.id===r.floor);
-    const unt = DB.units.find(u=>u.id===r.unit);
-    const sup = DB.suppliers.find(s=>s.id===r.supplier);
+    const bld = DB.buildings.find(b=>b.id===r.buildingId);
+    const flr = DB.floors.find(f=>f.id===r.floorId);
+    const unt = DB.units.find(u=>u.id===r.unitId);
+    const sup = DB.suppliers.find(s=>s.id===r.supplierId);
+    const cat = DB.categories.find(x=>x.id===r.categoryId);
     return {
       ...r,
       name        : r.label,
-      buildingId  : r.building,
-      floorId     : r.floor,
-      unitId      : r.unit,
-      supplierId  : r.supplier,
-      building    : bld ? bld.name : r.building,
-      floor       : flr ? flr.label : r.floor,
-      unit        : unt ? unt.label : r.unit,
-      supplierName: sup ? sup.name : '',
+      building    : bld ? bld.name    : r.buildingId,
+      floor       : flr ? flr.label   : r.floorId,
+      unit        : unt ? unt.label   : r.unitId,
+      supplierName: sup ? sup.name    : '',
+      category    : cat ? cat.category: r.categoryId,
     };
   });
 }
@@ -1285,29 +1277,16 @@ async function writeSheet(key){
   showSync();
   const cols = COLS[key];
   let records = DB[key];
-  // Assets: sheet columns building/floor/unit/supplier hold IDs, not resolved names
+  // Assets: buildingId/floorId/unitId/supplierId/categoryId are already correct in memory
   if(key === 'assets'){
     records = records.map(a => ({
       ...a,
-      building : a.buildingId || a.building,
-      floor    : a.floorId    || a.floor,
-      unit     : a.unitId     || a.unit,
-      supplier : a.supplierId || a.supplier,
+      buildingId : a.buildingId,
+      floorId    : a.floorId,
+      unitId     : a.unitId,
+      supplierId : a.supplierId,
+      categoryId : a.categoryId,
     }));
-  }
-  // Inspections: sheet columns are buildingId/floorId/categoryId — resolve display names back to IDs
-  if(key === 'inspections'){
-    records = records.map(r => {
-      const bld = DB.buildings.find(b=>b.name===r.building);
-      const flr = DB.floors.find(f=>f.label===r.floor);
-      const cat = DB.categories.find(x=>x.category===r.category);
-      return {
-        ...r,
-        buildingId : bld ? bld.id : (r.buildingId || r.building),
-        floorId    : flr ? flr.id : (r.floorId    || r.floor),
-        categoryId : cat ? cat.id : (r.categoryId || r.category),
-      };
-    });
   }
   const rows = [cols, ...records.map(o=>objToRow(o,cols))];
   try {
@@ -2217,9 +2196,9 @@ function populateAstSupplierSelect(id, selectedId=''){
 }
 function populateAstCategorySelect(id, selected=''){
   const el=document.getElementById(id); if(!el) return;
-  const cats=getCategoryList();
   el.innerHTML='<option value="">— Select category —</option>'
-    +cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+    +[...DB.categories].sort((a,z)=>a.category.localeCompare(z.category))
+      .map(c=>`<option value="${c.id}">${c.category}</option>`).join('');
   if(selected) el.value=selected;
 }
 function openNewAsset(){
@@ -2251,7 +2230,7 @@ function editAst(id){
   afOnFloorChange();
   document.getElementById('af-loc').value=a.unitId||'';
   populateAstSupplierSelect('af-cat', a.supplierId||'');
-  populateAstCategorySelect('af-acat', a.category||'');
+  populateAstCategorySelect('af-acat', a.categoryId||'');
   document.getElementById('af-status').value=a.status||'Active';
   document.getElementById('af-mfr').value=a.manufacturer||'';
   document.getElementById('af-model').value=a.model||'';
@@ -2275,13 +2254,15 @@ async function saveAst(){
   const flrId  = flr ? flr.id   : floorId;
   const untId  = unt ? unt.id   : unitId;
   // Sheet-facing object: building/floor/unit/supplier hold IDs
+  const catId = document.getElementById('af-acat').value;
+  const cat   = DB.categories.find(x=>x.id===catId);
   const sheetData = {
     label,
-    building    : bldId,
-    floor       : flrId,
-    unit        : untId,
-    supplier    : supplierId,
-    category    : document.getElementById('af-acat').value,
+    buildingId  : bldId,
+    floorId     : flrId,
+    unitId      : untId,
+    supplierId,
+    categoryId  : catId,
     status      : document.getElementById('af-status').value,
     manufacturer: document.getElementById('af-mfr').value,
     model       : document.getElementById('af-model').value,
@@ -2293,14 +2274,11 @@ async function saveAst(){
   const data = {
     ...sheetData,
     name        : label,
-    buildingId  : bldId,
-    floorId     : flrId,
-    unitId      : untId,
-    supplierId  : supplierId,
-    building    : bld ? bld.name : buildingName,
-    floor       : flr ? flr.label : floorId,
-    unit        : unt ? unt.label : unitId,
-    supplierName: sup ? sup.name : supplierId,
+    building    : bld ? bld.name     : buildingName,
+    floor       : flr ? flr.label    : floorId,
+    unit        : unt ? unt.label    : unitId,
+    supplierName: sup ? sup.name     : supplierId,
+    category    : cat ? cat.category : catId,
   };
   if(editingId.ast){ Object.assign(DB.assets.find(x=>x.id===editingId.ast),data); }
   else { DB.assets.push({id:nextId(DB.assets,'AST'),...data}); }
@@ -3529,15 +3507,12 @@ function continueInspection(id){
   const items = Array.isArray(r.items) ? r.items : [];
 
   activeRound = {
-    inspId     : r.id,
-    building   : r.building,
-    floor      : r.floor,
-    category   : r.category,
-    buildingId : r.buildingId,
-    floorId    : r.floorId,
-    categoryId : r.categoryId,
-    items      : items.map(i => ({ ...i })), // deep-copy so edits don't mutate DB directly
-    resuming   : true,  // flag so saveInspectionRound knows to overwrite
+    inspId    : r.id,
+    building  : r.building,
+    floor     : r.floor,
+    category  : r.category,
+    items     : items.map(i => ({ ...i })), // deep-copy so edits don't mutate DB directly
+    resuming  : true,  // flag so saveInspectionRound knows to overwrite
   };
 
   closeMo('mo-insp-detail');
@@ -3560,22 +3535,16 @@ async function saveInspectionRound(){
   });
 
   const allChecked = activeRound.items.every(i => i.result !== 'Open');
-  const inspBld = DB.buildings.find(b=>b.name===activeRound.building);
-  const inspFlr = DB.floors.find(f=>f.label===activeRound.floor);
-  const inspCat = DB.categories.find(x=>x.category===activeRound.category);
   const inspRecord = {
-    id         : activeRound.inspId,
-    buildingId : inspBld ? inspBld.id : activeRound.building,
-    floorId    : inspFlr ? inspFlr.id : activeRound.floor,
-    categoryId : inspCat ? inspCat.id : activeRound.category,
-    building   : activeRound.building,
-    floor      : activeRound.floor,
-    category   : activeRound.category,
-    date       : today.toISOString().split('T')[0],
-    inspector  : currentUser.name,
-    status     : allChecked ? 'Completed' : 'In Progress',
-    items      : activeRound.items,
-    notes      : ''
+    id       : activeRound.inspId,
+    building : activeRound.building,
+    floor    : activeRound.floor,
+    category : activeRound.category,
+    date     : today.toISOString().split('T')[0],
+    inspector: currentUser.name,
+    status   : allChecked ? 'Completed' : 'In Progress',
+    items    : activeRound.items,
+    notes    : ''
   };
 
   if(activeRound.resuming){
@@ -3855,7 +3824,7 @@ async function deleteCategory(id){
   const c = DB.categories.find(x=>x.id===id); if(!c) return;
   // Warn if category is in use
   const usedInTickets = DB.tickets.filter(t=>t.category===c.category).length;
-  const usedInAssets  = DB.assets.filter(a=>a.category===c.category).length;
+  const usedInAssets  = DB.assets.filter(a=>a.categoryId===c.id).length;
   const usageMsg = (usedInTickets||usedInAssets)
     ? ` It is used in ${usedInTickets} ticket(s) and ${usedInAssets} asset(s) — those will keep the category name but it will no longer appear in dropdowns.`
     : '';
