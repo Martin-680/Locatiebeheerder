@@ -3233,30 +3233,38 @@ function renderRound(){
 }
 
 function inspRoundItemHTML(item, idx){
-  const isUnit = item.type === 'unit';
-  const a      = isUnit ? null : DB.assets.find(x => x.id === item.assetId);
+  const isUnit   = item.type === 'unit';
+  const isTicket = item.type === 'ticket';
+  const a        = (isUnit || isTicket) ? null : DB.assets.find(x => x.id === item.assetId);
   const isDone = item.result !== 'Open';
   const isAppr = item.result === 'Approved';
   const isFail = item.result === 'Failed';
 
   const idLabel  = isUnit ? item.unitId : (a ? a.id : item.assetId);
   const idColor  = isUnit ? 'var(--teal)' : 'var(--muted)';
-  const typeTag  = isUnit
-    ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(8,145,178,.12);color:var(--teal);margin-bottom:6px">
-        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        UNIT
-      </span>`
-    : '';
+
+  // Top-left type icon
+  const typeIcons = {
+    asset: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`,
+    ticket: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
+    unit: `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  };
+  const typeColors = { asset:'var(--amber)', ticket:'var(--indigo)', unit:'var(--teal)' };
+  const typeBg     = { asset:'rgba(217,119,6,.1)', ticket:'rgba(79,70,229,.1)', unit:'rgba(8,145,178,.1)' };
+  const t = item.type || 'asset';
+  const typeIconHTML = `<div style="flex-shrink:0;width:30px;height:30px;border-radius:8px;background:${typeBg[t]||typeBg.asset};display:flex;align-items:center;justify-content:center;color:${typeColors[t]||typeColors.asset};margin-top:1px">${typeIcons[t]||typeIcons.asset}</div>`;
 
   // Card header
   const cardTop = `
     <div class="insp-asset-card" id="insp-item-${idx}">
       <div style="padding:13px 14px 0">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-          <div style="min-width:0">
-            ${typeTag}
-            <div style="font-size:10px;color:${idColor};font-weight:600;margin-bottom:2px">${idLabel}</div>
-            <div style="font-size:15px;font-weight:700">${item.label}</div>
+          <div style="display:flex;align-items:flex-start;gap:10px;min-width:0;flex:1">
+            ${typeIconHTML}
+            <div style="min-width:0">
+              <div style="font-size:10px;color:${idColor};font-weight:600;margin-bottom:2px">${idLabel}</div>
+              <div style="font-size:15px;font-weight:700">${item.label}</div>
+            </div>
           </div>
           ${isDone
             ? `<span id="insp-chip-${idx}" class="insp-done-chip ${isAppr ? 'insp-chip-ok' : 'insp-chip-fail'}">${isAppr ? '✓ Approved' : '✕ Failed'}</span>`
