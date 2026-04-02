@@ -1628,19 +1628,24 @@ function renderDash(){
   // Building grid
   const bg=document.getElementById('bldg-grid');
   if(bg){
-    bg.innerHTML=DB.buildings.map((b,i)=>{
-      const floors=DB.floors.filter(f=>f.buildingId===b.id).length;
-      const assets=DB.assets.filter(a=>a.buildingId===b.id||a.building===b.name).length;
-      const unitFloorIds=DB.floors.filter(f=>f.buildingId===b.id).map(f=>f.id);
-      const units=DB.units.filter(u=>unitFloorIds.includes(u.floorId)).length;
-      const border=i<DB.buildings.length-1?'border-bottom:1px solid var(--border)':'';
-      return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;${border};cursor:pointer;transition:background .15s" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${b.name}';setPage('ast',1);renderAst();}},150)">
-        <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
-        <div style="font-size:13px;font-weight:700;color:var(--blue);text-align:center">${floors}</div>
-        <div style="font-size:13px;font-weight:700;color:var(--teal);text-align:center">${assets}</div>
-        <div style="font-size:13px;font-weight:700;color:var(--indigo);text-align:center">${units}</div>
-      </div>`;
-    }).join('');
+    if(!DB.buildings.length){
+      bg.innerHTML='<div style="padding:14px;font-size:13px;color:var(--muted);text-align:center">No buildings found</div>';
+    } else {
+      bg.innerHTML=DB.buildings.map((b,i)=>{
+        const floors=DB.floors.filter(f=>f.buildingId===b.id).length;
+        const assets=DB.assets.filter(a=>a.buildingId===b.id||a.building===b.name).length;
+        const unitFloorIds=DB.floors.filter(f=>f.buildingId===b.id).map(f=>f.id);
+        const units=DB.units.filter(u=>unitFloorIds.includes(u.floorId)).length;
+        const border=i<DB.buildings.length-1?'border-bottom:1px solid var(--border)':'';
+        const safeId=b.id.replace(/'/g,"\\'");
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;${border};cursor:pointer;transition:background .15s" onclick="dashGoBuilding('${safeId}')">
+          <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--blue);text-align:center">${floors}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--teal);text-align:center">${assets}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--indigo);text-align:center">${units}</div>
+        </div>`;
+      }).join('');
+    }
   }
   // Priority chart
   const pc=document.getElementById('pri-chart');
@@ -1665,6 +1670,15 @@ function renderDash(){
   const recent=DB.tickets.filter(t=>t.status==='Open'||t.status==='In Progress').slice(0,5);
   const myTix=currentUser?DB.tickets.filter(t=>t.status!=='Closed'&&(t.assignedTo===currentUser.name||t.createdBy===currentUser.name)).length:0;
   rt.innerHTML=(recent.length?'<div class="tlist">'+recent.map(t=>tixItemHTML(t)).join('')+'</div>':'<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--green)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><polyline points="20 6 9 17 4 12"/></svg></div><div style="font-size:13px">No open tickets!</div></div>');
+}
+
+function dashGoBuilding(bldId){
+  const b=DB.buildings.find(x=>x.id===bldId); if(!b) return;
+  navTo('assets');
+  setTimeout(()=>{
+    const s=document.getElementById('sel-ast-bldg');
+    if(s){ s.value=b.name; setPage('ast',1); renderAst(); }
+  },150);
 }
 
 /* KPI drill-down */
