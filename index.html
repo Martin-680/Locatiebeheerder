@@ -409,13 +409,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
 
-    <div class="sh fu" id="bldg-grid-sh" style="display:none"><span class="sh-title">Tickets by Building</span></div>
-    <div id="bldg-grid-wrap" style="display:none;margin:0 14px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+    <div class="sh fu"><span class="sh-title">Affected by Building</span></div>
+    <div style="margin:0 14px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;background:var(--card2);border-bottom:1.5px solid var(--border);padding:9px 14px">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Floors</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Units</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Units</div>
       </div>
       <div id="bldg-grid"></div>
     </div>
@@ -985,7 +985,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
-  assets:    ['id','label','building','floor','unit','supplier','category','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
+  assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
@@ -1234,21 +1234,19 @@ async function loadAllData(){
   DB.floors = rowsToObjects(floors, COLS.floors).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
   DB.units  = rowsToObjects(units,  COLS.units).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
   DB.assets = rowsToObjects(assets, COLS.assets).map(r=>{
-    const bld = DB.buildings.find(b=>b.id===r.building);
-    const flr = DB.floors.find(f=>f.id===r.floor);
-    const unt = DB.units.find(u=>u.id===r.unit);
-    const sup = DB.suppliers.find(s=>s.id===r.supplier);
+    const bld = DB.buildings.find(b=>b.id===r.buildingId);
+    const flr = DB.floors.find(f=>f.id===r.floorId);
+    const unt = DB.units.find(u=>u.id===r.unitId);
+    const sup = DB.suppliers.find(s=>s.id===r.supplierId);
+    const cat = DB.categories.find(x=>x.id===r.categoryId);
     return {
       ...r,
       name        : r.label,
-      buildingId  : r.building,
-      floorId     : r.floor,
-      unitId      : r.unit,
-      supplierId  : r.supplier,
-      building    : bld ? bld.name : r.building,
-      floor       : flr ? flr.label : r.floor,
-      unit        : unt ? unt.label : r.unit,
+      building    : bld ? bld.name : r.buildingId,
+      floor       : flr ? flr.label : r.floorId,
+      unit        : unt ? unt.label : r.unitId,
       supplierName: sup ? sup.name : '',
+      category    : cat ? cat.category : r.categoryId,
     };
   });
 }
@@ -1279,14 +1277,15 @@ async function writeSheet(key){
   showSync();
   const cols = COLS[key];
   let records = DB[key];
-  // Assets: sheet columns building/floor/unit/supplier hold IDs, not resolved names
+  // Assets: sheet columns are buildingId/floorId/unitId/supplierId/categoryId — already correct in memory
   if(key === 'assets'){
     records = records.map(a => ({
       ...a,
-      building : a.buildingId || a.building,
-      floor    : a.floorId    || a.floor,
-      unit     : a.unitId     || a.unit,
-      supplier : a.supplierId || a.supplier,
+      buildingId : a.buildingId,
+      floorId    : a.floorId,
+      unitId     : a.unitId,
+      supplierId : a.supplierId,
+      categoryId : a.categoryId,
     }));
   }
   const rows = [cols, ...records.map(o=>objToRow(o,cols))];
@@ -1627,32 +1626,22 @@ function renderDash(){
   renderAlerts();
   // Building grid
   const bg=document.getElementById('bldg-grid');
-  const bgWrap=document.getElementById('bldg-grid-wrap');
-  const bgSh=document.getElementById('bldg-grid-sh');
   if(bg){
-    const bldgsWithTix=DB.buildings.filter(b=>DB.tickets.some(t=>t.building===b.name));
-    if(!bldgsWithTix.length){
-      if(bgWrap) bgWrap.style.display='none';
-      if(bgSh)   bgSh.style.display='none';
+    if(!DB.buildings.length){
+      bg.innerHTML='<div style="padding:14px;font-size:13px;color:var(--muted);text-align:center">No buildings found</div>';
     } else {
-      if(bgWrap) bgWrap.style.display='';
-      if(bgSh)   bgSh.style.display='';
-      bg.innerHTML=bldgsWithTix.map((b,i)=>{
-        const bTix=DB.tickets.filter(t=>t.building===b.name);
-        const tTotal=bTix.length;
-        const affFloors=new Set(bTix.map(t=>t.floor).filter(f=>f&&f.trim()&&f!=='—')).size;
-        const affUnits=new Set(bTix.map(t=>t.unit).filter(u=>u&&u.trim()&&u!=='—'&&u!=='TBD')).size;
-        const affAssets=new Set(bTix.map(t=>t.assetId).filter(a=>a&&a.trim())).size;
-        const border=i<bldgsWithTix.length-1?'border-bottom:1px solid var(--border)':'';
+      bg.innerHTML=DB.buildings.map((b,i)=>{
+        const floors=DB.floors.filter(f=>f.buildingId===b.id).length;
+        const assets=DB.assets.filter(a=>a.buildingId===b.id||a.building===b.name).length;
+        const unitFloorIds=DB.floors.filter(f=>f.buildingId===b.id).map(f=>f.id);
+        const units=DB.units.filter(u=>unitFloorIds.includes(u.floorId)).length;
+        const border=i<DB.buildings.length-1?'border-bottom:1px solid var(--border)':'';
         const safeId=b.id.replace(/'/g,"\\'");
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;${border};cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''" onclick="dashGoBuilding('${safeId}')">
-          <div>
-            <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">${tTotal} ticket${tTotal!==1?'s':''}</div>
-          </div>
-          <div style="text-align:center;align-self:center"><span style="font-size:15px;font-weight:800;color:var(--blue)">${affFloors}</span></div>
-          <div style="text-align:center;align-self:center"><span style="font-size:15px;font-weight:800;color:var(--indigo)">${affUnits}</span></div>
-          <div style="text-align:center;align-self:center"><span style="font-size:15px;font-weight:800;color:var(--teal)">${affAssets}</span></div>
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;${border};cursor:pointer;transition:background .15s" onclick="dashGoBuilding('${safeId}')">
+          <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--blue);text-align:center">${floors}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--teal);text-align:center">${assets}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--indigo);text-align:center">${units}</div>
         </div>`;
       }).join('');
     }
@@ -2207,9 +2196,9 @@ function populateAstSupplierSelect(id, selectedId=''){
 }
 function populateAstCategorySelect(id, selected=''){
   const el=document.getElementById(id); if(!el) return;
-  const cats=getCategoryList();
   el.innerHTML='<option value="">— Select category —</option>'
-    +cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+    +[...DB.categories].sort((a,z)=>a.category.localeCompare(z.category))
+      .map(c=>`<option value="${c.id}">${c.category}</option>`).join('');
   if(selected) el.value=selected;
 }
 function openNewAsset(){
@@ -2241,7 +2230,7 @@ function editAst(id){
   afOnFloorChange();
   document.getElementById('af-loc').value=a.unitId||'';
   populateAstSupplierSelect('af-cat', a.supplierId||'');
-  populateAstCategorySelect('af-acat', a.category||'');
+  populateAstCategorySelect('af-acat', a.categoryId||'');
   document.getElementById('af-status').value=a.status||'Active';
   document.getElementById('af-mfr').value=a.manufacturer||'';
   document.getElementById('af-model').value=a.model||'';
@@ -2265,13 +2254,15 @@ async function saveAst(){
   const flrId  = flr ? flr.id   : floorId;
   const untId  = unt ? unt.id   : unitId;
   // Sheet-facing object: building/floor/unit/supplier hold IDs
+  const catId = document.getElementById('af-acat').value;
+  const cat = DB.categories.find(x=>x.id===catId);
   const sheetData = {
     label,
-    building    : bldId,
-    floor       : flrId,
-    unit        : untId,
-    supplier    : supplierId,
-    category    : document.getElementById('af-acat').value,
+    buildingId  : bldId,
+    floorId     : flrId,
+    unitId      : untId,
+    supplierId  : supplierId,
+    categoryId  : catId,
     status      : document.getElementById('af-status').value,
     manufacturer: document.getElementById('af-mfr').value,
     model       : document.getElementById('af-model').value,
@@ -2283,14 +2274,11 @@ async function saveAst(){
   const data = {
     ...sheetData,
     name        : label,
-    buildingId  : bldId,
-    floorId     : flrId,
-    unitId      : untId,
-    supplierId  : supplierId,
     building    : bld ? bld.name : buildingName,
     floor       : flr ? flr.label : floorId,
     unit        : unt ? unt.label : unitId,
     supplierName: sup ? sup.name : supplierId,
+    category    : cat ? cat.category : catId,
   };
   if(editingId.ast){ Object.assign(DB.assets.find(x=>x.id===editingId.ast),data); }
   else { DB.assets.push({id:nextId(DB.assets,'AST'),...data}); }
@@ -3836,7 +3824,7 @@ async function deleteCategory(id){
   const c = DB.categories.find(x=>x.id===id); if(!c) return;
   // Warn if category is in use
   const usedInTickets = DB.tickets.filter(t=>t.category===c.category).length;
-  const usedInAssets  = DB.assets.filter(a=>a.category===c.category).length;
+  const usedInAssets  = DB.assets.filter(a=>a.categoryId===c.id).length;
   const usageMsg = (usedInTickets||usedInAssets)
     ? ` It is used in ${usedInTickets} ticket(s) and ${usedInAssets} asset(s) — those will keep the category name but it will no longer appear in dropdowns.`
     : '';
