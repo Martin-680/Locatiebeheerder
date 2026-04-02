@@ -389,17 +389,36 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
     <div id="dash-guest-banner"></div>
     <div id="dash-alerts"></div>
-    <div class="sh fu"><span class="sh-title">Totals</span></div>
-    <div class="kpi-grid">
-      <div class="kpi kpi-total" onclick="openKpiList('All')"><div class="kpi-num" id="kpi-total">—</div><div class="kpi-lbl">Total Tickets</div><div class="kpi-hint">Tap to view →</div></div>
-      <div class="kpi kpi-open" onclick="openKpiList('Open')"><div class="kpi-num" id="kpi-open">—</div><div class="kpi-lbl">Open</div><div class="kpi-hint">Tap to view →</div></div>
-      <div class="kpi kpi-prog" onclick="openKpiList('In Progress')"><div class="kpi-num" id="kpi-prog">—</div><div class="kpi-lbl">In Progress</div><div class="kpi-hint">Tap to view →</div></div>
-      <div class="kpi kpi-closed" onclick="openKpiList('Closed')"><div class="kpi-num" id="kpi-closed">—</div><div class="kpi-lbl">Closed</div><div class="kpi-hint">Tap to view →</div></div>
-      <div class="kpi kpi-planned" onclick="openKpiList('Planned')"><div class="kpi-num" id="kpi-planned">—</div><div class="kpi-lbl">Planned</div><div class="kpi-hint">Tap to view →</div></div>
-      <div class="kpi kpi-ordered" onclick="openKpiList('Ordered')"><div class="kpi-num" id="kpi-ordered">—</div><div class="kpi-lbl">Ordered</div><div class="kpi-hint">Tap to view →</div></div>
+    <div class="sh fu"><span class="sh-title">Tickets</span></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 14px 14px">
+      <div class="kpi kpi-open" style="padding:12px 6px;text-align:center;cursor:pointer" onclick="openKpiList('Open')">
+        <div class="kpi-num" id="kpi-open" style="font-size:22px">—</div>
+        <div class="kpi-lbl">Open</div>
+      </div>
+      <div class="kpi kpi-prog" style="padding:12px 6px;text-align:center;cursor:pointer" onclick="openKpiList('In Progress')">
+        <div class="kpi-num" id="kpi-prog" style="font-size:22px">—</div>
+        <div class="kpi-lbl">In Progress</div>
+      </div>
+      <div class="kpi kpi-planned" style="padding:12px 6px;text-align:center;cursor:pointer" onclick="openKpiList('Other')">
+        <div class="kpi-num" id="kpi-other" style="font-size:22px">—</div>
+        <div class="kpi-lbl">Other</div>
+      </div>
+      <div class="kpi kpi-closed" style="padding:12px 6px;text-align:center;cursor:pointer" onclick="openKpiList('Closed')">
+        <div class="kpi-num" id="kpi-closed" style="font-size:22px">—</div>
+        <div class="kpi-lbl">Closed</div>
+      </div>
     </div>
-    <div class="sh fu"><span class="sh-title">By Building</span></div>
-    <div class="card fu" id="bldg-chart"></div>
+
+    <div class="sh fu"><span class="sh-title">Affected by Building</span></div>
+    <div style="margin:0 14px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;background:var(--card2);border-bottom:1.5px solid var(--border);padding:9px 14px">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Floors</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Units</div>
+      </div>
+      <div id="bldg-grid"></div>
+    </div>
     <div class="sh fu"><span class="sh-title">By Priority</span></div>
     <div class="card fu" id="pri-chart"></div>
     <div class="sh fu"><span class="sh-title">Last 8 Weeks</span></div>
@@ -1598,19 +1617,31 @@ function renderDash(){
   const closed=DB.tickets.filter(t=>t.status==='Closed').length;
   const planned=DB.tickets.filter(t=>t.status==='Planned').length;
   const ordered=DB.tickets.filter(t=>t.status==='Ordered').length;
-  animCount('kpi-total',DB.tickets.length);
+  const other=planned+ordered;
   animCount('kpi-open',open);
   animCount('kpi-prog',prog);
+  animCount('kpi-other',other);
   animCount('kpi-closed',closed);
-  animCount('kpi-planned',planned);
-  animCount('kpi-ordered',ordered);
   const ob=document.getElementById('open-badge');
   if(ob){ if(open>0){ob.textContent=open;ob.style.display='flex';}else ob.style.display='none'; }
   renderAlerts();
-  // Building chart
-  const bc=document.getElementById('bldg-chart');
-  const max1=Math.max(...DB.buildings.map(b=>DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length),1);
-  bc.innerHTML=DB.buildings.map(b=>{const c=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;return`<div class="ch-row"><div class="ch-lbl">${b.name.split(' ')[0]}</div><div class="ch-wrap"><div class="ch-fill" style="width:${Math.round(c/max1*100)}%;background:linear-gradient(90deg,#3B82F6,#6366F1)"></div></div><div class="ch-cnt">${c}</div></div>`;}).join('');
+  // Building grid
+  const bg=document.getElementById('bldg-grid');
+  if(bg){
+    bg.innerHTML=DB.buildings.map((b,i)=>{
+      const floors=DB.floors.filter(f=>f.buildingId===b.id).length;
+      const assets=DB.assets.filter(a=>a.buildingId===b.id||a.building===b.name).length;
+      const unitFloorIds=DB.floors.filter(f=>f.buildingId===b.id).map(f=>f.id);
+      const units=DB.units.filter(u=>unitFloorIds.includes(u.floorId)).length;
+      const border=i<DB.buildings.length-1?'border-bottom:1px solid var(--border)':'';
+      return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;${border};cursor:pointer;transition:background .15s" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${b.name}';setPage('ast',1);renderAst();}},150)">
+        <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--blue);text-align:center">${floors}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--teal);text-align:center">${assets}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--indigo);text-align:center">${units}</div>
+      </div>`;
+    }).join('');
+  }
   // Priority chart
   const pc=document.getElementById('pri-chart');
   const prios=[{n:'Critical',c:'#EF4444'},{n:'High',c:'#F59E0B'},{n:'Medium',c:'#60A5FA'},{n:'Low',c:'#10B981'}];
@@ -1640,7 +1671,7 @@ function renderDash(){
 let kpiFilterStatus='All';
 function openKpiList(status){
   kpiFilterStatus=status;
-  const list=status==='All'?DB.tickets:DB.tickets.filter(t=>t.status===status);
+  const list=status==='All'?DB.tickets:status==='Other'?DB.tickets.filter(t=>t.status==='Planned'||t.status==='Ordered'):DB.tickets.filter(t=>t.status===status);
   const colors={'All':'var(--blue)','Open':'var(--red)','In Progress':'var(--amber)','Closed':'var(--green)'};
   document.getElementById('kpi-list-title').textContent=status==='All'?'All Tickets':status+' Tickets';
   document.getElementById('kpi-list-title').style.color=colors[status]||'var(--blue)';
