@@ -988,7 +988,7 @@ const COLS = {
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','building','floor','unit','subject','status','priority','category','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
-  inspections: ['id','building','floor','category','date','inspector','status','items','notes'],
+  inspections: ['id','buildingId','floorId','categoryId','date','inspector','status','items','notes'],
   floors:    ['id','buildingId','label','sortOrder'],
   units:     ['id','floorId','buildingId','label','sortOrder'],
   categories:['id','category'],
@@ -1229,6 +1229,12 @@ async function loadAllData(){
   DB.inspections = rowsToObjects(inspections, COLS.inspections).map(r=>{
     try{ r.items = typeof r.items==='string' ? JSON.parse(r.items) : (r.items||[]); }
     catch(e){ r.items=[]; }
+    const bld = DB.buildings.find(b=>b.id===r.buildingId);
+    const flr = DB.floors.find(f=>f.id===r.floorId);
+    const cat = DB.categories.find(x=>x.id===r.categoryId);
+    r.building = bld ? bld.name     : r.buildingId;
+    r.floor    = flr ? flr.label    : r.floorId;
+    r.category = cat ? cat.category : r.categoryId;
     return r;
   });
   DB.floors = rowsToObjects(floors, COLS.floors).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
@@ -1242,11 +1248,11 @@ async function loadAllData(){
     return {
       ...r,
       name        : r.label,
-      building    : bld ? bld.name    : r.buildingId,
-      floor       : flr ? flr.label   : r.floorId,
-      unit        : unt ? unt.label   : r.unitId,
-      supplierName: sup ? sup.name    : '',
-      category    : cat ? cat.category: r.categoryId,
+      building    : bld ? bld.name     : r.buildingId,
+      floor       : flr ? flr.label    : r.floorId,
+      unit        : unt ? unt.label    : r.unitId,
+      supplierName: sup ? sup.name     : '',
+      category    : cat ? cat.category : r.categoryId,
     };
   });
 }
@@ -1287,6 +1293,20 @@ async function writeSheet(key){
       supplierId : a.supplierId,
       categoryId : a.categoryId,
     }));
+  }
+  // Inspections: resolve display names back to IDs before writing
+  if(key === 'inspections'){
+    records = records.map(r => {
+      const bld = DB.buildings.find(b=>b.name===r.building);
+      const flr = DB.floors.find(f=>f.label===r.floor);
+      const cat = DB.categories.find(x=>x.category===r.category);
+      return {
+        ...r,
+        buildingId : bld ? bld.id : (r.buildingId || r.building),
+        floorId    : flr ? flr.id : (r.floorId    || r.floor),
+        categoryId : cat ? cat.id : (r.categoryId || r.category),
+      };
+    });
   }
   const rows = [cols, ...records.map(o=>objToRow(o,cols))];
   try {
@@ -2198,7 +2218,7 @@ function populateAstCategorySelect(id, selected=''){
   const el=document.getElementById(id); if(!el) return;
   el.innerHTML='<option value="">— Select category —</option>'
     +[...DB.categories].sort((a,z)=>a.category.localeCompare(z.category))
-      .map(c=>`<option value="${c.id}">${c.category}</option>`).join('');
+      .map(x=>`<option value="${x.id}">${x.category}</option>`).join('');
   if(selected) el.value=selected;
 }
 function openNewAsset(){
@@ -3507,12 +3527,15 @@ function continueInspection(id){
   const items = Array.isArray(r.items) ? r.items : [];
 
   activeRound = {
-    inspId    : r.id,
-    building  : r.building,
-    floor     : r.floor,
-    category  : r.category,
-    items     : items.map(i => ({ ...i })), // deep-copy so edits don't mutate DB directly
-    resuming  : true,  // flag so saveInspectionRound knows to overwrite
+    inspId     : r.id,
+    building   : r.building,
+    floor      : r.floor,
+    category   : r.category,
+    buildingId : r.buildingId,
+    floorId    : r.floorId,
+    categoryId : r.categoryId,
+    items      : items.map(i => ({ ...i })), // deep-copy so edits don't mutate DB directly
+    resuming   : true,  // flag so saveInspectionRound knows to overwrite
   };
 
   closeMo('mo-insp-detail');
@@ -3535,16 +3558,22 @@ async function saveInspectionRound(){
   });
 
   const allChecked = activeRound.items.every(i => i.result !== 'Open');
+  const inspBld = DB.buildings.find(b=>b.name===activeRound.building);
+  const inspFlr = DB.floors.find(f=>f.label===activeRound.floor);
+  const inspCat = DB.categories.find(x=>x.category===activeRound.category);
   const inspRecord = {
-    id       : activeRound.inspId,
-    building : activeRound.building,
-    floor    : activeRound.floor,
-    category : activeRound.category,
-    date     : today.toISOString().split('T')[0],
-    inspector: currentUser.name,
-    status   : allChecked ? 'Completed' : 'In Progress',
-    items    : activeRound.items,
-    notes    : ''
+    id         : activeRound.inspId,
+    buildingId : inspBld ? inspBld.id : activeRound.building,
+    floorId    : inspFlr ? inspFlr.id : activeRound.floor,
+    categoryId : inspCat ? inspCat.id : activeRound.category,
+    building   : activeRound.building,
+    floor      : activeRound.floor,
+    category   : activeRound.category,
+    date       : today.toISOString().split('T')[0],
+    inspector  : currentUser.name,
+    status     : allChecked ? 'Completed' : 'In Progress',
+    items      : activeRound.items,
+    notes      : ''
   };
 
   if(activeRound.resuming){
