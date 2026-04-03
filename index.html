@@ -1721,7 +1721,8 @@ function renderDash(){
     }
   }
   const ob=document.getElementById('open-badge');
-  if(ob){ if(open>0){ob.textContent=open;ob.style.display='flex';}else ob.style.display='none'; }
+  const nonClosed=DB.tickets.filter(t=>t.status!=='Closed').length;
+  if(ob){ if(nonClosed>0){ob.textContent=nonClosed;ob.style.display='flex';}else ob.style.display='none'; }
   renderAlerts();
   // Priority chart
   const pc=document.getElementById('pri-chart');
