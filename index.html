@@ -409,16 +409,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
 
-    <div class="sh fu" id="bldg-grid-sh" style="display:none"><span class="sh-title">Affected by Building</span></div>
-    <div id="bldg-grid-wrap" style="display:none;margin:0 14px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;background:var(--card2);border-bottom:1.5px solid var(--border);padding:9px 14px">
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Floors</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Units</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
-      </div>
-      <div id="bldg-grid"></div>
-    </div>
+
     <div class="sh fu"><span class="sh-title">By Priority</span></div>
     <div class="card fu" id="pri-chart"></div>
     <div class="sh fu"><span class="sh-title">Last 8 Weeks</span></div>
@@ -1678,41 +1669,6 @@ function renderDash(){
   const ob=document.getElementById('open-badge');
   if(ob){ if(open>0){ob.textContent=open;ob.style.display='flex';}else ob.style.display='none'; }
   renderAlerts();
-  // Building grid
-  const bg=document.getElementById('bldg-grid');
-  const bgWrap=document.getElementById('bldg-grid-wrap');
-  const bgSh=document.getElementById('bldg-grid-sh');
-  if(bg){
-    const bldgsWithTix=DB.buildings.filter(b=>
-      DB.tickets.some(t=>(t.building||'').trim().toLowerCase()===(b.name||'').trim().toLowerCase())
-    );
-    if(!bldgsWithTix.length){
-      if(bgWrap) bgWrap.style.display='none';
-      if(bgSh)   bgSh.style.display='none';
-    } else {
-      if(bgWrap) bgWrap.style.display='';
-      if(bgSh)   bgSh.style.display='';
-      bg.innerHTML=bldgsWithTix.map((b,i)=>{
-        const bName=(b.name||'').trim().toLowerCase();
-        const bTix=DB.tickets.filter(t=>(t.building||'').trim().toLowerCase()===bName);
-        const tTotal=bTix.length;
-        const affFloors=new Set(bTix.map(t=>(t.floor||'').trim()).filter(f=>f&&f!=='—')).size;
-        const affUnits=new Set(bTix.map(t=>(t.unit||'').trim()).filter(u=>u&&u!=='—'&&u!=='TBD')).size;
-        const affAssets=new Set(bTix.map(t=>(t.assetId||'').trim()).filter(a=>a)).size;
-        const border=i<bldgsWithTix.length-1?'border-bottom:1px solid var(--border)':'';
-        const safeId=b.id.replace(/'/g,"\'");
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 14px;${border};cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background=''" onclick="dashGoBuilding('${safeId}')">
-          <div>
-            <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.name}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">${tTotal} ticket${tTotal!==1?'s':''}</div>
-          </div>
-          <div style="text-align:center;align-self:center"><span style="font-size:15px;font-weight:800;color:var(--blue)">${affFloors}</span></div>
-          <div style="text-align:center;align-self:center"><span style="font-size:15px;font-weight:800;color:var(--indigo)">${affUnits}</span></div>
-          <div style="text-align:center;align-self:center"><span style="font-size:15px;font-weight:800;color:var(--teal)">${affAssets}</span></div>
-        </div>`;
-      }).join('');
-    }
-  }
   // Priority chart
   const pc=document.getElementById('pri-chart');
   const prios=[{n:'Critical',c:'#EF4444'},{n:'High',c:'#F59E0B'},{n:'Medium',c:'#60A5FA'},{n:'Low',c:'#10B981'}];
