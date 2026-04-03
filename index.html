@@ -412,6 +412,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
     <div id="dash-bldg-tix" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
+    <div class="sh fu"><span class="sh-title">Inspections</span></div>
+    <div id="dash-bldg-insp" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
+
     <div class="sh fu"><span class="sh-title">By Priority</span></div>
     <div class="card fu" id="pri-chart"></div>
     <div class="sh fu"><span class="sh-title">Last 8 Weeks</span></div>
@@ -1724,6 +1727,51 @@ function renderDash(){
   const nonClosed=DB.tickets.filter(t=>t.status!=='Closed').length;
   if(ob){ if(nonClosed>0){ob.textContent=nonClosed;ob.style.display='flex';}else ob.style.display='none'; }
   renderAlerts();
+  // Inspections building grid
+  const inspContainer=document.getElementById('dash-bldg-insp');
+  if(inspContainer){
+    // Collect all inspection items across all inspections, grouped by building
+    const bldgInspMap={};
+    DB.inspections.forEach(insp=>{
+      const bName=(insp.building||'').trim(); if(!bName) return;
+      if(!bldgInspMap[bName]) bldgInspMap[bName]={id:insp.buildingId,failedUnits:new Set(),pendingUnits:new Set(),failedAssets:new Set(),pendingAssets:new Set()};
+      const m=bldgInspMap[bName];
+      (insp.items||[]).forEach(item=>{
+        if(item.type==='unit'){
+          if(item.result==='Failed') m.failedUnits.add(item.unitId||item.unit||item.label);
+          else if(item.result==='Open') m.pendingUnits.add(item.unitId||item.unit||item.label);
+        } else {
+          if(item.result==='Failed') m.failedAssets.add(item.assetId||item.label);
+          else if(item.result==='Open') m.pendingAssets.add(item.assetId||item.label);
+        }
+      });
+    });
+    const inspEntries=Object.entries(bldgInspMap).filter(([,m])=>m.failedUnits.size||m.pendingUnits.size||m.failedAssets.size||m.pendingAssets.size).sort((a,b)=>a[0].localeCompare(b[0]));
+    if(!inspEntries.length){
+      inspContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No inspection data</div>';
+    } else {
+      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Failed Units</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Pending Units</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Failed Assets</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Pending Assets</div>
+      </div>`;
+      const rows=inspEntries.map(([name,m],i)=>{
+        const safeId=(m.id||'').replace(/'/g,"\\'");
+        const border=i<inspEntries.length-1?'border-bottom:1px solid var(--border);':'';
+        const goInsp=safeId?`navTo('inspections');setTimeout(()=>{const s=document.getElementById('sel-insp-bldg');if(s){s.value='${safeId}';setPage('insp',1);renderInspections();}},150)`:`navTo('inspections')`;
+        const fu=m.failedUnits.size, pu=m.pendingUnits.size, fa=m.failedAssets.size, pa=m.pendingAssets.size;
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${fu?'var(--red)':'var(--muted)'}">${fu||'—'}</span></div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${pu?'var(--amber)':'var(--muted)'}">${pu||'—'}</span></div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${fa?'var(--red)':'var(--muted)'}">${fa||'—'}</span></div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${pa?'var(--amber)':'var(--muted)'}">${pa||'—'}</span></div>
+        </div>`;
+      }).join('');
+      inspContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
+    }
+  }
   // Priority chart
   const pc=document.getElementById('pri-chart');
   const prios=[{n:'Critical',c:'#EF4444'},{n:'High',c:'#F59E0B'},{n:'Medium',c:'#60A5FA'},{n:'Low',c:'#10B981'}];
