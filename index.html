@@ -3658,7 +3658,25 @@ function finishInspectionRound(){
       <div style="font-size:12px;color:var(--sub);margin-top:4px">No failures in this round.</div>
     </div>`}
     <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px">${total} item${total!==1?'s':''} · ${activeRound.building} · ${df(today.toISOString().split('T')[0])}</div>
+    ${!canComplete ? `<div style="margin-top:10px;padding:10px 14px;background:rgba(217,119,6,.1);border:1.5px solid rgba(217,119,6,.25);border-radius:var(--rs);font-size:12px;color:var(--amber);font-weight:600;text-align:center">Round cannot be completed while items are pending or failed. It will be saved as In Progress.</div>` : ''}
   `;
+
+  const canComplete = pending === 0 && failed === 0;
+
+  const saveBtn = document.getElementById('insp-save-btn');
+  if(saveBtn){
+    if(canComplete){
+      saveBtn.textContent = 'Complete Round';
+      saveBtn.style.opacity = '';
+      saveBtn.style.pointerEvents = '';
+      saveBtn.onclick = saveInspectionRound;
+    } else {
+      saveBtn.textContent = 'Save as In Progress';
+      saveBtn.style.opacity = '';
+      saveBtn.style.pointerEvents = '';
+      saveBtn.onclick = saveInspectionRound;
+    }
+  }
 
   openMo('mo-insp-summary');
 }
@@ -3700,7 +3718,8 @@ async function saveInspectionRound(){
     if(el) item.note = el.value;
   });
 
-  const allChecked = activeRound.items.every(i => i.result !== 'Open');
+  const allApproved = activeRound.items.every(i => i.result === 'Approved');
+  const allChecked  = activeRound.items.every(i => i.result !== 'Open');
   const inspBld = DB.buildings.find(b=>b.name===activeRound.building);
   const inspFlr = DB.floors.find(f=>f.label===activeRound.floor);
   const inspCat = DB.categories.find(x=>x.category===activeRound.category);
@@ -3714,7 +3733,7 @@ async function saveInspectionRound(){
     category   : activeRound.category,
     date       : today.toISOString().split('T')[0],
     inspector  : currentUser.name,
-    status     : allChecked ? 'Completed' : 'In Progress',
+    status     : allApproved ? 'Completed' : 'In Progress',
     items      : activeRound.items,
     notes      : ''
   };
