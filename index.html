@@ -3748,11 +3748,18 @@ function finishInspectionRound(){
   openMo('mo-insp-summary');
 }
 
-/* ── Continue an In Progress round ── */
+/* ── Continue an In Progress round, or re-inspect failed items in a Completed round ── */
 function continueInspection(id){
   if(!can('canStartInspection')) return;
   const r = DB.inspections.find(x => x.id === id); if(!r) return;
   const items = Array.isArray(r.items) ? r.items : [];
+
+  // For completed rounds with failures, reset only failed items back to Open
+  const copiedItems = items.map(i => ({
+    ...i,
+    result: (r.status === 'Completed' && i.result === 'Failed') ? 'Open' : i.result,
+    note:   (r.status === 'Completed' && i.result === 'Failed') ? '' : i.note,
+  }));
 
   activeRound = {
     inspId     : r.id,
@@ -3762,15 +3769,17 @@ function continueInspection(id){
     buildingId : r.buildingId,
     floorId    : r.floorId,
     categoryId : r.categoryId,
-    items      : items.map(i => ({ ...i })), // deep-copy so edits don't mutate DB directly
-    resuming   : true,  // flag so saveInspectionRound knows to overwrite
+    items      : copiedItems,
+    resuming   : true,
   };
 
   closeMo('mo-insp-detail');
 
+  const failCount = items.filter(i => i.result === 'Failed').length;
   document.getElementById('insp-round-title').textContent = r.building + (r.floor ? ' · ' + r.floor : '');
-  document.getElementById('insp-round-sub').textContent   = (r.category && r.category !== 'All' ? r.category + ' · ' : '') + items.length + ' items';
+  document.getElementById('insp-round-sub').textContent   = (r.status === 'Completed' ? `Re-inspecting ${failCount} failed item${failCount!==1?'s':''}` : (r.category && r.category !== 'All' ? r.category + ' · ' : '') + items.length + ' items');
 
+  setRoundToggle('all');
   renderRound();
   navTo('insp-round');
 }
@@ -3961,9 +3970,9 @@ function openInspDetail(id){
           <span style="font-size:11px;font-weight:700;flex-shrink:0;color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">${item.result}</span>
         </div>`).join('')}
     </div>` : ''}
-    ${can('canStartInspection') && r.status === 'In Progress' ? `
+    ${can('canStartInspection') && (r.status === 'In Progress' || (r.status === 'Completed' && failed > 0)) ? `
     <div style="padding:16px 18px 0;display:flex;gap:9px">
-      <button onclick="continueInspection('${r.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Continue Inspection</button>
+      <button onclick="continueInspection('${r.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff">${r.status === 'Completed' ? ' Re-inspect Failed Items' : ' Continue Inspection'}</button>
     </div>` : ''}
     ${can('canEditAll') ? `
     <div style="padding:${can('canStartInspection') && r.status === 'In Progress' ? '8' : '16'}px 18px 0;display:flex;gap:9px">
