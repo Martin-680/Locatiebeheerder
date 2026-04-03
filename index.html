@@ -688,6 +688,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="All">All Floors</option>
         </select>
       </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
+        <select class="fsel" id="sel-unit-status" onchange="renderUnits()">
+          <option value="All">All</option>
+          <option value="Active">Active</option>
+          <option value="Available">Available</option>
+        </select>
+      </div>
     </div>
     <div id="unit-list"></div>
   </div>
@@ -2522,13 +2529,20 @@ function renderUnits(){
   }
 
   const floorVal = flrSel?.value || 'All';
-  syncSelActive('sel-unit-bldg'); syncSelActive('sel-unit-floor');
+  const statusVal = document.getElementById('sel-unit-status')?.value || 'All';
+  syncSelActive('sel-unit-bldg'); syncSelActive('sel-unit-floor'); syncSelActive('sel-unit-status');
 
   // Filter units
   let list = DB.units.filter(u => {
     if(bldgVal !== 'All' && u.buildingId !== bldgVal) return false;
     if(floorVal !== 'All' && u.floorId !== floorVal) return false;
     if(q && !u.label.toLowerCase().includes(q)) return false;
+    if(statusVal !== 'All'){
+      const bld = DB.buildings.find(b=>b.id===u.buildingId);
+      const hasOpenTix = DB.tickets.some(t=>t.unit===u.label && t.building===(bld?.name||'') && t.status!=='Closed');
+      const uStatus = hasOpenTix ? 'Active' : 'Available';
+      if(uStatus !== statusVal) return false;
+    }
     return true;
   }).sort((a,z) => {
     const bldA = DB.buildings.find(b=>b.id===a.buildingId)?.name||'';
