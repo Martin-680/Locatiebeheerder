@@ -1727,11 +1727,7 @@ function renderDash(){
 
 function dashGoBuilding(bldId){
   const b=DB.buildings.find(x=>x.id===bldId); if(!b) return;
-  navTo('assets');
-  setTimeout(()=>{
-    const s=document.getElementById('sel-ast-bldg');
-    if(s){ s.value=b.name; setPage('ast',1); renderAst(); }
-  },150);
+  openBldDetail(bldId);
 }
 
 /* KPI drill-down */
