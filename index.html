@@ -2556,8 +2556,7 @@ function renderUnits(){
     const flr  = DB.floors.find(f=>f.id===u.floorId);
     const assets = DB.assets.filter(a=>a.unitId===u.id);
     const openTix = DB.tickets.filter(t=>t.unit===u.label && t.building===(bld?.name||'') && t.status!=='Closed');
-    const allTix  = DB.tickets.filter(t=>t.unit===u.label && t.building===(bld?.name||''));
-    const inUse   = assets.length > 0 || allTix.length > 0;
+    const inUse   = openTix.length > 0;
     return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
         <div style="font-size:15px;font-weight:700;flex:1;cursor:pointer" onclick="openUnitDetail('${u.id}')">${u.label}</div>
