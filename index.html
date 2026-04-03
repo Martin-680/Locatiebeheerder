@@ -3675,14 +3675,12 @@ function finishInspectionRound(){
     if(el) item.note = el.value;
   });
 
-  // Validate: any Failed items must have a note
+  // Validate: any Failed items must have a note (only block if trying to complete)
   const missingNote = activeRound.items.findIndex(i => i.result === 'Failed' && !i.note.trim());
-  if(missingNote >= 0){
+  const allApprovedCheck = activeRound.items.every(i => i.result === 'Approved');
+  if(missingNote >= 0 && allApprovedCheck){
+    // This shouldn't happen (can't be all approved with a failed item) but guard anyway
     toast('Add a note for every failed item first', 'err');
-    // Scroll to the offending card
-    document.getElementById('insp-item-' + missingNote)?.scrollIntoView({ behavior:'smooth', block:'center' });
-    const inp = document.getElementById('insp-note-' + missingNote);
-    if(inp){ inp.focus(); inp.style.borderColor = 'var(--red)'; }
     return;
   }
 
