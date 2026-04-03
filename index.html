@@ -1059,32 +1059,49 @@ function setStatus(msg,err=false){
   el.innerHTML=err?`<span class="ag-error">${msg}</span>`:msg;
 }
 
+let _gapiReady = false, _gisReady = false;
+
 function gapiLoaded(){
   setStatus('<span class="ag-spinner"></span>');
   gapi.load('client', async ()=>{
     try {
       await gapi.client.init({});
       await gapi.client.load('https://sheets.googleapis.com/$discovery/rest?version=v4');
-      // GIS token client
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: handleToken,
-      });
-      // Try silent restore
-      const saved = sessionStorage.getItem('pm_token');
-      if(saved){
-        accessToken = saved;
-        gapi.client.setToken({ access_token: accessToken });
-        await checkUserAccess();
-      } else {
-        setStatus('');
-      }
+      _gapiReady = true;
+      _maybeInitAuth();
     } catch(e){
       setStatus('Failed to load Google API. Please refresh the page.', true);
       console.error('gapiLoaded error:', e);
     }
   });
+}
+
+function gisLoaded(){
+  _gisReady = true;
+  _maybeInitAuth();
+}
+
+async function _maybeInitAuth(){
+  if(!_gapiReady || !_gisReady) return;
+  try {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: handleToken,
+    });
+    // Try silent restore
+    const saved = sessionStorage.getItem('pm_token');
+    if(saved){
+      accessToken = saved;
+      gapi.client.setToken({ access_token: accessToken });
+      await checkUserAccess();
+    } else {
+      setStatus('');
+    }
+  } catch(e){
+    setStatus('Failed to initialize auth. Please refresh the page.', true);
+    console.error('_maybeInitAuth error:', e);
+  }
 }
 
 function signIn(){
@@ -3390,6 +3407,8 @@ function updateInspPreview(){
     prev.innerHTML = `<span style="color:var(--red)">No ${inspType} match this selection.</span>`;
   } else {
     prev.innerHTML = `<span style="color:var(--green);font-weight:700">${count} ${label}</span> <span style="color:var(--sub)">will be included in this round.</span>`;
+  }
+}
 
 function getInspAssets(bldg, floor, unit, assetName, cat){
   return DB.assets.filter(a => {
@@ -4235,6 +4254,6 @@ function exportCSV(type){
 
 <!-- Google Identity Services + GAPI -->
 <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 </body>
 </html>
