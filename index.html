@@ -410,6 +410,16 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
 
 
+    <div style="display:grid;grid-template-columns:1fr;gap:8px;padding:0 14px 14px">
+      <div class="kpi" style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="navTo('buildings')">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px">🏢</span>
+          <div class="kpi-lbl" style="font-size:13px">Buildings with open tickets</div>
+        </div>
+        <div class="kpi-num" id="kpi-bldgs-open" style="font-size:22px">—</div>
+      </div>
+    </div>
+
     <div class="sh fu"><span class="sh-title">By Priority</span></div>
     <div class="card fu" id="pri-chart"></div>
     <div class="sh fu"><span class="sh-title">Last 8 Weeks</span></div>
@@ -1666,6 +1676,8 @@ function renderDash(){
   animCount('kpi-prog',prog);
   animCount('kpi-other',other);
   animCount('kpi-closed',closed);
+  const bldgsOpen=new Set(DB.tickets.filter(t=>t.status!=='Closed'&&(t.building||'').trim()).map(t=>(t.building||'').trim().toLowerCase())).size;
+  animCount('kpi-bldgs-open',bldgsOpen);
   const ob=document.getElementById('open-badge');
   if(ob){ if(open>0){ob.textContent=open;ob.style.display='flex';}else ob.style.display='none'; }
   renderAlerts();
