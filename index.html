@@ -2860,6 +2860,7 @@ function openBldDetail(id){
 
   let html='';
 
+  const safeName=b.name.replace(/'/g,"\\'");
   // ── Building card (mirrors list card) ──
   html+=`<div class="bc-wrap" style="cursor:default;margin-top:12px" onclick="event.stopPropagation()">
     <div class="bc-hdr">
@@ -2872,10 +2873,10 @@ function openBldDetail(id){
       </div>
     </div>
     <div class="bc-body">
-      <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
+      <div class="bs" style="cursor:pointer" onclick="navTo('floors');setTimeout(()=>{const s=document.getElementById('sel-floor-bldg');if(s){s.value='${b.id}';renderFloors();}},150)"><div class="bs-val" style="color:var(--blue)">${floorCount}</div><div class="bs-lbl">Floors</div></div>
       <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
-      <div class="bs"><div class="bs-val">${openTix.length}</div><div class="bs-lbl">Open Tix</div></div>
-      <div class="bs"><div class="bs-val">${allAsts.length}</div><div class="bs-lbl">Assets</div></div>
+      <div class="bs" style="cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)"><div class="bs-val" style="color:var(--blue)">${openTix.length}</div><div class="bs-lbl">Open Tix</div></div>
+      <div class="bs" style="cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeName}';setPage('ast',1);renderAst();}},150)"><div class="bs-val" style="color:var(--blue)">${allAsts.length}</div><div class="bs-lbl">Assets</div></div>
     </div>
   </div>`;
 
@@ -2889,19 +2890,11 @@ function openBldDetail(id){
   }
 
   // ── Open Tickets ──
-  html+=`<div class="sh"><span class="sh-title">Open Tickets (${openTix.length})</span><span class="sh-link" onclick="navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-bldg').value='${b.name}';renderTix();},150)">All →</span></div>`;
+  html+=`<div class="sh"><span class="sh-title">Open Tickets (${openTix.length})</span><span class="sh-link" onclick="navTo('tickets');setTimeout(()=>{document.getElementById('sel-tix-bldg').value='${safeName}';renderTix();},150)">All →</span></div>`;
   if(openTix.length){
     html+='<div class="tlist">'+openTix.slice(0,10).map(t=>tixItemHTML(t,true)).join('')+'</div>';
   } else {
     html+='<div class="empty" style="padding:20px 24px"><div style="font-size:12px;color:var(--muted)">No open tickets</div></div>';
-  }
-
-  // ── Assets ──
-  html+=`<div class="sh"><span class="sh-title">Assets (${allAsts.length})</span><span class="sh-link" onclick="navTo('assets')">All →</span></div>`;
-  if(allAsts.length){
-    html+='<div style="padding:0 14px 8px">'+allAsts.map(a=>astCardHTML(a,`openAstDetail('${a.id}')`)).join('')+'</div>';
-  } else {
-    html+='<div class="empty" style="padding:20px 24px"><div style="font-size:12px;color:var(--muted)">No assets for this building</div></div>';
   }
 
   html+='<div style="height:20px"></div>';
