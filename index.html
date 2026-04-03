@@ -1712,8 +1712,9 @@ function renderDash(){
     if(!bldgNames.length){
       bldgContainer.innerHTML='';
     } else {
-      const hdrRow=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
+      const hdrRow=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Approved</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Units</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Tickets</div>
@@ -1727,8 +1728,13 @@ function renderDash(){
         const safeId=b?b.id.replace(/'/g,"\\'"):'';
         const safeName=name.replace(/'/g,"\\'");
         const border=i<bldgNames.length-1?'border-bottom:1px solid var(--border);':'';
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
+        const approvedQty=DB.inspections.filter(r=>(r.building||'').trim()===name)
+          .reduce((sum,r)=>sum+(Array.isArray(r.items)?r.items.filter(it=>it.result==='Approved').length:0),0);
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
           <div style="padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${safeId?`dashGoBuilding('${safeId}')`:''}">${name}</div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('inspections');setTimeout(()=>{const s=document.getElementById('sel-insp-bldg');if(s&&'${safeId}'){s.value='${safeId}';setPage('insp',1);renderInspections();}},150)">
+            <span style="font-size:15px;font-weight:800;color:var(--green)">${approvedQty||'—'}</span>
+          </div>
           <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('units');setTimeout(()=>{const s=document.getElementById('sel-unit-bldg');if(s){s.value='${safeName}';renderUnits();}},150)">
             <span style="font-size:15px;font-weight:800;color:var(--indigo)">${unitQty||'—'}</span>
           </div>
