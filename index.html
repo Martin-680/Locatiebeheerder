@@ -780,7 +780,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="mt"><span id="tix-modal-title">New Ticket</span><button class="mt-close" onclick="closeMo('mo-tix')">✕</button></div>
     <div class="fg"><label>Subject *</label><input class="fi2" id="tf-subj" placeholder="Describe the issue…"/></div>
     <div class="frow2">
-      <div class="fg"><label>Building *</label><select class="fs2" id="tf-bldg" onchange="tfOnBldgChange()"><option value="">Select…</option></select></div>
+      <div class="fg"><label>Building *</label><select class="fs2" id="tf-bldg" onchange="tfOnBldgChange()"><option value="">— Select building —</option></select></div>
       <div class="fg"><label>Floor</label><select class="fs2" id="tf-sub" onchange="tfOnFloorChange()"><option value="">— Select floor —</option></select></div>
     </div>
     <div class="frow2">
@@ -822,7 +822,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="mt"><span id="ast-modal-title">New Asset</span><button class="mt-close" onclick="closeMo('mo-ast')">✕</button></div>
     <div class="fg"><label>Asset Name *</label><input class="fi2" id="af-name" placeholder="e.g. HVAC Unit A"/></div>
     <div class="frow2">
-      <div class="fg"><label>Building</label><select class="fs2" id="af-bldg" onchange="afOnBldgChange()"><option value="">Select…</option></select></div>
+      <div class="fg"><label>Building</label><select class="fs2" id="af-bldg" onchange="afOnBldgChange()"><option value="">— Select building —</option></select></div>
       <div class="fg"><label>Floor</label><select class="fs2" id="af-sub" onchange="afOnFloorChange()"><option value="">None</option></select></div>
     </div>
     <div class="frow2">
@@ -1497,7 +1497,7 @@ function applyPermUI(){
 function populateBldSelect(id){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
-  el.innerHTML='<option value="">Select…</option>'+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+  el.innerHTML='<option value="">— Select building —</option>'+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
   if(DB.buildings.find(b=>b.name===cur)) el.value=cur;
 }
 /* ── getFloorsForBuilding: returns sorted floors from DB for a given building id or name ── */
@@ -1607,7 +1607,7 @@ function getCategoryList(){
 }
 function populateCatSelect(id, allowAll=false, currentVal=''){
   const el=document.getElementById(id); if(!el) return;
-  const allOpt=allowAll?'<option value="All">All Categories</option>':'';
+  const allOpt=allowAll?'<option value="All">All Categories</option>':'<option value="">— Select category —</option>';
   el.innerHTML=allOpt+[...DB.categories].sort((a,z)=>a.category.localeCompare(z.category))
     .map(x=>`<option value="${x.id}">${x.category}</option>`).join('');
   if(currentVal){
