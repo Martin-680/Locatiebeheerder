@@ -3286,51 +3286,65 @@ function inspListCardHTML(r){
 }
 
 /* ── Start-round modal ── */
+let inspType = ''; // 'units' | 'assets' | 'category'
+
+function inspSetType(type){
+  inspType = type;
+  ['units','assets','category'].forEach(t => {
+    const btn = document.getElementById('insp-type-' + t);
+    if(!btn) return;
+    const active = t === type;
+    btn.style.background   = active ? 'var(--blue)' : 'var(--card)';
+    btn.style.color        = active ? '#fff'        : 'var(--sub)';
+    btn.style.borderColor  = active ? 'var(--blue)' : 'var(--border)';
+  });
+  const catWrap = document.getElementById('insp-cat-wrap');
+  if(catWrap) catWrap.style.display = type === 'category' ? '' : 'none';
+  document.getElementById('insp-type-filters').style.display = '';
+  updateInspPreview();
+}
+
 function openStartInspection(){
   if(!can('canStartInspection')){ toast('No permission to start inspections','err'); return; }
-  const bldEl = document.getElementById('insp-bldg');
-  if(bldEl) bldEl.value = '';
+  inspType = '';
   populateBldSelect('insp-bldg');
   document.getElementById('insp-bldg').value = '';
+  document.getElementById('insp-filters-wrap').style.display = 'none';
+  document.getElementById('insp-type-filters').style.display = 'none';
   document.getElementById('insp-floor').innerHTML = '<option value="">All floors</option>';
-  document.getElementById('insp-unit').innerHTML  = '<option value="">All units</option>';
-  // Populate category filter from sheet categories
   const catSel = document.getElementById('insp-cat');
   catSel.innerHTML = '<option value="All">All Categories</option>' + getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
   catSel.value = 'All';
-  document.getElementById('insp-asset-preview').textContent = 'Select a building to preview assets and units';
+  // Reset type buttons
+  ['units','assets','category'].forEach(t => {
+    const btn = document.getElementById('insp-type-' + t);
+    if(btn){ btn.style.background='var(--card)'; btn.style.color='var(--sub)'; btn.style.borderColor='var(--border)'; }
+  });
+  document.getElementById('insp-asset-preview').textContent = 'Select a building to preview items';
   openMo('mo-insp-start');
 }
 
 function inspOnBldgChange(){
-  const bldg   = document.getElementById('insp-bldg').value;
-  const wrap   = document.getElementById('insp-filters-wrap');
+  const bldg = document.getElementById('insp-bldg').value;
+  const wrap  = document.getElementById('insp-filters-wrap');
   if(!bldg){ wrap.style.display='none'; updateInspPreview(); return; }
   wrap.style.display = '';
 
-  const bldObj = DB.buildings.find(b=>b.name===bldg);
+  // Reset type selection
+  inspType = '';
+  ['units','assets','category'].forEach(t => {
+    const btn = document.getElementById('insp-type-' + t);
+    if(btn){ btn.style.background='var(--card)'; btn.style.color='var(--sub)'; btn.style.borderColor='var(--border)'; }
+  });
+  document.getElementById('insp-type-filters').style.display = 'none';
 
-  // Floors
+  // Populate floors for this building
   const floors = getFloorsForBuilding(bldg);
   document.getElementById('insp-floor').innerHTML =
     '<option value="">All floors</option>' + floors.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
 
-  // Units
-  const bldFloorIds = bldObj ? DB.floors.filter(f=>f.buildingId===bldObj.id).map(f=>f.id) : [];
-  const allUnits = DB.units.filter(u=>bldFloorIds.includes(u.floorId)).sort((a,z)=>a.sortOrder-z.sortOrder);
-  const seen = new Set();
-  const uniqueUnits = allUnits.filter(u=>{ if(seen.has(u.label)) return false; seen.add(u.label); return true; });
-  document.getElementById('insp-unit').innerHTML =
-    '<option value="">All units</option>' + uniqueUnits.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
-
-  // Assets (unique names)
+  // Populate categories scoped to this building's assets
   const bldgAssets = DB.assets.filter(a=>a.building===bldg);
-  const seenA = new Set();
-  const uniqueAssets = bldgAssets.filter(a=>{ if(seenA.has(a.name)) return false; seenA.add(a.name); return true; });
-  document.getElementById('insp-asset-filter').innerHTML =
-    '<option value="">All assets</option>' + uniqueAssets.map(a=>`<option value="${a.name}">${a.name}</option>`).join('');
-
-  // Categories
   const cats = [...new Set(bldgAssets.map(a=>a.category).filter(Boolean))].sort();
   document.getElementById('insp-cat').innerHTML =
     '<option value="All">All categories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
@@ -3339,25 +3353,43 @@ function inspOnBldgChange(){
 }
 
 function updateInspPreview(){
-  const bldg        = document.getElementById('insp-bldg').value;
-  const floor       = document.getElementById('insp-floor').value;
-  const unit        = document.getElementById('insp-unit').value;
-  const assetFilter = document.getElementById('insp-asset-filter').value;
-  const cat         = document.getElementById('insp-cat').value;
-  const prev        = document.getElementById('insp-asset-preview');
-  if(!bldg){ prev.textContent = 'Select a building to preview items'; return; }
-  const assets = getInspAssets(bldg, floor, unit, assetFilter, cat);
-  const units  = getInspUnits(bldg, floor, unit, assetFilter, cat);
-  const total  = assets.length + units.length;
-  if(!total){
-    prev.innerHTML = `<span style="color:var(--red)">No assets or units match this selection.</span>`;
-  } else {
-    const parts = [];
-    if(assets.length) parts.push(`<span style="color:var(--green);font-weight:700">${assets.length} asset${assets.length!==1?'s':''}</span>`);
-    if(units.length)  parts.push(`<span style="color:var(--teal);font-weight:700">${units.length} unit${units.length!==1?'s':''}</span>`);
-    prev.innerHTML = parts.join(' + ') + ` <span style="color:var(--sub)">will be included in this round.</span>`;
+  const bldg  = document.getElementById('insp-bldg').value;
+  const floor = document.getElementById('insp-floor').value;
+  const cat   = document.getElementById('insp-cat').value;
+  const prev  = document.getElementById('insp-asset-preview');
+  if(!bldg || !inspType){ prev.textContent = inspType ? 'Select a building to preview items' : 'Select what to inspect'; return; }
+
+  let count = 0, label = '';
+  if(inspType === 'units'){
+    const bldObj = DB.buildings.find(b=>b.name===bldg);
+    const bldFloorIds = bldObj ? DB.floors.filter(f=>f.buildingId===bldObj.id).map(f=>f.id) : [];
+    const units = DB.units.filter(u => {
+      if(!bldFloorIds.includes(u.floorId)) return false;
+      if(floor){ const flr=DB.floors.find(f=>f.id===u.floorId); if(flr?.label!==floor) return false; }
+      return true;
+    });
+    count = units.length; label = `unit${count!==1?'s':''}`;
+  } else if(inspType === 'assets'){
+    const assets = DB.assets.filter(a => {
+      if(a.building !== bldg) return false;
+      if(floor && a.floor !== floor) return false;
+      return true;
+    });
+    count = assets.length; label = `asset${count!==1?'s':''}`;
+  } else if(inspType === 'category'){
+    const assets = DB.assets.filter(a => {
+      if(a.building !== bldg) return false;
+      if(floor && a.floor !== floor) return false;
+      if(cat && cat !== 'All' && a.category !== cat) return false;
+      return true;
+    });
+    count = assets.length; label = `asset${count!==1?'s':''}`;
   }
-}
+
+  if(!count){
+    prev.innerHTML = `<span style="color:var(--red)">No ${inspType} match this selection.</span>`;
+  } else {
+    prev.innerHTML = `<span style="color:var(--green);font-weight:700">${count} ${label}</span> <span style="color:var(--sub)">will be included in this round.</span>`;
 
 function getInspAssets(bldg, floor, unit, assetName, cat){
   return DB.assets.filter(a => {
@@ -3401,37 +3433,52 @@ function getInspUnits(bldg, floor, unit, assetName, cat){
 
 /* ── Launch the round (full-screen checklist) ── */
 function launchInspectionRound(){
-  const bldg        = document.getElementById('insp-bldg').value;
-  const floor       = document.getElementById('insp-floor').value;
-  const unit        = document.getElementById('insp-unit').value;
-  const assetFilter = document.getElementById('insp-asset-filter').value;
-  const cat         = document.getElementById('insp-cat').value;
+  const bldg  = document.getElementById('insp-bldg').value;
+  const floor = document.getElementById('insp-floor').value;
+  const cat   = document.getElementById('insp-cat').value;
   if(!bldg){ toast('Select a building','err'); return; }
-  const assets = getInspAssets(bldg, floor, unit, assetFilter, cat);
-  const units  = getInspUnits(bldg, floor, unit, assetFilter, cat);
-  if(!assets.length && !units.length){ toast('No assets or units match this selection','err'); return; }
+  if(!inspType){ toast('Select what to inspect','err'); return; }
+
+  let items = [];
+
+  if(inspType === 'units'){
+    const bldObj = DB.buildings.find(b=>b.name===bldg);
+    const bldFloorIds = bldObj ? DB.floors.filter(f=>f.buildingId===bldObj.id).map(f=>f.id) : [];
+    const units = DB.units.filter(u => {
+      if(!bldFloorIds.includes(u.floorId)) return false;
+      if(floor){ const flr=DB.floors.find(f=>f.id===u.floorId); if(flr?.label!==floor) return false; }
+      return true;
+    }).sort((a,z)=>a.sortOrder-z.sortOrder);
+    items = units.map(u => {
+      const flr = DB.floors.find(f=>f.id===u.floorId);
+      return { type:'unit', unitId:u.id, label:u.label, category:'Unit', unit:u.label, floor:flr?.label||'', result:'Open', note:'' };
+    });
+  } else {
+    // assets or category
+    const assets = DB.assets.filter(a => {
+      if(a.building !== bldg) return false;
+      if(floor && a.floor !== floor) return false;
+      if(inspType === 'category' && cat && cat !== 'All' && a.category !== cat) return false;
+      return true;
+    });
+    items = assets.map(a => ({ type:'asset', assetId:a.id, label:a.label||a.name, category:a.category, unit:a.unit||'', floor:a.floor||'', result:'Open', note:'' }));
+  }
+
+  if(!items.length){ toast('No items match this selection','err'); return; }
 
   const inspId = nextId(DB.inspections, 'INS');
-  const assetItems = assets.map(a => ({ type:'asset', assetId: a.id, label: a.label||a.name, category: a.category, unit: a.unit||'', floor: a.floor||'', result: 'Open', note: '' }));
-  const unitItems  = units.map(u => {
-    const flr = DB.floors.find(f=>f.id===u.floorId);
-    return { type:'unit', unitId: u.id, label: u.label, category: 'Unit', unit: u.label, floor: flr?.label||'', result: 'Open', note: '' };
-  });
-
   activeRound = {
     inspId,
     building : bldg,
     floor    : floor,
-    unit     : unit,
-    category : cat,
-    items    : [...assetItems, ...unitItems]
+    category : inspType === 'category' ? cat : (inspType === 'units' ? 'Units' : 'Assets'),
+    items,
   };
 
   closeMo('mo-insp-start');
 
-  const total = activeRound.items.length;
-  document.getElementById('insp-round-title').textContent = bldg + (floor ? ' · ' + floor : '') + (unit ? ' · ' + unit : '');
-  document.getElementById('insp-round-sub').textContent   = (cat !== 'All' ? cat + ' · ' : '') + total + ' items';
+  document.getElementById('insp-round-title').textContent = bldg + (floor ? ' · ' + floor : '');
+  document.getElementById('insp-round-sub').textContent   = (inspType === 'category' && cat !== 'All' ? cat + ' · ' : '') + items.length + ' items';
 
   setRoundToggle('all');
   renderRound();
@@ -4106,13 +4153,21 @@ function exportCSV(type){
   <div class="ms">
     <div class="mh"></div>
     <div class="mt"><span>Start Inspection Round</span><button class="mt-close" onclick="closeMo('mo-insp-start')">✕</button></div>
+    <!-- Step 1: Building -->
     <div class="fg"><label>Building *</label><select class="fs2" id="insp-bldg" onchange="inspOnBldgChange()"><option value="">Select building…</option></select></div>
     <div id="insp-filters-wrap" style="display:none">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:4px 18px 8px">Narrow by (optional)</div>
-      <div class="fg"><label>Floor</label><select class="fs2" id="insp-floor" onchange="updateInspPreview()"><option value="">All floors</option></select></div>
-      <div class="fg"><label>Unit</label><select class="fs2" id="insp-unit" onchange="updateInspPreview()"><option value="">All units</option></select></div>
-      <div class="fg"><label>Asset</label><select class="fs2" id="insp-asset-filter" onchange="updateInspPreview()"><option value="">All assets</option></select></div>
-      <div class="fg"><label>Category</label><select class="fs2" id="insp-cat" onchange="updateInspPreview()"><option value="All">All categories</option></select></div>
+      <!-- Step 2: Type -->
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:4px 18px 8px">Inspect *</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 18px 12px">
+        <button id="insp-type-units"    onclick="inspSetType('units')"    style="padding:11px 4px;border-radius:var(--rs);border:1.5px solid var(--border);font-size:13px;font-weight:700;color:var(--sub);background:var(--card);transition:all .15s">Units</button>
+        <button id="insp-type-assets"   onclick="inspSetType('assets')"   style="padding:11px 4px;border-radius:var(--rs);border:1.5px solid var(--border);font-size:13px;font-weight:700;color:var(--sub);background:var(--card);transition:all .15s">Assets</button>
+        <button id="insp-type-category" onclick="inspSetType('category')" style="padding:11px 4px;border-radius:var(--rs);border:1.5px solid var(--border);font-size:13px;font-weight:700;color:var(--sub);background:var(--card);transition:all .15s">Category</button>
+      </div>
+      <!-- Step 3: Filters (shown after type selected) -->
+      <div id="insp-type-filters" style="display:none">
+        <div class="fg"><label>Floor</label><select class="fs2" id="insp-floor" onchange="updateInspPreview()"><option value="">All floors</option></select></div>
+        <div class="fg" id="insp-cat-wrap" style="display:none"><label>Category</label><select class="fs2" id="insp-cat" onchange="updateInspPreview()"><option value="All">All categories</option></select></div>
+      </div>
     </div>
     <div id="insp-asset-preview" style="margin:0 18px 12px;padding:12px 14px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--sub)">Select a building to preview items</div>
     <button class="btn-p" onclick="launchInspectionRound()">Start Round →</button>
