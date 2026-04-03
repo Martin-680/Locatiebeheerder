@@ -1668,33 +1668,42 @@ function renderDash(){
   animCount('kpi-prog',prog);
   animCount('kpi-other',other);
   animCount('kpi-closed',closed);
-  const bldgTixMap={};
-  DB.tickets.filter(t=>t.status!=='Closed'&&(t.building||'').trim()).forEach(t=>{
-    const key=(t.building||'').trim();
-    bldgTixMap[key]=(bldgTixMap[key]||0)+1;
-  });
+  const openTix=DB.tickets.filter(t=>t.status!=='Closed'&&(t.building||'').trim());
+  const bldgNames=[...new Set(openTix.map(t=>(t.building||'').trim()))];
   const bldgContainer=document.getElementById('dash-bldg-tix');
   if(bldgContainer){
-    const entries=Object.entries(bldgTixMap).sort((a,b)=>b[1]-a[1]);
-    if(!entries.length){
+    if(!bldgNames.length){
       bldgContainer.innerHTML='';
     } else {
-      bldgContainer.innerHTML=entries.map(([name,cnt])=>{
+      const hdrRow=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Units</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Tickets</div>
+      </div>`;
+      const rows=bldgNames.sort().map((name,i)=>{
+        const bTix=openTix.filter(t=>(t.building||'').trim()===name);
+        const unitQty=new Set(bTix.map(t=>(t.unit||'').trim()).filter(u=>u&&u!=='—'&&u!=='TBD')).size;
+        const assetQty=new Set(bTix.map(t=>(t.assetId||'').trim()).filter(a=>a)).size;
+        const tixQty=bTix.length;
         const b=DB.buildings.find(x=>(x.name||'').trim()===name);
         const safeId=b?b.id.replace(/'/g,"\\'"):'';
-        const onclick=safeId?`dashGoBuilding('${safeId}')`:`navTo('buildings')`;
-        return`<div class="kpi" style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="${onclick}">
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:20px">🏢</span>
-            <div style="font-size:14px;font-weight:600;color:var(--text)">${name}</div>
+        const safeName=name.replace(/'/g,"\\'");
+        const border=i<bldgNames.length-1?'border-bottom:1px solid var(--border);':'';
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
+          <div style="padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${safeId?`dashGoBuilding('${safeId}')`:''}">${name}</div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('units');setTimeout(()=>{const s=document.getElementById('sel-unit-bldg');if(s){s.value='${safeName}';renderUnits();}},150)">
+            <span style="font-size:15px;font-weight:800;color:var(--indigo)">${unitQty||'—'}</span>
           </div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:18px;font-weight:800;color:var(--amber)">${cnt}</span>
-            <span style="font-size:11px;color:var(--muted)">ticket${cnt!==1?'s':''}</span>
-            <span style="font-size:14px;color:var(--muted)">›</span>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeName}';setPage('ast',1);renderAst();}},150)">
+            <span style="font-size:15px;font-weight:800;color:var(--teal)">${assetQty||'—'}</span>
+          </div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)">
+            <span style="font-size:15px;font-weight:800;color:var(--amber)">${tixQty}</span>
           </div>
         </div>`;
       }).join('');
+      bldgContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdrRow}${rows}</div>`;
     }
   }
   const ob=document.getElementById('open-badge');
