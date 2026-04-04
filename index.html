@@ -179,7 +179,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .p-ordered{background:var(--teal);}
 .ti-left{flex:1;min-width:0;}
 .ti-id{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px;}
-.ti-subj{font-size:15px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ti-subj{font-size:15px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ti-meta{display:flex;gap:10px;flex-wrap:wrap;}
 .ti-meta span{font-size:11px;color:var(--sub);}
 .ti-right{flex-shrink:0;}
@@ -2302,7 +2302,7 @@ function astCardHTML(a, onclick){
     : `<span class="badge" style="background:rgba(124,58,237,.12);color:var(--purple);font-size:11px;font-weight:700">Available</span>`;
   return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px 0;margin-bottom:8px;cursor:pointer" onclick="${onclick}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-      <div style="min-width:0"><div style="font-size:15px;font-weight:700">${a.name}</div></div>
+      <div style="min-width:0"><div style="font-size:15px;font-weight:600">${a.name}</div></div>
       ${tixBadge}
     </div>
     <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px;display:grid;grid-template-columns:repeat(4,1fr)">
@@ -2941,7 +2941,7 @@ function openFloorDetail(id){
     ${fTix.length ? `
     <div style="padding:14px 18px 0">
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Open Tickets (${fTix.length})</div>
-      <div class="tlist">${fTix.map(t=>tixItemHTML(t,true)).join('')}</div>
+      ${fTix.map(t=>tixItemHTML(t,true)).join('')}
     </div>` : ''}
     ${can('canManageBuildings') ? `
     <div style="padding:16px 18px 0;display:flex;gap:9px">
