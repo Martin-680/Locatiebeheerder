@@ -2883,9 +2883,8 @@ function renderFloors(){
   c.innerHTML = '<div style="padding:0 14px 8px">' + list.map(f => {
     const bld    = DB.buildings.find(b=>b.id===f.buildingId);
     const units  = DB.units.filter(u=>u.floorId===f.id);
-    const unitLabels = units.map(u=>u.label);
-    const assets = DB.assets.filter(a=>unitLabels.includes(a.unit) && a.building===(bld?.name||''));
-    const tickets= DB.tickets.filter(t=>unitLabels.some(ul=>t.unit===ul) && t.building===(bld?.name||'') && t.status!=='Closed');
+    const assets = DB.assets.filter(a=>a.floorId===f.id);
+    const tickets= DB.tickets.filter(t=>t.floorId===f.id && t.status!=='Closed');
     return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
         <div style="font-size:15px;font-weight:700;flex:1;cursor:pointer" onclick="openFloorDetail('${f.id}')">${f.label}</div>
