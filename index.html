@@ -2709,7 +2709,7 @@ function renderUnits(){
   c.innerHTML = '<div style="padding:0 14px 8px">' + list.map(u => {
     const bld  = DB.buildings.find(b=>b.id===u.buildingId);
     const flr  = DB.floors.find(f=>f.id===u.floorId);
-    const assets = DB.assets.filter(a=>a.unitId===u.id);
+    const assets = DB.assets.filter(a=>a.unitId===u.id && a.floorId===u.floorId);
     const openTix = DB.tickets.filter(t=>
       t.status!=='Closed' &&
       (t.building||'').trim() === (bld?.name||'') &&
@@ -2742,7 +2742,7 @@ function openUnitDetail(id){
   const u = DB.units.find(x=>x.id===id); if(!u) return;
   const bld  = DB.buildings.find(b=>b.id===u.buildingId);
   const flr  = DB.floors.find(f=>f.id===u.floorId);
-  const assets  = DB.assets.filter(a=>a.unitId===u.id);
+  const assets  = DB.assets.filter(a=>a.unitId===u.id && a.floorId===u.floorId);
   const openTix = DB.tickets.filter(t=>t.unit===u.label && t.building===(bld?.name||'') && t.status!=='Closed');
 
   document.getElementById('unit-detail-title').textContent = u.label;
