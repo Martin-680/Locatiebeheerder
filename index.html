@@ -2937,6 +2937,16 @@ function openFloorDetail(id){
           </div>` : ''}
         </div>`}).join('')}
     </div>` : ''}
+    ${fAssets.length ? `
+    <div style="padding:14px 18px 0">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Assets (${fAssets.length})</div>
+      ${fAssets.map(a=>astCardHTML(a,`closeMo('mo-floor-detail');openAstDetail('${a.id}')`)).join('')}
+    </div>` : ''}
+    ${fTix.length ? `
+    <div style="padding:14px 18px 0">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Open Tickets (${fTix.length})</div>
+      <div class="tlist">${fTix.map(t=>tixItemHTML(t,true)).join('')}</div>
+    </div>` : ''}
     ${can('canManageBuildings') ? `
     <div style="padding:16px 18px 0;display:flex;gap:9px">
       <button onclick="editFloor('${f.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>
