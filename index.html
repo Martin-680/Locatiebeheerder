@@ -328,6 +328,18 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .insp-stat:last-child{border-right:none;}
 .insp-stat-val{font-size:13px;font-weight:800;}
 .insp-stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+/* ── Floor detail modal: unified font ── */
+#floor-detail-body .bs-val,
+#floor-detail-body .bs-lbl,
+#floor-detail-body .ti-subj,
+#floor-detail-body .ti-id,
+#floor-detail-body .ti-meta span,
+#floor-detail-body .badge,
+#floor-detail-body .dk,
+#floor-detail-body .dv { font-weight:600 !important; }
+#floor-detail-body .bs-val  { font-size:13px !important; }
+#floor-detail-body .bs-lbl  { font-size:11px !important; }
+#floor-detail-body .ti-subj { font-size:13px !important; }
 </style>
 </head>
 <body>
@@ -2928,9 +2940,9 @@ function openFloorDetail(id){
         const uTix    = DB.tickets.filter(t=>t.unitId===u.id && t.status!=='Closed');
         return `
         <div style="background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;margin-bottom:7px;cursor:pointer;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:center" onclick="closeMo('mo-floor-detail');openUnitDetail('${u.id}')">
-          <div><div style="font-size:10px;color:var(--teal);font-weight:700;margin-bottom:2px">${u.id}</div><div style="font-size:13px;font-weight:600">${u.label||'—'}</div></div>
-          <div style="text-align:center"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Assets</div><div style="font-size:15px;font-weight:800;color:var(--text)">${uAssets.length||'—'}</div></div>
-          <div style="text-align:center"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Open Tickets</div><div style="font-size:15px;font-weight:800;color:${uTix.length?'var(--red)':'var(--text)'}">${uTix.length||'—'}</div></div>
+          <div><div style="font-size:13px;color:var(--teal);font-weight:600;margin-bottom:2px">${u.id}</div><div style="font-size:13px;font-weight:600">${u.label||'—'}</div></div>
+          <div style="text-align:center"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Assets</div><div style="font-size:13px;font-weight:600;color:var(--text)">${uAssets.length||'—'}</div></div>
+          <div style="text-align:center"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Open Tickets</div><div style="font-size:13px;font-weight:600;color:${uTix.length?'var(--red)':'var(--text)'}">${uTix.length||'—'}</div></div>
         </div>`}).join('')}
     </div>` : ''}
     ${fAssets.length ? `
