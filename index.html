@@ -1799,28 +1799,25 @@ function renderDash(){
     if(!inspEntries.length){
       inspContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No inspection data</div>';
     } else {
-      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
+      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Approved</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Failed Units</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Pending Units</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Failed Assets</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Pending Assets</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Failed</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Pending</div>
       </div>`;
       const rows=inspEntries.map(([name,m],i)=>{
         const safeId=(m.id||'').replace(/'/g,"\\'");
         const border=i<inspEntries.length-1?'border-bottom:1px solid var(--border);':'';
         const goInsp=safeId?`navTo('inspections');setTimeout(()=>{const s=document.getElementById('sel-insp-bldg');if(s){s.value='${safeId}';setPage('insp',1);renderInspections();}},150)`:`navTo('inspections')`;
-        const fu=m.failedUnits.size, pu=m.pendingUnits.size, fa=m.failedAssets.size, pa=m.pendingAssets.size;
+        const failed=m.failedUnits.size+m.failedAssets.size;
+        const pending=m.pendingUnits.size+m.pendingAssets.size;
         const approvedQty=DB.inspections.filter(r=>(r.building||'').trim()===name)
           .reduce((sum,r)=>sum+(Array.isArray(r.items)?r.items.filter(it=>it.result==='Approved').length:0),0);
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
           <div style="padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goInsp}">${name}</div>
           <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:var(--green)">${approvedQty||'—'}</span></div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${fu?'var(--red)':'var(--muted)'}">${fu||'—'}</span></div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${pu?'var(--amber)':'var(--muted)'}">${pu||'—'}</span></div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${fa?'var(--red)':'var(--muted)'}">${fa||'—'}</span></div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${pa?'var(--amber)':'var(--muted)'}">${pa||'—'}</span></div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${failed?'var(--red)':'var(--muted)'}">${failed||'—'}</span></div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${pending?'var(--amber)':'var(--muted)'}">${pending||'—'}</span></div>
         </div>`;
       }).join('');
       inspContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
