@@ -634,9 +634,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="insp-progress-bar-wrap"><div class="insp-progress-bar-fill" id="insp-round-progbar" style="width:0%"></div></div>
     <div class="insp-counter" id="insp-round-counter"></div>
     <div style="display:flex;gap:6px;padding:8px 14px 4px;flex-shrink:0">
-      <button id="insp-toggle-all"    onclick="setRoundToggle('all')"    style="flex:1;padding:8px 4px;border-radius:9px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--blue);color:#fff;transition:all .15s">All</button>
-      <button id="insp-toggle-assets" onclick="setRoundToggle('assets')" style="flex:1;padding:8px 4px;border-radius:9px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--card);color:var(--sub);transition:all .15s">Assets</button>
-      <button id="insp-toggle-units"  onclick="setRoundToggle('units')"  style="flex:1;padding:8px 4px;border-radius:9px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--card);color:var(--sub);transition:all .15s">Units</button>
+      <button id="insp-toggle-failpend" onclick="setRoundToggle('failpend')" style="flex:1;padding:8px 4px;border-radius:9px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--card);color:var(--sub);transition:all .15s">Failed/Pending</button>
+      <button id="insp-toggle-assets"   onclick="setRoundToggle('assets')"   style="flex:1;padding:8px 4px;border-radius:9px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--card);color:var(--sub);transition:all .15s">Assets</button>
+      <button id="insp-toggle-units"    onclick="setRoundToggle('units')"    style="flex:1;padding:8px 4px;border-radius:9px;font-size:12px;font-weight:700;border:1.5px solid var(--border);background:var(--card);color:var(--sub);transition:all .15s">Units</button>
     </div>
     <div class="insp-card-wrap" id="insp-round-body"></div>
     <div style="padding:12px 14px 24px;flex-shrink:0">
@@ -3645,17 +3645,18 @@ function launchInspectionRound(){
   navTo('insp-round');
 }
 
-let roundToggle = 'all'; // 'all' | 'assets' | 'units'
+let roundToggle = 'all'; // 'all' | 'failpend' | 'assets' | 'units'
 
 function setRoundToggle(val){
-  roundToggle = val;
-  ['all','assets','units'].forEach(k => {
+  // Toggle off if already active → revert to 'all'
+  roundToggle = roundToggle === val ? 'all' : val;
+  ['failpend','assets','units'].forEach(k => {
     const btn = document.getElementById('insp-toggle-' + k);
     if(!btn) return;
-    const active = k === val;
-    btn.style.background = active ? 'var(--blue)' : 'var(--card)';
-    btn.style.color      = active ? '#fff'        : 'var(--sub)';
-    btn.style.borderColor= active ? 'var(--blue)' : 'var(--border)';
+    const active = k === roundToggle;
+    btn.style.background  = active ? 'var(--blue)' : 'var(--card)';
+    btn.style.color       = active ? '#fff'        : 'var(--sub)';
+    btn.style.borderColor = active ? 'var(--blue)' : 'var(--border)';
   });
   renderRound();
 }
@@ -3671,9 +3672,10 @@ function renderRound(){
   document.getElementById('insp-round-progbar').style.width = pct + '%';
   document.getElementById('insp-round-counter').textContent = `${checked} of ${total} checked · ${pct}%`;
 
-  const filtered = roundToggle === 'all'    ? items
-                 : roundToggle === 'assets' ? items.filter(i => i.type !== 'unit')
-                 :                            items.filter(i => i.type === 'unit');
+  const filtered = roundToggle === 'failpend' ? items.filter(i => i.result === 'Failed' || i.result === 'Open')
+                 : roundToggle === 'assets'   ? items.filter(i => i.type !== 'unit')
+                 : roundToggle === 'units'    ? items.filter(i => i.type === 'unit')
+                 :                             items;
 
   const body = document.getElementById('insp-round-body');
   body.innerHTML = filtered.map((item) => {
