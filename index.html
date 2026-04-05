@@ -2942,7 +2942,7 @@ function openFloorDetail(id){
         <div style="background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;margin-bottom:7px;cursor:pointer;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:center" onclick="closeMo('mo-floor-detail');openUnitDetail('${u.id}')">
           <div><div style="font-size:13px;color:var(--teal);font-weight:600;margin-bottom:2px">${u.id}</div><div style="font-size:13px;font-weight:600">${u.label||'—'}</div></div>
           <div style="text-align:center"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Assets</div><div style="font-size:13px;font-weight:600;color:var(--text)">${uAssets.length||'—'}</div></div>
-          <div style="text-align:center"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Open Tickets</div><div style="font-size:13px;font-weight:600;color:${uTix.length?'var(--red)':'var(--text)'}">${uTix.length||'—'}</div></div>
+          <div style="text-align:center"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Tickets</div><div style="font-size:13px;font-weight:600;color:${uTix.length?'var(--red)':'var(--text)'}">${uTix.length||'—'}</div></div>
         </div>`}).join('')}
     </div>` : ''}
     ${fAssets.length ? `
