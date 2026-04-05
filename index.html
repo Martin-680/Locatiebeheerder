@@ -2980,22 +2980,22 @@ function floorDetailToggle(section, btn){
 }
 
 function inspDetailToggle(filter, btn){
-  // Track active state on each pill via data attribute
   const active = btn.dataset.active !== '1';
   btn.dataset.active = active ? '1' : '';
-  btn.style.background   = active ? 'var(--teal)'   : 'var(--card2)';
-  btn.style.color        = active ? '#fff'           : 'var(--muted)';
-  btn.style.borderColor  = active ? 'var(--teal)'   : 'var(--border)';
+  btn.style.background  = active ? 'var(--teal)'  : 'var(--card2)';
+  btn.style.color       = active ? '#fff'          : 'var(--muted)';
+  btn.style.borderColor = active ? 'var(--teal)'  : 'var(--border)';
 
-  // Collect which type and result filters are ON
+  // Which type pills are active
   const typeOn   = ['units','assets'].filter(f => { const b=document.getElementById('idpill-'+f); return b && b.dataset.active==='1'; });
-  const resultOn = ['approved','failed'].filter(f => { const b=document.getElementById('idpill-'+f); return b && b.dataset.active==='1'; });
+  // Which result pills are active (only failed/pending — approved never shown)
+  const resultOn = ['failed','pending'].filter(f => { const b=document.getElementById('idpill-'+f); return b && b.dataset.active==='1'; });
 
   const items = document.querySelectorAll('#idsec-items .id-item');
   let visible = 0;
   items.forEach(el => {
     const type   = el.dataset.type;   // 'units' or 'assets'
-    const result = el.dataset.result; // 'approved', 'failed', 'pending'
+    const result = el.dataset.result; // 'failed' or 'pending' (approved items are never rendered)
     const typeOk   = typeOn.length   === 0 || typeOn.includes(type);
     const resultOk = resultOn.length === 0 || resultOn.includes(result);
     const show = typeOk && resultOk;
@@ -4082,15 +4082,21 @@ function openInspDetail(id){
       <div class="dr"><span class="dk">Failed</span><span class="dv" style="color:var(--red);font-weight:700">${failed}</span></div>
       ${pending ? `<div class="dr"><span class="dk">Skipped</span><span class="dv" style="color:var(--muted)">${pending}</span></div>` : ''}
     </div>
-    ${items.length ? `
-    <div style="padding:12px 18px 4px;display:flex;gap:6px;flex-wrap:wrap">
-      <button id="idpill-units"    onclick="inspDetailToggle('units',this)"    style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Units</button>
-      <button id="idpill-assets"   onclick="inspDetailToggle('assets',this)"   style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Assets</button>
-      <button id="idpill-approved" onclick="inspDetailToggle('approved',this)" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Approved</button>
-      <button id="idpill-failed"   onclick="inspDetailToggle('failed',this)"   style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Failed</button>
+    ${items.filter(i=>i.result!=='Approved').length ? `
+    <div style="padding:12px 18px 2px">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Type</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button id="idpill-units"  onclick="inspDetailToggle('units',this)"  data-active="1" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Units</button>
+        <button id="idpill-assets" onclick="inspDetailToggle('assets',this)" data-active="1" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Assets</button>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Result</div>
+      <div style="display:flex;gap:6px">
+        <button id="idpill-failed"  onclick="inspDetailToggle('failed',this)"  data-active="1" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Failed</button>
+        <button id="idpill-pending" onclick="inspDetailToggle('pending',this)" data-active="1" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Pending</button>
+      </div>
     </div>
     <div id="idsec-items" style="padding:10px 18px 0">
-      ${items.map((item,idx) => `
+      ${items.filter(item => item.result !== 'Approved').map((item,idx) => `
         <div class="id-item" data-type="${item.type==='unit'?'units':'assets'}" data-result="${item.result==='Approved'?'approved':item.result==='Failed'?'failed':'pending'}" style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
           <div style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;background:${item.result==='Approved'?'rgba(5,150,105,.12)':item.result==='Failed'?'rgba(220,38,38,.1)':'rgba(148,163,184,.1)'};color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">
             ${item.result==='Approved'
