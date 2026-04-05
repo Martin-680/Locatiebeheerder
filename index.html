@@ -434,8 +434,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="card fu" id="pri-chart"></div>
     <div class="sh fu"><span class="sh-title">Last 8 Weeks</span></div>
     <div class="card fu" id="trend-chart"></div>
-    <div class="sh fu"><span class="sh-title">Recent Open</span><span class="sh-link" onclick="navTo('tickets')">All →</span></div>
-    <div id="dash-recent" class="fu"></div>
+
     <div style="height:80px"></div>
   </div>
 
@@ -1820,15 +1819,24 @@ function renderDash(){
     const lbl=wE.toLocaleDateString('en-GB',{day:'numeric',month:'short'}).replace(' ','');
     const opened=DB.tickets.filter(t=>{const dd=new Date(t.dateOpened);return dd>=wS&&dd<=wE;}).length;
     const closedW=DB.tickets.filter(t=>{if(!t.dateClosed)return false;const dd=new Date(t.dateClosed);return dd>=wS&&dd<=wE;}).length;
-    weeks.push({lbl,opened,closedW});
+    const inProg=DB.tickets.filter(t=>{const dd=new Date(t.dateOpened);return dd>=wS&&dd<=wE&&t.status==='In Progress';}).length;
+    const other=DB.tickets.filter(t=>{const dd=new Date(t.dateOpened);return dd>=wS&&dd<=wE&&(t.status==='Planned'||t.status==='Ordered'||t.status==='Requested');}).length;
+    weeks.push({lbl,opened,closedW,inProg,other});
   }
-  const maxW=Math.max(...weeks.flatMap(w=>[w.opened,w.closedW]),1);
-  tc.innerHTML=`<div class="trend-wrap">${weeks.map(w=>`<div class="trend-col"><div class="trend-bars"><div class="trend-bar" style="height:${Math.round(w.opened/maxW*42)}px;background:var(--blue);opacity:.85"></div><div class="trend-bar" style="height:${Math.round(w.closedW/maxW*42)}px;background:var(--green);opacity:.85"></div></div><div class="trend-lbl">${w.lbl}</div></div>`).join('')}</div><div class="trend-legend"><div class="trend-leg-item"><div class="trend-leg-dot" style="background:var(--blue)"></div>Opened</div><div class="trend-leg-item"><div class="trend-leg-dot" style="background:var(--green)"></div>Closed</div></div>`;
+  const maxW=Math.max(...weeks.flatMap(w=>[w.opened,w.closedW,w.inProg,w.other]),1);
+  tc.innerHTML=`<div class="trend-wrap">${weeks.map(w=>`<div class="trend-col"><div class="trend-bars">
+    <div class="trend-bar" style="height:${Math.round(w.opened/maxW*42)}px;background:var(--blue);opacity:.85"></div>
+    <div class="trend-bar" style="height:${Math.round(w.inProg/maxW*42)}px;background:var(--amber);opacity:.85"></div>
+    <div class="trend-bar" style="height:${Math.round(w.other/maxW*42)}px;background:var(--purple);opacity:.85"></div>
+    <div class="trend-bar" style="height:${Math.round(w.closedW/maxW*42)}px;background:var(--green);opacity:.85"></div>
+    </div><div class="trend-lbl">${w.lbl}</div></div>`).join('')}</div>
+    <div class="trend-legend">
+      <div class="trend-leg-item"><div class="trend-leg-dot" style="background:var(--blue)"></div>Opened</div>
+      <div class="trend-leg-item"><div class="trend-leg-dot" style="background:var(--amber)"></div>In Progress</div>
+      <div class="trend-leg-item"><div class="trend-leg-dot" style="background:var(--purple)"></div>Other</div>
+      <div class="trend-leg-item"><div class="trend-leg-dot" style="background:var(--green)"></div>Closed</div>
+    </div>`;
   // Recent open
-  const rt=document.getElementById('dash-recent');
-  const recent=DB.tickets.filter(t=>t.status==='Open'||t.status==='In Progress').slice(0,5);
-  const myTix=currentUser?DB.tickets.filter(t=>t.status!=='Closed'&&(t.assignedTo===currentUser.name||t.createdBy===currentUser.name)).length:0;
-  rt.innerHTML=(recent.length?'<div class="tlist">'+recent.map(t=>tixItemHTML(t)).join('')+'</div>':'<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--green)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><polyline points="20 6 9 17 4 12"/></svg></div><div style="font-size:13px">No open tickets!</div></div>');
 }
 
 function dashGoBuilding(bldId){
