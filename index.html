@@ -4080,44 +4080,6 @@ function openInspDetail(id){
       <div class="dr"><span class="dk">Failed</span><span class="dv" style="color:var(--red);font-weight:700">${failed}</span></div>
       ${pending ? `<div class="dr"><span class="dk">Skipped</span><span class="dv" style="color:var(--muted)">${pending}</span></div>` : ''}
     </div>
-    ${items.filter(i=>i.result!=='Approved').length ? `
-    <div style="padding:12px 18px 2px">
-      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Type</div>
-      <div style="display:flex;gap:6px;margin-bottom:10px">
-        <button id="idpill-units"  onclick="inspDetailToggle('units',this)"  data-active="" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer">Units</button>
-        <button id="idpill-assets" onclick="inspDetailToggle('assets',this)" data-active="" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer">Assets</button>
-      </div>
-      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Result</div>
-      <div style="display:flex;gap:6px">
-        <button id="idpill-failed"  onclick="inspDetailToggle('failed',this)"  data-active="" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer">Failed</button>
-        <button id="idpill-pending" onclick="inspDetailToggle('pending',this)" data-active="" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer">Pending</button>
-      </div>
-    </div>
-    <div id="idsec-items" style="padding:10px 18px 0">
-      ${items.filter(item => item.result !== 'Approved').map((item,idx) => `
-        <div class="id-item" data-type="${item.type==='unit'?'units':'assets'}" data-result="${item.result==='Approved'?'approved':item.result==='Failed'?'failed':'pending'}" style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-          <div style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;background:${item.result==='Approved'?'rgba(5,150,105,.12)':item.result==='Failed'?'rgba(220,38,38,.1)':'rgba(148,163,184,.1)'};color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">
-            ${item.result==='Approved'
-              ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-              : item.result==='Failed'
-              ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
-              : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
-            }
-          </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:600">${item.label}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px">
-              ${item.type==='unit'
-                ? '<span style="font-weight:700;color:var(--teal)">Unit</span>'
-                : '<span style="font-weight:700;color:var(--blue)">Asset</span>'
-              }
-            </div>
-            ${item.note ? `<div style="font-size:12px;color:var(--sub);margin-top:5px;background:#F8FAFF;border-radius:6px;padding:6px 8px;border:1px solid var(--border)">${item.note}</div>` : ''}
-          </div>
-          <span style="font-size:11px;font-weight:700;flex-shrink:0;color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">${item.result}</span>
-        </div>`).join('')}
-      <div id="id-noresults" style="display:none;font-size:12px;color:var(--muted);padding:12px 0">No items match the selected filters.</div>
-    </div>` : ''}
     ${can('canStartInspection') && (r.status === 'In Progress' || (r.status === 'Completed' && failed > 0)) ? `
     <div style="padding:16px 18px 0;display:flex;gap:9px">
       <button onclick="continueInspection('${r.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff">${r.status === 'Completed' ? ' Re-inspect Failed Items' : ' Continue Inspection'}</button>
