@@ -403,7 +403,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="dash-guest-banner"></div>
     <div id="dash-alerts"></div>
     <div class="sh fu"><span class="sh-title">Tickets</span></div>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:0 14px 14px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 14px 14px">
       <div class="kpi kpi-open" style="padding:12px 6px;text-align:center;cursor:pointer" onclick="openKpiList('Open')">
         <div class="kpi-num" id="kpi-open" style="font-size:22px">—</div>
         <div class="kpi-lbl">Open</div>
@@ -412,17 +412,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <div class="kpi-num" id="kpi-prog" style="font-size:22px">—</div>
         <div class="kpi-lbl">In Progress</div>
       </div>
-      <div class="kpi kpi-planned" style="padding:12px 6px;text-align:center;cursor:pointer" onclick="openKpiList('Other')">
-        <div class="kpi-num" id="kpi-other" style="font-size:22px">—</div>
-        <div class="kpi-lbl">Other</div>
-      </div>
       <div class="kpi kpi-closed" style="padding:12px 6px;text-align:center;cursor:pointer" onclick="openKpiList('Closed')">
         <div class="kpi-num" id="kpi-closed" style="font-size:22px">—</div>
         <div class="kpi-lbl">Closed</div>
       </div>
-      <div class="kpi kpi-unassigned" style="padding:12px 6px;text-align:center;cursor:pointer" onclick="openKpiList('Unassigned')">
-        <div class="kpi-num" id="kpi-unassigned" style="font-size:22px">—</div>
-        <div class="kpi-lbl">Unassigned</div>
+      <div class="kpi kpi-planned" style="padding:12px 6px;text-align:center;cursor:pointer" onclick="openKpiList('Other')">
+        <div class="kpi-num" id="kpi-other" style="font-size:22px">—</div>
+        <div class="kpi-lbl">Other</div>
       </div>
     </div>
 
@@ -1737,7 +1733,8 @@ function renderDash(){
   const closed=DB.tickets.filter(t=>t.status==='Closed').length;
   const planned=DB.tickets.filter(t=>t.status==='Planned').length;
   const ordered=DB.tickets.filter(t=>t.status==='Ordered').length;
-  const other=planned+ordered;
+  const requested=DB.tickets.filter(t=>t.status==='Requested').length;
+  const other=planned+ordered+requested;
   const unassigned=DB.tickets.filter(t=>t.status!=='Closed'&&(!t.assignedTo||t.assignedTo.trim()==='Unassigned'||t.assignedTo.trim()==='')).length;
   animCount('kpi-open',open);
   animCount('kpi-prog',prog);
@@ -1868,7 +1865,7 @@ let kpiFilterStatus='All';
 function openKpiList(status){
   kpiFilterStatus=status;
   const list=status==='All'?DB.tickets
-    :status==='Other'?DB.tickets.filter(t=>t.status==='Planned'||t.status==='Ordered')
+    :status==='Other'?DB.tickets.filter(t=>t.status==='Planned'||t.status==='Ordered'||t.status==='Requested')
     :status==='Unassigned'?DB.tickets.filter(t=>t.status!=='Closed'&&(!t.assignedTo||t.assignedTo.trim()===''||t.assignedTo.trim()==='Unassigned'))
     :DB.tickets.filter(t=>t.status===status);
   const colors={'All':'var(--blue)','Open':'var(--red)','In Progress':'var(--amber)','Closed':'var(--green)','Unassigned':'var(--indigo)'};
