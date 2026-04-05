@@ -2986,16 +2986,14 @@ function inspDetailToggle(filter, btn){
   btn.style.color       = active ? '#fff'          : 'var(--muted)';
   btn.style.borderColor = active ? 'var(--teal)'  : 'var(--border)';
 
-  // Which type pills are active
   const typeOn   = ['units','assets'].filter(f => { const b=document.getElementById('idpill-'+f); return b && b.dataset.active==='1'; });
-  // Which result pills are active (only failed/pending — approved never shown)
   const resultOn = ['failed','pending'].filter(f => { const b=document.getElementById('idpill-'+f); return b && b.dataset.active==='1'; });
 
   const items = document.querySelectorAll('#idsec-items .id-item');
   let visible = 0;
   items.forEach(el => {
-    const type   = el.dataset.type;   // 'units' or 'assets'
-    const result = el.dataset.result; // 'failed' or 'pending' (approved items are never rendered)
+    const type   = el.dataset.type;
+    const result = el.dataset.result;
     const typeOk   = typeOn.length   === 0 || typeOn.includes(type);
     const resultOk = resultOn.length === 0 || resultOn.includes(result);
     const show = typeOk && resultOk;
@@ -4086,13 +4084,13 @@ function openInspDetail(id){
     <div style="padding:12px 18px 2px">
       <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Type</div>
       <div style="display:flex;gap:6px;margin-bottom:10px">
-        <button id="idpill-units"  onclick="inspDetailToggle('units',this)"  data-active="1" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Units</button>
-        <button id="idpill-assets" onclick="inspDetailToggle('assets',this)" data-active="1" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Assets</button>
+        <button id="idpill-units"  onclick="inspDetailToggle('units',this)"  data-active="" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer">Units</button>
+        <button id="idpill-assets" onclick="inspDetailToggle('assets',this)" data-active="" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer">Assets</button>
       </div>
       <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Result</div>
       <div style="display:flex;gap:6px">
-        <button id="idpill-failed"  onclick="inspDetailToggle('failed',this)"  data-active="1" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Failed</button>
-        <button id="idpill-pending" onclick="inspDetailToggle('pending',this)" data-active="1" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Pending</button>
+        <button id="idpill-failed"  onclick="inspDetailToggle('failed',this)"  data-active="" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer">Failed</button>
+        <button id="idpill-pending" onclick="inspDetailToggle('pending',this)" data-active="" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--muted);cursor:pointer">Pending</button>
       </div>
     </div>
     <div id="idsec-items" style="padding:10px 18px 0">
