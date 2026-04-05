@@ -1799,25 +1799,28 @@ function renderDash(){
     if(!inspEntries.length){
       inspContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No inspection data</div>';
     } else {
-      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
+      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Approved</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Failed</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Pending</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Failed Units</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Pending Units</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Failed Assets</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Pending Assets</div>
       </div>`;
       const rows=inspEntries.map(([name,m],i)=>{
         const safeId=(m.id||'').replace(/'/g,"\\'");
         const border=i<inspEntries.length-1?'border-bottom:1px solid var(--border);':'';
         const goInsp=safeId?`navTo('inspections');setTimeout(()=>{const s=document.getElementById('sel-insp-bldg');if(s){s.value='${safeId}';setPage('insp',1);renderInspections();}},150)`:`navTo('inspections')`;
-        const failed=m.failedUnits.size+m.failedAssets.size;
-        const pending=m.pendingUnits.size+m.pendingAssets.size;
+        const fu=m.failedUnits.size, pu=m.pendingUnits.size, fa=m.failedAssets.size, pa=m.pendingAssets.size;
         const approvedQty=DB.inspections.filter(r=>(r.building||'').trim()===name)
           .reduce((sum,r)=>sum+(Array.isArray(r.items)?r.items.filter(it=>it.result==='Approved').length:0),0);
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
           <div style="padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goInsp}">${name}</div>
           <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:var(--green)">${approvedQty||'—'}</span></div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${failed?'var(--red)':'var(--muted)'}">${failed||'—'}</span></div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${pending?'var(--amber)':'var(--muted)'}">${pending||'—'}</span></div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${fu?'var(--red)':'var(--muted)'}">${fu||'—'}</span></div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${pu?'var(--amber)':'var(--muted)'}">${pu||'—'}</span></div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${fa?'var(--red)':'var(--muted)'}">${fa||'—'}</span></div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${pa?'var(--amber)':'var(--muted)'}">${pa||'—'}</span></div>
         </div>`;
       }).join('');
       inspContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
@@ -2976,6 +2979,33 @@ function floorDetailToggle(section, btn){
   btn.style.borderColor = visible ? 'var(--border)' : 'var(--teal)';
 }
 
+function inspDetailToggle(filter, btn){
+  // Track active state on each pill via data attribute
+  const active = btn.dataset.active !== '1';
+  btn.dataset.active = active ? '1' : '';
+  btn.style.background   = active ? 'var(--teal)'   : 'var(--card2)';
+  btn.style.color        = active ? '#fff'           : 'var(--muted)';
+  btn.style.borderColor  = active ? 'var(--teal)'   : 'var(--border)';
+
+  // Collect which type and result filters are ON
+  const typeOn   = ['units','assets'].filter(f => { const b=document.getElementById('idpill-'+f); return b && b.dataset.active==='1'; });
+  const resultOn = ['approved','failed'].filter(f => { const b=document.getElementById('idpill-'+f); return b && b.dataset.active==='1'; });
+
+  const items = document.querySelectorAll('#idsec-items .id-item');
+  let visible = 0;
+  items.forEach(el => {
+    const type   = el.dataset.type;   // 'units' or 'assets'
+    const result = el.dataset.result; // 'approved', 'failed', 'pending'
+    const typeOk   = typeOn.length   === 0 || typeOn.includes(type);
+    const resultOk = resultOn.length === 0 || resultOn.includes(result);
+    const show = typeOk && resultOk;
+    el.style.display = show ? '' : 'none';
+    if(show) visible++;
+  });
+  const noRes = document.getElementById('id-noresults');
+  if(noRes) noRes.style.display = visible === 0 ? '' : 'none';
+}
+
 function openNewFloor(){
   if(!can('canManageBuildings')) return;
   editingId.floor = null;
@@ -4053,13 +4083,16 @@ function openInspDetail(id){
       ${pending ? `<div class="dr"><span class="dk">Skipped</span><span class="dv" style="color:var(--muted)">${pending}</span></div>` : ''}
     </div>
     ${items.length ? `
-    <div style="padding:14px 18px 0">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Checklist</div>
-      ${items.map(item => `
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-          <div style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
-            background:${item.result==='Approved'?'rgba(5,150,105,.12)':item.result==='Failed'?'rgba(220,38,38,.1)':'rgba(148,163,184,.1)'};
-            color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">
+    <div style="padding:12px 18px 4px;display:flex;gap:6px;flex-wrap:wrap">
+      <button id="idpill-units"    onclick="inspDetailToggle('units',this)"    style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Units</button>
+      <button id="idpill-assets"   onclick="inspDetailToggle('assets',this)"   style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Assets</button>
+      <button id="idpill-approved" onclick="inspDetailToggle('approved',this)" style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Approved</button>
+      <button id="idpill-failed"   onclick="inspDetailToggle('failed',this)"   style="font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer">Failed</button>
+    </div>
+    <div id="idsec-items" style="padding:10px 18px 0">
+      ${items.map((item,idx) => `
+        <div class="id-item" data-type="${item.type==='unit'?'units':'assets'}" data-result="${item.result==='Approved'?'approved':item.result==='Failed'?'failed':'pending'}" style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;background:${item.result==='Approved'?'rgba(5,150,105,.12)':item.result==='Failed'?'rgba(220,38,38,.1)':'rgba(148,163,184,.1)'};color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">
             ${item.result==='Approved'
               ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
               : item.result==='Failed'
@@ -4079,6 +4112,7 @@ function openInspDetail(id){
           </div>
           <span style="font-size:11px;font-weight:700;flex-shrink:0;color:${item.result==='Approved'?'var(--green)':item.result==='Failed'?'var(--red)':'var(--muted)'}">${item.result}</span>
         </div>`).join('')}
+      <div id="id-noresults" style="display:none;font-size:12px;color:var(--muted);padding:12px 0">No items match the selected filters.</div>
     </div>` : ''}
     ${can('canStartInspection') && (r.status === 'In Progress' || (r.status === 'Completed' && failed > 0)) ? `
     <div style="padding:16px 18px 0;display:flex;gap:9px">
