@@ -274,9 +274,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .toast.ok{background:#052E16;border-color:rgba(16,185,129,.4);color:#6EE7B7;}
 @keyframes toastin{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 
-/* ── FAB ── */
-.fab{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 14px);right:14px;width:54px;height:54px;border-radius:17px;z-index:150;background:linear-gradient(135deg,var(--blue),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 8px 28px rgba(37,99,235,.4);transition:transform .2s,box-shadow .2s;}
-.fab:active{transform:scale(.91);}
+
 
 /* ── SYNC INDICATOR ── */
 #sync-bar{position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--indigo));z-index:999;transform:scaleX(0);transform-origin:left;transition:transform .3s;}
@@ -761,8 +759,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <button class="ni" onclick="navTo('inspections')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Inspect</button>
   </nav>
 
-  <!-- FAB -->
-  <button class="fab" id="fab-quick" onclick="openQuickTicket()" style="display:none" title="Quick Ticket"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></button>
+
 
 </div>
 
@@ -957,27 +954,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 </div>
 
 <!-- Quick Ticket -->
-<div class="mo" id="mo-quick-tix" onclick="mcClick(event,'mo-quick-tix')">
-  <div class="ms">
-    <div class="mh"></div>
-    <div class="mt"><span style="display:flex;align-items:center;gap:8px"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Quick Ticket</span><button class="mt-close" onclick="closeMo('mo-quick-tix')">✕</button></div>
-    <div style="padding:0 18px 12px;font-size:12px;color:var(--muted)">Log an issue fast — essentials only</div>
-    <div class="fg"><label>Subject *</label><input class="fi2" id="qt-subj" placeholder="Describe the issue briefly…"/></div>
-    <div class="frow2">
-      <div class="fg"><label>Building *</label><select class="fs2" id="qt-bldg"><option value="">Select…</option></select></div>
-      <div class="fg"><label>Priority</label>
-        <select class="fs2" id="qt-pri"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
-      </div>
-    </div>
-    <div class="fg"><label>Category</label>
-      <select class="fs2" id="qt-cat"><option value="">— Select category —</option></select>
-    </div>
-    <button class="btn-p" onclick="saveQuickTicket()" style="display:inline-flex;align-items:center;gap:8px;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Create Ticket</button>
-    <button class="btn-s" onclick="closeMo('mo-quick-tix')">Cancel</button>
-  </div>
-</div>
 
-<!-- Export modal -->
 <div class="mo" id="mo-export" onclick="mcClick(event,'mo-export')">
   <div class="ms">
     <div class="mh"></div>
@@ -1442,7 +1419,7 @@ function openDrawer(){
   const alertCount = getAlertCount();
   const items = document.getElementById('drawer-items');
   let html = '';
-  if(can('canCreateTickets')) html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>','Quick Ticket',"openQuickTicket();closeDrawer()");
+
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>','Dashboard',"navTo('dashboard');closeDrawer()",'dashboard');
   if(alertCount) html+=`<div class="drawer-item" onclick="navTo('dashboard');closeDrawer()"><div class="drawer-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1">Alerts</div><span class="drawer-item-badge">${alertCount}</span></div>`;
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>','Team',"navTo('users');closeDrawer()",'users');
@@ -1518,8 +1495,7 @@ function applyPermUI(){
   show('btn-new-floor',p.canManageBuildings);
   show('btn-new-sup',p.canManageSuppliers);
   show('btn-new-insp',p.canStartInspection);
-  const fab=document.getElementById('fab-quick');
-  if(fab) fab.style.display=p.canCreateTickets?'flex':'none';
+
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -2266,31 +2242,6 @@ function duplicateTix(){
 }
 
 /* Quick Ticket */
-function openQuickTicket(){
-  if(!can('canCreateTickets')) return;
-  document.getElementById('qt-subj').value='';
-  populateBldSelect('qt-bldg');
-  document.getElementById('qt-pri').value='Medium';
-  populateCatSelect('qt-cat');
-  openMo('mo-quick-tix');
-}
-async function saveQuickTicket(){
-  const subj=document.getElementById('qt-subj').value.trim();
-  const bldg=document.getElementById('qt-bldg').value;
-  if(!subj){toast('Subject required','err');return;}
-  if(!bldg){toast('Building required','err');return;}
-  const id=nextId(DB.tickets,'TKT');
-  const cat=document.getElementById('qt-cat').value||(DB.categories[0]?.id||'');
-  const _qbld=DB.buildings.find(b=>b.name===bldg);
-  const _qcat=DB.categories.find(x=>x.id===cat);
-  DB.tickets.unshift({id,buildingId:_qbld?_qbld.id:bldg,floorId:'',unitId:'TBD',categoryId:cat,building:bldg,floor:'',unit:'TBD',category:_qcat?_qcat.category:cat,subject:subj,status:'Open',priority:document.getElementById('qt-pri').value,assignedTo:'',dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:'',supplierId:'',reportedBy:'',notes:'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Quick ticket created'}])});
-  closeMo('mo-quick-tix');
-  await writeSheet('tickets');
-  toast(`${id} created`);
-  if(currentScreen==='tickets') renderTix();
-  if(currentScreen==='dashboard') renderDash();
-}
-
 /* ══════════════════════════════════════════════════════════
    ASSETS
 ══════════════════════════════════════════════════════════ */
