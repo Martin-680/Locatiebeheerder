@@ -4184,22 +4184,39 @@ function renderLogbook(){
     return;
   }
 
-  let html = '<div style="padding:0 14px 12px">';
+  let html = '<div class="tlist">';
   slice.forEach(r=>{
-    const tc = LOG_TYPE_COLORS[r.type]   || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
-    const sc = LOG_STATUS_COLORS[r.status] || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
-    const meta = [r.building, r.floor, r.unit, r.assetLabel, r.supplierName].filter(Boolean).join(' · ');
-    html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
-        <div style="font-size:14px;font-weight:700;color:var(--text);flex:1;line-height:1.3">${r.subject||'—'}</div>
-        <div style="font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;flex-shrink:0">${r.date?df(r.date):''}</div>
+    const tc  = LOG_TYPE_COLORS[r.type]    || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
+    const sc  = LOG_STATUS_COLORS[r.status]|| { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
+    const col4 = r.assetLabel || '—';
+    const bldNav  = r.buildingId ? `navTo('buildings')` : '';
+    const flrNav  = r.floorId   ? `navTo('floors')`    : '';
+    const unitNav = r.unitId    ? `navTo('units')`     : '';
+    const astNav  = r.assetId   ? `navTo('assets')`    : '';
+    html += `<div class="ti" style="flex-direction:column;padding-bottom:0;cursor:default">
+      <div style="width:100%">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div style="min-width:0;flex:1">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:2px">${r.id} · ${r.date ? df(r.date) : '—'}</div>
+            <div class="ti-subj">${r.subject||'—'}</div>
+          </div>
+          <div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px;align-items:center">
+            ${r.type   ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color}">${r.type}</span>` : ''}
+            ${r.status ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${sc.bg};color:${sc.color}">${r.status}</span>` : ''}
+          </div>
+        </div>
+        <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:0;display:grid;grid-template-columns:repeat(4,1fr)">
+          <div class="bs" style="${r.buildingId?'cursor:pointer':''}" ${r.buildingId?`onclick="${bldNav}"`:''}><div class="bs-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;${r.buildingId?'color:var(--blue)':''}">${r.building||'—'}</div><div class="bs-lbl">Building</div></div>
+          <div class="bs" style="${r.floorId?'cursor:pointer':''}" ${r.floorId?`onclick="${flrNav}"`:''}><div class="bs-val" style="${r.floorId?'color:var(--blue)':''}">${r.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
+          <div class="bs" style="${r.unitId?'cursor:pointer':''}" ${r.unitId?`onclick="${unitNav}"`:''}><div class="bs-val" style="${r.unitId?'color:var(--blue)':''}">${r.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
+          <div class="bs" style="${r.assetId?'cursor:pointer':''}" ${r.assetId?`onclick="${astNav}"`:''}><div class="bs-val" style="${r.assetId?'color:var(--blue)':''}">${col4}</div><div class="bs-lbl">Asset</div></div>
+        </div>
+        ${r.note ? `<div style="font-size:13px;color:var(--sub);line-height:1.5;border-top:1px solid var(--border);padding:8px 0 4px">${r.note}</div>` : ''}
+        <div style="display:flex;gap:8px;border-top:1px solid var(--border);padding:10px 0 12px;margin-top:6px">
+          <button onclick="editLogEntry('${r.id}')" style="flex:1;padding:9px;background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--sub)">✏️ Edit</button>
+          ${can('canCreateTickets') ? `<button onclick="quickTicketFromLog('${r.id}')" style="flex:1;padding:9px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.22);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--blue)">🎫 New Ticket</button>` : ''}
+        </div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:${r.note?'8':'0'}px">
-        ${r.type   ? `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${tc.bg};color:${tc.color}">${r.type}</span>` : ''}
-        ${r.status ? `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${sc.bg};color:${sc.color}">${r.status}</span>` : ''}
-        ${meta ? `<span style="font-size:11px;color:var(--muted);padding:2px 0">${meta}</span>` : ''}
-      </div>
-      ${r.note ? `<div style="font-size:13px;color:var(--sub);line-height:1.5;border-top:1px solid var(--border);padding-top:8px">${r.note}</div>` : ''}
     </div>`;
   });
   html += '</div>';
@@ -4311,6 +4328,99 @@ async function saveLogEntry(){
   await writeSheet('logs');
   toast(editingId.log ? 'Entry updated' : 'Entry added');
   if(currentScreen==='logbook') renderLogbook();
+}
+
+function editLogEntry(id){
+  const r = DB.logs.find(x=>x.id===id); if(!r) return;
+  editingId.log = id;
+  document.getElementById('log-modal-title').textContent = 'Edit Log Entry';
+  document.getElementById('lf-date').value    = r.date    || '';
+  document.getElementById('lf-subject').value = r.subject || '';
+  document.getElementById('lf-type').value    = r.type    || '';
+  document.getElementById('lf-status').value  = r.status  || 'open';
+  document.getElementById('lf-note').value    = r.note    || '';
+  // Building
+  const bSel = document.getElementById('lf-bldg');
+  bSel.innerHTML = '<option value="">— None —</option>' +
+    [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
+      .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  bSel.value = r.buildingId || '';
+  // Floor cascade
+  const floors = r.buildingId ? DB.floors.filter(f=>f.buildingId===r.buildingId).sort((a,z)=>a.sortOrder-z.sortOrder) : [];
+  document.getElementById('lf-floor').innerHTML = '<option value="">— None —</option>' +
+    floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+  document.getElementById('lf-floor').value = r.floorId || '';
+  // Unit cascade
+  const units = r.floorId ? DB.units.filter(u=>u.floorId===r.floorId).sort((a,z)=>a.sortOrder-z.sortOrder) : [];
+  document.getElementById('lf-unit').innerHTML = '<option value="">— None —</option>' +
+    units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+  document.getElementById('lf-unit').value = r.unitId || '';
+  // Asset cascade
+  const assets = DB.assets.filter(a=>{
+    if(r.buildingId && a.buildingId!==r.buildingId) return false;
+    if(r.floorId    && a.floorId!==r.floorId)       return false;
+    if(r.unitId     && a.unitId!==r.unitId)          return false;
+    return true;
+  }).sort((a,z)=>a.label.localeCompare(z.label));
+  document.getElementById('lf-asset').innerHTML = '<option value="">— None —</option>' +
+    assets.map(a=>`<option value="${a.id}">${a.label}</option>`).join('');
+  document.getElementById('lf-asset').value = r.assetId || '';
+  // Supplier
+  document.getElementById('lf-supplier').innerHTML = '<option value="">— None —</option>' +
+    DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name))
+      .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('lf-supplier').value = r.supplierId || '';
+  openMo('mo-log');
+}
+
+function quickTicketFromLog(logId){
+  if(!can('canCreateTickets')){ toast('No permission','err'); return; }
+  const r = DB.logs.find(x=>x.id===logId); if(!r) return;
+  editingId.tix = null;
+  document.getElementById('tix-modal-title').textContent = 'New Ticket';
+  document.getElementById('btn-dup-tix').style.display = 'none';
+  // Pre-fill subject and notes from log entry
+  document.getElementById('tf-subj').value    = r.subject || '';
+  document.getElementById('tf-notes').value   = r.note    || '';
+  document.getElementById('tf-reporter').value = currentUser ? currentUser.name : '';
+  document.getElementById('tf-status').value  = 'Open';
+  document.getElementById('tf-pri').value     = 'Medium';
+  populateCatSelect('tf-cat');
+  populateAssignSelect('tf-assign');
+  // Cascade building → floor → unit → asset
+  populateBldSelect('tf-bldg');
+  const bld = DB.buildings.find(b=>b.id===r.buildingId);
+  document.getElementById('tf-bldg').value = bld ? bld.name : '';
+  tfOnBldgChange();
+  if(r.floorId){
+    const flr = DB.floors.find(f=>f.id===r.floorId);
+    if(flr) document.getElementById('tf-sub').value = flr.label;
+    tfOnFloorChange();
+  }
+  if(r.unitId){
+    const unt = DB.units.find(u=>u.id===r.unitId);
+    const unitSel = document.getElementById('tf-unit');
+    if(unt && [...unitSel.options].some(o=>o.value===unt.label)) unitSel.value = unt.label;
+    tfOnUnitChange();
+  }
+  if(r.assetId){
+    const astSel = document.getElementById('tf-asset');
+    if(r.assetId && ![...astSel.options].some(o=>o.value===r.assetId)){
+      const a = DB.assets.find(x=>x.id===r.assetId);
+      if(a){ const opt=document.createElement('option'); opt.value=a.id; opt.textContent=`${a.label}${a.unit?' · '+a.unit:''}`; astSel.appendChild(opt); }
+    }
+    astSel.value = r.assetId;
+    tfOnAssetChange();
+  }
+  if(r.supplierId){
+    const supSel = document.getElementById('tf-supplier');
+    if(![...supSel.options].some(o=>o.value===r.supplierId)){
+      const s = DB.suppliers.find(x=>x.id===r.supplierId);
+      if(s){ const opt=document.createElement('option'); opt.value=s.id; opt.textContent=`${s.name} (€ ${s.ratePerHour}/hr)`; supSel.appendChild(opt); }
+    }
+    supSel.value = r.supplierId;
+  }
+  openMo('mo-tix');
 }
 
 /* ══════════════════════════════════════════════════════════
