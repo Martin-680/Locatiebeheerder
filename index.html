@@ -752,11 +752,54 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="floor-list"></div>
   </div>
 
+  <!-- ═══════ LOGBOOK ═══════ -->
+  <div id="screen-logbook" class="screen">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left"><div class="topbar-title">Logbook</div><div class="topbar-sub" id="log-lbl"></div></div>
+        <div class="topbar-actions">
+          <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
+        </div>
+      </div>
+    </div>
+    <div class="fbar-wrap">
+      <div class="fsel-wrap"><div class="fsel-lbl">Type</div>
+        <select class="fsel" id="sel-log-type" onchange="setPage('log',1);renderLogbook()">
+          <option value="All">All Types</option>
+          <option value="onderhoud">Onderhoud</option>
+          <option value="keuring">Keuring</option>
+          <option value="her-keuring">Her-keuring</option>
+          <option value="ontvangen">Ontvangen</option>
+          <option value="bestelling">Bestelling</option>
+          <option value="bezoek">Bezoek</option>
+          <option value="evaluatie">Evaluatie</option>
+        </select>
+      </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
+        <select class="fsel" id="sel-log-status" onchange="setPage('log',1);renderLogbook()">
+          <option value="All">All</option>
+          <option value="open">Open</option>
+          <option value="gesloten">Gesloten</option>
+        </select>
+      </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
+        <select class="fsel" id="sel-log-bldg" onchange="setPage('log',1);renderLogbook()">
+          <option value="All">All Buildings</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:flex-end;padding:0 14px 8px">
+      <button onclick="clearLogFilters()" style="font-size:12px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button>
+    </div>
+    <div id="log-list"></div>
+  </div>
+
   <!-- ═══════ NAV ═══════ -->
-  <nav class="bottom-nav" style="grid-template-columns:repeat(3,1fr)">
+  <nav class="bottom-nav" style="grid-template-columns:repeat(4,1fr)">
     <button class="ni active" onclick="navTo('dashboard')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dash</button>
     <button class="ni" onclick="navTo('tickets')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M2 9a2 2 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2 2 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/><line x1="9" y1="9" x2="9" y2="15"/></svg></span>Tickets<span class="ni-badge" id="open-badge" style="display:none"></span></button>
     <button class="ni" onclick="navTo('inspections')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Inspect</button>
+    <button class="ni" onclick="navTo('logbook')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>Logbook</button>
   </nav>
 
 
@@ -990,7 +1033,7 @@ const SHEET_ID    = '1UkjXu3yOwPWlb1bKjMnXuCrYkxsvzC6wBZ48nPr1P4A';
 const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email openid';
 
 /* Sheet tab names — must match exactly what you created */
-const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', floors:'Floors', units:'Units', categories:'Categories' };
+const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', floors:'Floors', units:'Units', categories:'Categories', logs:'Logs' };
 
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
@@ -1003,6 +1046,7 @@ const COLS = {
   floors:    ['id','buildingId','label','sortOrder'],
   units:     ['id','floorId','buildingId','label','sortOrder'],
   categories:['id','category'],
+  logs:      ['id','date','subject','supplierId','buildingId','floorId','unitId','assetId','note','type','status'],
 };
 
 /* ══════════════════════════════════════════════════════════
@@ -1023,11 +1067,11 @@ function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
    STATE
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
-let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], floors:[], units:[], categories:[] };
+let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], floors:[], units:[], categories:[], logs:[] };
 let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null, floor:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
-const pages = { tix:1, ast:1, usr:1, bld:1, sup:1, insp:1 };
+const pages = { tix:1, ast:1, usr:1, bld:1, sup:1, insp:1, log:1 };
 const today = new Date();
 const d=(n)=>{const x=new Date(today);x.setDate(x.getDate()-n);return x.toISOString().split('T')[0];};
 const df=(s)=>s?new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
@@ -1238,7 +1282,7 @@ function rowsToObjects(rows, cols){
 }
 
 async function loadAllData(){
-  const [users,buildings,assets,tickets,suppliers,inspections,floors,units,categories] = await Promise.all([
+  const [users,buildings,assets,tickets,suppliers,inspections,floors,units,categories,logs] = await Promise.all([
     sheetsGet(`${TABS.users}!A:Z`),
     sheetsGet(`${TABS.buildings}!A:Z`),
     sheetsGet(`${TABS.assets}!A:Z`),
@@ -1248,6 +1292,7 @@ async function loadAllData(){
     sheetsGet(`${TABS.floors}!A:Z`),
     sheetsGet(`${TABS.units}!A:Z`),
     sheetsGet(`${TABS.categories}!A:Z`),
+    sheetsGet(`${TABS.logs}!A:Z`),
   ]);
   DB.users      = rowsToObjects(users,     COLS.users);
   DB.buildings  = rowsToObjects(buildings, COLS.buildings);
@@ -1293,6 +1338,21 @@ async function loadAllData(){
       unit        : unt ? unt.label    : r.unitId,
       supplierName: sup ? sup.name     : '',
       category    : cat ? cat.category : r.categoryId,
+    };
+  });
+  DB.logs = rowsToObjects(logs, COLS.logs).map(r=>{
+    const bld = DB.buildings.find(b=>b.id===r.buildingId);
+    const flr = DB.floors.find(f=>f.id===r.floorId);
+    const unt = DB.units.find(u=>u.id===r.unitId);
+    const ast = DB.assets.find(a=>a.id===r.assetId);
+    const sup = DB.suppliers.find(s=>s.id===r.supplierId);
+    return {
+      ...r,
+      building    : bld ? bld.name  : r.buildingId,
+      floor       : flr ? flr.label : r.floorId,
+      unit        : unt ? unt.label : r.unitId,
+      assetLabel  : ast ? ast.label : r.assetId,
+      supplierName: sup ? sup.name  : r.supplierId,
     };
   });
 }
@@ -1423,15 +1483,15 @@ function openDrawer(){
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>','Dashboard',"navTo('dashboard');closeDrawer()",'dashboard');
   if(alertCount) html+=`<div class="drawer-item" onclick="navTo('dashboard');closeDrawer()"><div class="drawer-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1">Alerts</div><span class="drawer-item-badge">${alertCount}</span></div>`;
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>','Team',"navTo('users');closeDrawer()",'users');
-  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>','Buildings',"navTo('buildings');closeDrawer()",'buildings');
-  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>','Assets',"navTo('assets');closeDrawer()",'assets');
-  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>','Units',"navTo('units');closeDrawer()",'units');
-  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>','Floors',"navTo('floors');closeDrawer()",'floors');
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-6-7 6v3l-4-3v12z"/><path d="M17 20v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/></svg>','Suppliers',"navTo('suppliers');closeDrawer()",'suppliers');
-  if(can('canManageCategories')) html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>','Manage Categories',"openCategories();closeDrawer()");
-  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>','Export CSV',"openExportModal();closeDrawer()");
-  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>','Refresh Data',"refreshAllData();closeDrawer()");
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>','Buildings',"navTo('buildings');closeDrawer()",'buildings');
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>','Floors',"navTo('floors');closeDrawer()",'floors');
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>','Units',"navTo('units');closeDrawer()",'units');
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>','Assets',"navTo('assets');closeDrawer()",'assets');
+  if(can('canManageCategories')) html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>','Categories',"openCategories();closeDrawer()");
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>','Refresh',"refreshAllData();closeDrawer()");
   html+=`<div class="drawer-sep"></div>`;
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>','Export CSV',"openExportModal();closeDrawer()");
   html+=`<div class="drawer-item danger" onclick="signOut();closeDrawer()"><div class="drawer-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><div>Sign Out</div></div>`;
   items.innerHTML=html;
   document.getElementById('drawer-overlay').classList.add('open');
@@ -1463,7 +1523,7 @@ function navTo(s){
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
   scr.classList.add('active');
-  const idx=['dashboard','tickets','inspections'].indexOf(s);
+  const idx=['dashboard','tickets','inspections','logbook'].indexOf(s);
   if(idx>=0) document.querySelectorAll('.ni')[idx]?.classList.add('active');
   prevScreen=currentScreen;
   currentScreen=s;
@@ -1477,6 +1537,7 @@ function navTo(s){
   if(s==='inspections') renderInspections();
   if(s==='units')       renderUnits();
   if(s==='floors')      renderFloors();
+  if(s==='logbook')     renderLogbook();
 }
 function navBack(){
   if(prevScreen==='insp-round') navTo('inspections');
@@ -4063,6 +4124,92 @@ async function doConfirmedDelete(){
   if(currentScreen==='dashboard') renderDash();
   if(currentScreen==='inspections') renderInspections();
   pendingDelete=null;
+}
+
+/* ══════════════════════════════════════════════════════════
+   LOGBOOK
+══════════════════════════════════════════════════════════ */
+const LOG_TYPE_COLORS = {
+  'onderhoud' : { bg:'rgba(59,130,246,.12)',  color:'var(--blue)'   },
+  'keuring'   : { bg:'rgba(16,185,129,.12)',  color:'var(--green)'  },
+  'her-keuring':{ bg:'rgba(245,158,11,.12)',  color:'var(--amber)'  },
+  'ontvangen' : { bg:'rgba(139,92,246,.12)',  color:'var(--indigo)' },
+  'bestelling': { bg:'rgba(6,182,212,.12)',   color:'var(--teal)'   },
+  'bezoek'    : { bg:'rgba(236,72,153,.12)',  color:'var(--pink)'   },
+  'evaluatie' : { bg:'rgba(100,116,139,.12)', color:'var(--muted)'  },
+};
+const LOG_STATUS_COLORS = {
+  'open'    : { bg:'rgba(239,68,68,.12)',   color:'var(--red)'   },
+  'gesloten': { bg:'rgba(16,185,129,.12)',  color:'var(--green)' },
+};
+
+function renderLogbook(){
+  // populate building filter
+  const bSel = document.getElementById('sel-log-bldg');
+  if(bSel){
+    const cur = bSel.value;
+    bSel.innerHTML = '<option value="All">All Buildings</option>' +
+      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
+        .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+    if(bSel.querySelector(`option[value="${cur}"]`)) bSel.value = cur;
+  }
+
+  const typeF   = (document.getElementById('sel-log-type')?.value   || 'All');
+  const statusF = (document.getElementById('sel-log-status')?.value || 'All');
+  const bldgF   = (document.getElementById('sel-log-bldg')?.value   || 'All');
+
+  let rows = DB.logs.slice().sort((a,z)=>(z.date||'').localeCompare(a.date||''));
+  if(typeF   !== 'All') rows = rows.filter(r=>r.type===typeF);
+  if(statusF !== 'All') rows = rows.filter(r=>r.status===statusF);
+  if(bldgF   !== 'All') rows = rows.filter(r=>r.buildingId===bldgF);
+
+  const total = rows.length;
+  document.getElementById('log-lbl').textContent = total + ' entr' + (total===1?'y':'ies');
+
+  const ps = PAGE_SIZE;
+  const p  = pages.log;
+  const slice = rows.slice((p-1)*ps, p*ps);
+
+  const el = document.getElementById('log-list');
+  if(!el) return;
+
+  if(!slice.length){
+    el.innerHTML = `<div style="text-align:center;padding:48px 24px;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:8px">📒</div>
+      <div style="font-size:14px;font-weight:600">No log entries found</div>
+    </div>`;
+    return;
+  }
+
+  let html = '<div style="padding:0 14px 12px">';
+  slice.forEach(r=>{
+    const tc = LOG_TYPE_COLORS[r.type]   || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
+    const sc = LOG_STATUS_COLORS[r.status] || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
+    const meta = [r.building, r.floor, r.unit, r.assetLabel, r.supplierName].filter(Boolean).join(' · ');
+    html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
+        <div style="font-size:14px;font-weight:700;color:var(--text);flex:1;line-height:1.3">${r.subject||'—'}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;flex-shrink:0">${r.date?df(r.date):''}</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:${r.note?'8':'0'}px">
+        ${r.type   ? `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${tc.bg};color:${tc.color}">${r.type}</span>` : ''}
+        ${r.status ? `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${sc.bg};color:${sc.color}">${r.status}</span>` : ''}
+        ${meta ? `<span style="font-size:11px;color:var(--muted);padding:2px 0">${meta}</span>` : ''}
+      </div>
+      ${r.note ? `<div style="font-size:13px;color:var(--sub);line-height:1.5;border-top:1px solid var(--border);padding-top:8px">${r.note}</div>` : ''}
+    </div>`;
+  });
+  html += '</div>';
+  html += renderPagination('log', total, ()=>renderLogbook());
+  el.innerHTML = html;
+}
+
+function clearLogFilters(){
+  ['sel-log-type','sel-log-status','sel-log-bldg'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='All';
+  });
+  setPage('log',1);
+  renderLogbook();
 }
 
 /* ══════════════════════════════════════════════════════════
