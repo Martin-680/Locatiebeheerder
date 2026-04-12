@@ -1306,13 +1306,14 @@ async function loadAllData(){
   DB.tickets = rowsToObjects(tickets, COLS.tickets).map(r=>{
     const bld = DB.buildings.find(b=>b.id===r.buildingId);
     const flr = DB.floors.find(f=>f.id===r.floorId);
-    const unt = DB.units.find(u=>u.id===r.unitId);
+    const unt = DB.units.find(u=>u.id===r.unitId) || (r.unit && r.unit!=='TBD' ? DB.units.find(u=>u.label===r.unit) : null);
     const cat = DB.categories.find(x=>x.id===r.categoryId);
     return {
       ...r,
       building : bld ? bld.name     : r.buildingId,
       floor    : flr ? flr.label    : r.floorId,
-      unit     : unt ? unt.label    : r.unitId,
+      unit     : unt ? unt.label    : (r.unit && r.unit!=='TBD' ? r.unit : ''),
+      unitId   : unt ? unt.id       : (r.unitId && r.unitId!=='TBD' ? r.unitId : ''),
       category : cat ? cat.category : r.categoryId,
     };
   });
@@ -1404,13 +1405,14 @@ async function writeSheet(key){
     records = records.map(t => {
       const bld = DB.buildings.find(b=>b.name===t.building);
       const flr = DB.floors.find(f=>f.label===t.floor);
-      const unt = DB.units.find(u=>u.label===t.unit && (flr ? u.floorId===flr.id : true));
+      const unt = DB.units.find(u=>u.label===t.unit && (flr ? u.floorId===flr.id : true))
+                || DB.units.find(u=>u.id===t.unitId);
       const cat = DB.categories.find(x=>x.id===t.categoryId || x.category===t.category);
       return {
         ...t,
         buildingId : bld ? bld.id : (t.buildingId || t.building),
         floorId    : flr ? flr.id : (t.floorId    || t.floor),
-        unitId     : unt ? unt.id : (t.unitId     || t.unit),
+        unitId     : unt ? unt.id : (t.unitId !== 'TBD' ? t.unitId : ''),
         categoryId : cat ? cat.id : (t.categoryId || t.category),
       };
     });
@@ -1688,6 +1690,13 @@ function populateCatSelect(id, allowAll=false, currentVal=''){
     const match=byId||byName;
     if(match) el.value=match.id;
   }
+}
+
+/* ── autoSelect: if a populated <select> has exactly one real option, pick it ── */
+function autoSelect(id, onChangeFn){
+  const el=document.getElementById(id); if(!el) return;
+  const real=[...el.options].filter(o=>o.value!=='');
+  if(real.length===1){ el.value=real[0].value; if(onChangeFn) onChangeFn(); }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -2169,8 +2178,20 @@ function openNewTicket(){
   document.getElementById('tf-pri').value='Medium';
   populateBldSelect('tf-bldg');
   document.getElementById('tf-bldg').value='';
-  populateCatSelect('tf-cat');
   tfOnBldgChange();
+  autoSelect('tf-bldg', ()=>{
+    tfOnBldgChange();
+    autoSelect('tf-sub', ()=>{
+      tfOnFloorChange();
+      autoSelect('tf-unit', ()=>{
+        tfOnUnitChange();
+        autoSelect('tf-asset', tfOnAssetChange);
+        autoSelect('tf-supplier');
+      });
+    });
+  });
+  populateCatSelect('tf-cat');
+  autoSelect('tf-cat');
   populateAssignSelect('tf-assign');
   openMo('mo-tix');
 }
@@ -2233,7 +2254,7 @@ async function saveTix(){
       const prevStatus=t.status;
       const _bldName=document.getElementById('tf-bldg').value;
       const _flrLabel=document.getElementById('tf-sub').value;
-      const _untLabel=document.getElementById('tf-unit').value||'TBD';
+      const _untLabel=document.getElementById('tf-unit').value||'';
       const _catId=document.getElementById('tf-cat').value;
       const _bld=DB.buildings.find(b=>b.name===_bldName);
       const _flr=DB.floors.find(f=>f.label===_flrLabel);
@@ -2264,7 +2285,7 @@ async function saveTix(){
     const id=nextId(DB.tickets,'TKT');
     const _nb=document.getElementById('tf-bldg').value;
     const _nf=document.getElementById('tf-sub').value;
-    const _nu=document.getElementById('tf-unit').value||'TBD';
+    const _nu=document.getElementById('tf-unit').value||'';
     const _nc=document.getElementById('tf-cat').value;
     const _nbld=DB.buildings.find(b=>b.name===_nb);
     const _nflr=DB.floors.find(f=>f.label===_nf);
@@ -2444,13 +2465,22 @@ function openNewAsset(){
   document.getElementById('ast-modal-title').textContent='New Asset';
   ['af-name','af-mfr','af-model','af-warr','af-pdate','af-lsvc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('af-status').value='Active';
-  document.getElementById('af-acat').value='';
   document.getElementById('af-loc').innerHTML='<option value="">— Select unit —</option>';
   populateBldSelect('af-bldg');
   document.getElementById('af-bldg').value='';
+  document.getElementById('af-acat').value='';
   populateSubs('af-sub','af-bldg');
+  autoSelect('af-bldg', ()=>{
+    afOnBldgChange();
+    autoSelect('af-sub', ()=>{
+      afOnFloorChange();
+      autoSelect('af-loc');
+    });
+  });
   populateAstSupplierSelect('af-cat');
+  autoSelect('af-cat');
   populateAstCategorySelect('af-acat');
+  autoSelect('af-acat');
   openMo('mo-ast');
 }
 function editAst(id){
@@ -2801,7 +2831,7 @@ function openNewUnit(){
   document.getElementById('uf2-sort').value='';
   populateBldSelect('uf2-bldg');
   document.getElementById('uf2-bldg').value='';
-  uf2OnBldgChange();
+  autoSelect('uf2-bldg', ()=>{ uf2OnBldgChange(); autoSelect('uf2-floor'); });
   openMo('mo-unit');
 }
 function editUnit(id){
@@ -2854,6 +2884,7 @@ function openNewUnitForBuilding(bldId){
   const bld=DB.buildings.find(b=>b.id===bldId);
   document.getElementById('uf2-bldg').value=bld?bld.name:'';
   uf2OnBldgChange();
+  autoSelect('uf2-floor');
   openMo('mo-unit');
 }
 
@@ -3018,6 +3049,7 @@ function openNewFloor(){
   document.getElementById('ff-sort').value  = '';
   populateBldSelect('ff-bldg');
   document.getElementById('ff-bldg').value  = '';
+  autoSelect('ff-bldg');
   openMo('mo-floor');
 }
 
@@ -4246,13 +4278,26 @@ function openNewLogEntry(){
   bSel.innerHTML = '<option value="">— None —</option>' +
     [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
       .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
-  // Reset cascades
-  document.getElementById('lf-floor').innerHTML    = '<option value="">— None —</option>';
-  document.getElementById('lf-unit').innerHTML     = '<option value="">— None —</option>';
-  document.getElementById('lf-asset').innerHTML    = '<option value="">— None —</option>';
+  autoSelect('lf-bldg', ()=>{
+    lfOnBldgChange();
+    autoSelect('lf-floor', ()=>{
+      lfOnFloorChange();
+      autoSelect('lf-unit', ()=>{
+        lfOnUnitChange();
+        autoSelect('lf-asset');
+      });
+    });
+  });
+  // Reset remaining cascades if building not auto-selected
+  if(!document.getElementById('lf-bldg').value){
+    document.getElementById('lf-floor').innerHTML = '<option value="">— None —</option>';
+    document.getElementById('lf-unit').innerHTML  = '<option value="">— None —</option>';
+    document.getElementById('lf-asset').innerHTML = '<option value="">— None —</option>';
+  }
   document.getElementById('lf-supplier').innerHTML = '<option value="">— None —</option>' +
     DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name))
       .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  autoSelect('lf-supplier');
   openMo('mo-log');
 }
 
