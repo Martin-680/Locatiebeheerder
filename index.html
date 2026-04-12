@@ -165,6 +165,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .fsel-lbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
 .fsel{background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 10px;font-size:13px;color:var(--text);outline:none;width:100%;}
 .fsel.active-filter{border-color:var(--blue);}
+.btn-clear-filter{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.btn-clear-filter:active{transform:scale(.96);}
+.btn-clear-filter svg{flex-shrink:0;}
 
 /* ── TICKET LIST ── */
 .tlist{display:flex;flex-direction:column;gap:8px;padding:0 14px 8px;}
@@ -479,7 +482,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </select>
       </div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 14px 8px">
+    <div style="display:flex;align-items:center;padding:0 14px 6px">
       <div style="font-size:12px;color:var(--muted)">
         <select id="sel-tix-sort" onchange="setPage('tix',1);renderTix()" style="background:none;border:none;font-size:12px;color:var(--muted);font-family:inherit;cursor:pointer;outline:none;padding:0">
           <option value="newest">↓ Newest first</option>
@@ -488,7 +491,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="days">⏱ Most overdue</option>
         </select>
       </div>
-      <button onclick="clearTixFilters()" style="font-size:12px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button>
+    </div>
+    <div style="padding:0 14px 10px">
+      <button class="btn-clear-filter" onclick="clearTixFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
     </div>
     <div id="tix-list"></div>
   </div>
@@ -535,8 +540,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </select>
       </div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:flex-end;padding:0 14px 8px">
-      <button onclick="clearAstFilters()" style="font-size:12px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button>
+    <div style="padding:0 14px 10px">
+      <button class="btn-clear-filter" onclick="clearAstFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
     </div>
     <div id="ast-list"></div>
   </div>
@@ -568,6 +573,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="bld-search" placeholder="Search buildings…" oninput="renderBlds()"/></div>
+    <div style="padding:0 14px 10px">
+      <button class="btn-clear-filter" onclick="clearBldFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
+    </div>
     <div id="bld-list"></div>
   </div>
 
@@ -606,8 +614,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </select>
       </div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:flex-end;padding:0 14px 8px">
-      <button onclick="clearInspFilters()" style="font-size:12px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button>
+    <div style="padding:0 14px 10px">
+      <button class="btn-clear-filter" onclick="clearInspFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
     </div>
     <div id="insp-list"></div>
   </div>
@@ -673,8 +681,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </select>
       </div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:flex-end;padding:0 14px 8px">
-      <button onclick="clearSupFilters()" style="font-size:12px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button>
+    <div style="padding:0 14px 10px">
+      <button class="btn-clear-filter" onclick="clearSupFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
     </div>
     <div id="sup-list"></div>
   </div>
@@ -727,6 +735,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </select>
       </div>
     </div>
+    <div style="padding:0 14px 10px">
+      <button class="btn-clear-filter" onclick="clearUnitFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
+    </div>
     <div id="unit-list"></div>
   </div>
 
@@ -748,6 +759,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="All">All Buildings</option>
         </select>
       </div>
+    </div>
+    <div style="padding:0 14px 10px">
+      <button class="btn-clear-filter" onclick="clearFloorFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
     </div>
     <div id="floor-list"></div>
   </div>
@@ -791,8 +805,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </select>
       </div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:flex-end;padding:0 14px 8px">
-      <button onclick="clearLogFilters()" style="font-size:12px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button>
+    <div style="padding:0 14px 10px">
+      <button class="btn-clear-filter" onclick="clearLogFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
     </div>
     <div id="log-list"></div>
   </div>
@@ -1970,6 +1984,20 @@ function clearGlobalSearch(){ const inp=document.getElementById('global-search')
 /* ══════════════════════════════════════════════════════════
    TICKETS
 ══════════════════════════════════════════════════════════ */
+function clearBldFilters(){
+  const s=document.getElementById('bld-search');if(s)s.value='';
+  renderBlds();
+}
+function clearFloorFilters(){
+  const sel=document.getElementById('sel-floor-bldg');if(sel)sel.value='All';
+  const s=document.getElementById('floor-search');if(s)s.value='';
+  renderFloors();
+}
+function clearUnitFilters(){
+  ['sel-unit-bldg','sel-unit-floor','sel-unit-status'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
+  const s=document.getElementById('unit-search');if(s)s.value='';
+  renderUnits();
+}
 function clearTixFilters(){
   ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const search=document.getElementById('tsearch');if(search)search.value='';
