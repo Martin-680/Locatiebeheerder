@@ -1603,8 +1603,6 @@ function tfOnFloorChange(){
   const floorLabel=document.getElementById('tf-sub').value;
   const floor=DB.floors.find(f=>f.label===floorLabel);
   const floorId=floor?floor.id:'';
-  // Reset downstream
-  document.getElementById('tf-asset').innerHTML='<option value="">None</option>';
   document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
   // Populate units from DB.units
   const unitList=floorId ? DB.units.filter(u=>u.floorId===floorId) : [];
@@ -1614,19 +1612,20 @@ function tfOnFloorChange(){
   } else {
     unitSel.innerHTML='<option value="">— None —</option>';
   }
+  // Populate assets for this floor (no unit filter yet)
+  tfOnUnitChange();
 }
 function tfOnUnitChange(){
   const bldg=document.getElementById('tf-bldg').value;
   const floorLabel=document.getElementById('tf-sub').value;
-  const floor=DB.floors.find(f=>f.label===floorLabel);
   const unit=document.getElementById('tf-unit').value;
   // Reset downstream
   document.getElementById('tf-supplier').innerHTML='<option value="">None</option>';
-  // Populate assets filtered by building + floor label + location
+  // Populate assets filtered by building + floor + unit (unit filter only applied when selected)
   const assets=DB.assets.filter(a=>{
     if(a.building!==bldg) return false;
-    if(floorLabel&&a.floor&&a.floor!==floorLabel) return false;
-    if(unit&&a.unit&&a.unit!==unit) return false;
+    if(floorLabel&&a.floor!==floorLabel) return false;
+    if(unit&&a.unit!==unit) return false;
     return true;
   });
   const astSel=document.getElementById('tf-asset');
