@@ -2020,32 +2020,37 @@ function renderTix(){
   const q=(document.getElementById('tsearch')?.value||'').toLowerCase();
   const statusVal=document.getElementById('sel-tix-status')?.value||'All';
   const priVal=document.getElementById('sel-tix-pri')?.value||'All';
-  const catVal=document.getElementById('sel-tix-cat')?.value||'All';
-  const bldgVal=document.getElementById('sel-tix-bldg')?.value||'All';
-  const floorVal=document.getElementById('sel-tix-floor')?.value||'All';
   const sortVal=document.getElementById('sel-tix-sort')?.value||'newest';
-  syncSelActive('sel-tix-status'); syncSelActive('sel-tix-pri'); syncSelActive('sel-tix-cat'); syncSelActive('sel-tix-bldg'); syncSelActive('sel-tix-floor');
-  // Populate building filter dynamically
+  // Populate building filter, preserving selection
   const bldgSel=document.getElementById('sel-tix-bldg');
-  if(bldgSel&&bldgSel.options.length<=1){
-    [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).forEach(b=>{const o=document.createElement('option');o.value=b.name;o.textContent=b.name;bldgSel.appendChild(o);});
-    if(bldgVal!=='All') bldgSel.value=bldgVal;
+  if(bldgSel){
+    const prev=bldgSel.value;
+    bldgSel.innerHTML='<option value="All">All Buildings</option>'
+      +[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+    bldgSel.value=prev;
   }
-  // Populate floor filter scoped to selected building
+  const bldgVal=bldgSel?.value||'All';
+  // Populate floor filter scoped to selected building, preserving selection
   const tixFloorSel=document.getElementById('sel-tix-floor');
   if(tixFloorSel){
-    const prevFloor=tixFloorSel.value;
-    const floorsBldg=bldgVal==='All'?DB.floors:DB.floors.filter(f=>{const b=DB.buildings.find(x=>x.name===bldgVal);return b&&f.buildingId===b.id;});
-    tixFloorSel.innerHTML='<option value="All">All Floors</option>'+[...floorsBldg].sort((a,z)=>a.sortOrder-z.sortOrder).map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
-    if(floorsBldg.find(f=>f.label===prevFloor)) tixFloorSel.value=prevFloor;
+    const prev=tixFloorSel.value;
+    const floorsBldg=bldgVal==='All'
+      ? [...DB.floors].sort((a,z)=>a.label.localeCompare(z.label))
+      : getFloorsForBuilding(bldgVal);
+    tixFloorSel.innerHTML='<option value="All">All Floors</option>'
+      +floorsBldg.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
+    tixFloorSel.value=floorsBldg.some(f=>f.label===prev)?prev:'All';
   }
-  // Populate category filter from sheet
+  const floorVal=tixFloorSel?.value||'All';
+  // Populate category filter from sheet, preserving selection
   const tixCatSel=document.getElementById('sel-tix-cat');
   if(tixCatSel){
-    const prevCat=tixCatSel.value;
+    const prev=tixCatSel.value;
     tixCatSel.innerHTML='<option value="All">All Categories</option>'+getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
-    tixCatSel.value=prevCat;
+    tixCatSel.value=prev;
   }
+  const catVal=tixCatSel?.value||'All';
+  syncSelActive('sel-tix-status'); syncSelActive('sel-tix-pri'); syncSelActive('sel-tix-cat'); syncSelActive('sel-tix-bldg'); syncSelActive('sel-tix-floor');
   let list=DB.tickets;
   if(statusVal==='mine') list=list.filter(t=>t.assignedTo===currentUser?.name||t.createdBy===currentUser?.name);
   else if(statusVal==='notclosed') list=list.filter(t=>t.status!=='Closed');
@@ -2053,7 +2058,7 @@ function renderTix(){
   if(priVal!=='All') list=list.filter(t=>t.priority===priVal);
   if(catVal!=='All') list=list.filter(t=>t.category===catVal);
   if(bldgVal!=='All') list=list.filter(t=>t.building===bldgVal);
-  if(floorVal!=='All') list=list.filter(t=>(t.floor||'')=== floorVal);
+  if(floorVal!=='All') list=list.filter(t=>t.floor===floorVal);
   if(q) list=list.filter(t=>t.subject.toLowerCase().includes(q)||t.building.toLowerCase().includes(q)||t.id.toLowerCase().includes(q)||t.assignedTo?.toLowerCase().includes(q)||(t.reportedBy||'').toLowerCase().includes(q));
   // Sort
   const priOrder={Critical:0,High:1,Medium:2,Low:3};
