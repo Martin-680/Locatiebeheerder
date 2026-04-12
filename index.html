@@ -516,6 +516,11 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="All">All Buildings</option>
         </select>
       </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Floor</div>
+        <select class="fsel" id="sel-ast-floor" onchange="setPage('ast',1);renderAst()">
+          <option value="All">All Floors</option>
+        </select>
+      </div>
       <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
         <select class="fsel" id="sel-ast-status" onchange="setPage('ast',1);renderAst()">
           <option value="All">All Statuses</option><option value="Active">Active</option>
@@ -2005,7 +2010,7 @@ function clearTixFilters(){
 }
 
 function clearAstFilters(){
-  ['sel-ast-bldg','sel-ast-status','sel-ast-cat','sel-ast-acat','sel-ast-tix-status'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
+  ['sel-ast-bldg','sel-ast-floor','sel-ast-status','sel-ast-cat','sel-ast-acat','sel-ast-tix-status'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const search=document.getElementById('asearch');if(search)search.value='';
   setPage('ast',1);renderAst();
 }
@@ -2394,6 +2399,18 @@ function renderAst(){
     bldSel.value=prev;
   }
   const bldVal=bldSel?.value||'All';
+  // Populate floor filter based on selected building
+  const astFloorSel=document.getElementById('sel-ast-floor');
+  if(astFloorSel){
+    const prev=astFloorSel.value;
+    const floors=bldVal!=='All'
+      ? getFloorsForBuilding(bldVal)
+      : [...DB.floors].sort((a,z)=>a.label.localeCompare(z.label));
+    astFloorSel.innerHTML='<option value="All">All Floors</option>'
+      +floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+    astFloorSel.value=floors.some(f=>f.id===prev)?prev:'All';
+  }
+  const floorVal=astFloorSel?.value||'All';
   // Populate supplier filter from DB.suppliers, preserving selection
   const catSel=document.getElementById('sel-ast-cat');
   if(catSel){
@@ -2414,9 +2431,10 @@ function renderAst(){
   const catVal=catSel?.value||'All';
   const acatVal=acatSel?.value||'All';
   const tixStatusVal=document.getElementById('sel-ast-tix-status')?.value||'All';
-  syncSelActive('sel-ast-bldg'); syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat'); syncSelActive('sel-ast-tix-status');
+  syncSelActive('sel-ast-bldg'); syncSelActive('sel-ast-floor'); syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat'); syncSelActive('sel-ast-tix-status');
   let list=DB.assets;
   if(bldVal!=='All')    list=list.filter(a=>a.building===bldVal);
+  if(floorVal!=='All')  list=list.filter(a=>a.floorId===floorVal);
   if(statusVal!=='All') list=list.filter(a=>a.status===statusVal);
   if(catVal!=='All')    list=list.filter(a=>a.supplierId===catVal);
   if(acatVal!=='All')   list=list.filter(a=>a.category===acatVal);
