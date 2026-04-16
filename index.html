@@ -805,13 +805,32 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </select>
       </div>
       <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
-        <select class="fsel" id="sel-log-bldg" onchange="setPage('log',1);renderLogbook()">
+        <select class="fsel" id="sel-log-bldg" onchange="onLogBldgChange()">
           <option value="All">All Buildings</option>
         </select>
       </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Floor</div>
+        <select class="fsel" id="sel-log-floor" onchange="onLogFloorChange()">
+          <option value="All">All Floors</option>
+        </select>
+      </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Unit</div>
+        <select class="fsel" id="sel-log-unit" onchange="onLogUnitChange()">
+          <option value="All">All Units</option>
+        </select>
+      </div>
+      <div class="fsel-wrap"><div class="fsel-lbl">Asset</div>
+        <select class="fsel" id="sel-log-asset" onchange="setPage('log',1);renderLogbook()">
+          <option value="All">All Assets</option>
+        </select>
+      </div>
     </div>
-    <div style="padding:0 14px 10px">
-      <button class="btn-clear-filter" onclick="clearLogFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
+    <div style="padding:0 14px 8px;display:flex;gap:8px;align-items:center">
+      <div style="flex:1;position:relative">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="log-search" placeholder="Search entries…" oninput="setPage('log',1);renderLogbook()" style="width:100%;padding:8px 10px 8px 32px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;background:var(--surface);color:var(--text)"/>
+      </div>
+      <button class="btn-clear-filter" onclick="clearLogFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
     </div>
     <div id="log-list"></div>
   </div>
@@ -4231,25 +4250,86 @@ const LOG_STATUS_COLORS = {
   'gesloten': { bg:'rgba(16,185,129,.12)',  color:'var(--green)' },
 };
 
-function renderLogbook(){
-  // populate building filter
+function populateLogBldgFilter(){
   const bSel = document.getElementById('sel-log-bldg');
-  if(bSel){
-    const cur = bSel.value;
-    bSel.innerHTML = '<option value="All">All Buildings</option>' +
-      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
-        .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
-    if(bSel.querySelector(`option[value="${cur}"]`)) bSel.value = cur;
+  if(!bSel) return;
+  const cur = bSel.value;
+  bSel.innerHTML = '<option value="All">All Buildings</option>' +
+    [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
+      .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  if(bSel.querySelector(`option[value="${cur}"]`)) bSel.value = cur;
+}
+function onLogBldgChange(){
+  // Cascade floor/unit/asset filters when building changes
+  const bldgId = document.getElementById('sel-log-bldg')?.value || 'All';
+  const fSel = document.getElementById('sel-log-floor');
+  if(fSel){
+    const floors = bldgId==='All' ? [] : DB.floors.filter(f=>f.buildingId===bldgId).sort((a,z)=>a.sortOrder-z.sortOrder);
+    fSel.innerHTML = '<option value="All">All Floors</option>' + floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
   }
+  const uSel = document.getElementById('sel-log-unit');
+  if(uSel) uSel.innerHTML = '<option value="All">All Units</option>';
+  const aSel = document.getElementById('sel-log-asset');
+  if(aSel) aSel.innerHTML = '<option value="All">All Assets</option>';
+  setPage('log',1); renderLogbook();
+}
+function onLogFloorChange(){
+  const floorId = document.getElementById('sel-log-floor')?.value || 'All';
+  const bldgId  = document.getElementById('sel-log-bldg')?.value  || 'All';
+  const uSel = document.getElementById('sel-log-unit');
+  if(uSel){
+    const units = (floorId==='All'&&bldgId==='All') ? [] :
+      DB.units.filter(u=>(floorId!=='All'?u.floorId===floorId:(bldgId!=='All'?u.buildingId===bldgId:true))).sort((a,z)=>a.label.localeCompare(z.label));
+    uSel.innerHTML = '<option value="All">All Units</option>' + units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+  }
+  const aSel = document.getElementById('sel-log-asset');
+  if(aSel) aSel.innerHTML = '<option value="All">All Assets</option>';
+  setPage('log',1); renderLogbook();
+}
+function onLogUnitChange(){
+  const unitId  = document.getElementById('sel-log-unit')?.value  || 'All';
+  const floorId = document.getElementById('sel-log-floor')?.value || 'All';
+  const bldgId  = document.getElementById('sel-log-bldg')?.value  || 'All';
+  const aSel = document.getElementById('sel-log-asset');
+  if(aSel){
+    const assets = DB.assets.filter(a=>{
+      if(unitId !=='All') return a.unitId===unitId;
+      if(floorId!=='All') return a.floorId===floorId;
+      if(bldgId !=='All') return a.buildingId===bldgId;
+      return false;
+    }).sort((a,z)=>a.label.localeCompare(z.label));
+    aSel.innerHTML = '<option value="All">All Assets</option>' + assets.map(a=>`<option value="${a.id}">${a.label}</option>`).join('');
+  }
+  setPage('log',1); renderLogbook();
+}
+
+function renderLogbook(){
+  // populate building filter without triggering onchange
+  populateLogBldgFilter();
 
   const typeF   = (document.getElementById('sel-log-type')?.value   || 'All');
   const statusF = (document.getElementById('sel-log-status')?.value || 'All');
   const bldgF   = (document.getElementById('sel-log-bldg')?.value   || 'All');
+  const floorF  = (document.getElementById('sel-log-floor')?.value  || 'All');
+  const unitF   = (document.getElementById('sel-log-unit')?.value   || 'All');
+  const assetF  = (document.getElementById('sel-log-asset')?.value  || 'All');
+  const searchF = (document.getElementById('log-search')?.value     || '').toLowerCase().trim();
 
   let rows = DB.logs.slice().sort((a,z)=>(z.date||'').localeCompare(a.date||''));
   if(typeF   !== 'All') rows = rows.filter(r=>r.type===typeF);
   if(statusF !== 'All') rows = rows.filter(r=>r.status===statusF);
   if(bldgF   !== 'All') rows = rows.filter(r=>r.buildingId===bldgF);
+  if(floorF  !== 'All') rows = rows.filter(r=>r.floorId===floorF);
+  if(unitF   !== 'All') rows = rows.filter(r=>r.unitId===unitF);
+  if(assetF  !== 'All') rows = rows.filter(r=>r.assetId===assetF);
+  if(searchF) rows = rows.filter(r=>
+    (r.subject||'').toLowerCase().includes(searchF) ||
+    (r.note||'').toLowerCase().includes(searchF) ||
+    (r.building||'').toLowerCase().includes(searchF) ||
+    (r.floor||'').toLowerCase().includes(searchF) ||
+    (r.unit||'').toLowerCase().includes(searchF) ||
+    (r.assetLabel||'').toLowerCase().includes(searchF)
+  );
 
   const total = rows.length;
   document.getElementById('log-lbl').textContent = total + ' entr' + (total===1?'y':'ies');
@@ -4298,8 +4378,8 @@ function renderLogbook(){
         </div>
         ${r.note ? `<div style="font-size:13px;color:var(--sub);line-height:1.5;border-top:1px solid var(--border);padding:8px 0 4px">${r.note}</div>` : ''}
         <div style="display:flex;gap:8px;border-top:1px solid var(--border);padding:10px 0 12px;margin-top:6px">
-          <button onclick="editLogEntry('${r.id}')" style="flex:1;padding:9px;background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--sub)">✏️ Edit</button>
-          ${can('canCreateTickets') ? `<button onclick="quickTicketFromLog('${r.id}')" style="flex:1;padding:9px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.22);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--blue)">🎫 New Ticket</button>` : ''}
+          <button onclick="editLogEntry('${r.id}')" style="flex:1;padding:9px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--blue)">Edit</button>
+          ${can('canCreateTickets') ? `<button onclick="quickTicketFromLog('${r.id}')" style="flex:1;padding:9px;background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.25);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--green)">New Ticket</button>` : ''}
         </div>
       </div>
     </div>`;
@@ -4310,9 +4390,14 @@ function renderLogbook(){
 }
 
 function clearLogFilters(){
-  ['sel-log-type','sel-log-status','sel-log-bldg'].forEach(id=>{
+  ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='All';
   });
+  const s=document.getElementById('log-search'); if(s) s.value='';
+  // Reset cascading dropdowns to "All" only
+  const fSel=document.getElementById('sel-log-floor'); if(fSel) fSel.innerHTML='<option value="All">All Floors</option>';
+  const uSel=document.getElementById('sel-log-unit');  if(uSel) uSel.innerHTML='<option value="All">All Units</option>';
+  const aSel=document.getElementById('sel-log-asset'); if(aSel) aSel.innerHTML='<option value="All">All Assets</option>';
   setPage('log',1);
   renderLogbook();
 }
