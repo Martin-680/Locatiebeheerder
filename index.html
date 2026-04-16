@@ -545,8 +545,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fsel-wrap"><div class="fsel-lbl">Tickets</div>
         <select class="fsel" id="sel-ast-tix-status" onchange="setPage('ast',1);renderAst()">
           <option value="All">All</option>
-          <option value="Active">Active</option>
-          <option value="Available">Available</option>
+          <option value="Active">Problem</option>
+          <option value="Available">Normal</option>
         </select>
       </div>
     </div>
@@ -740,8 +740,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
         <select class="fsel" id="sel-unit-status" onchange="renderUnits()">
           <option value="All">All</option>
-          <option value="Active">Active</option>
-          <option value="Available">Available</option>
+          <option value="Active">Problem</option>
+          <option value="Available">Normal</option>
         </select>
       </div>
     </div>
@@ -2108,13 +2108,12 @@ function tixItemHTML(t,clickable=true){
   const floorLabel = DB.floors.find(f=>f.id===t.floor)?.label || DB.floors.find(f=>f.label===t.floor)?.label || t.floor || '—';
   return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-        <div style="min-width:0">
-          <div class="ti-subj">${t.subject}</div>
-        </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div class="ti-subj" style="margin-bottom:0;flex:1;min-width:0">${t.subject}</div>
         <span class="badge ${stCls}" style="flex-shrink:0;margin-left:8px">${t.status}</span>
       </div>
-      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${t.id}${t.dateOpened ? ' · ' + df(t.dateOpened) : ''}</div>
+      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:10px">
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.building}</div><div class="bs-lbl">Building</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${floorLabel}</div><div class="bs-lbl">Floor</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
@@ -2402,13 +2401,14 @@ function astCardHTML(a, onclick){
   const openTix=(DB.tickets||[]).filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
   const tixColor=openTix>0?'var(--amber)':'var(--muted)';
   const tixBadge=openTix>0
-    ? `<span class="badge" style="background:rgba(8,145,178,.12);color:var(--teal);font-size:11px;font-weight:700">Active</span>`
-    : `<span class="badge" style="background:rgba(124,58,237,.12);color:var(--purple);font-size:11px;font-weight:700">Available</span>`;
+    ? `<span class="badge" style="background:rgba(220,38,38,.12);color:var(--red);font-size:11px;font-weight:700">Problem</span>`
+    : `<span class="badge" style="background:rgba(5,150,105,.12);color:var(--green);font-size:11px;font-weight:700">Normal</span>`;
   return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px 0;margin-bottom:8px;cursor:pointer" onclick="${onclick}">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-      <div style="min-width:0"><div style="font-size:15px;font-weight:600">${a.name}</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+      <div style="font-size:15px;font-weight:600;flex:1;min-width:0">${a.name}</div>
       ${tixBadge}
     </div>
+    <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${a.id}</div>
     <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px;display:grid;grid-template-columns:repeat(4,1fr)">
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building||'—'}</div><div class="bs-lbl">Building</div></div>
       <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
@@ -2877,15 +2877,15 @@ function renderUnits(){
     );
     const inUse   = openTix.length > 0;
     return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <div style="font-size:15px;font-weight:700;flex:1;cursor:pointer" onclick="openUnitDetail('${u.id}')">${u.label}</div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px">
           ${inUse
-            ? `<span class="badge" style="background:rgba(8,145,178,.12);color:var(--teal);font-size:11px;font-weight:700">Active</span>`
-            : `<span class="badge" style="background:rgba(124,58,237,.12);color:var(--purple);font-size:11px;font-weight:700">Available</span>`}
-
+            ? `<span class="badge" style="background:rgba(220,38,38,.12);color:var(--red);font-size:11px;font-weight:700">Problem</span>`
+            : `<span class="badge" style="background:rgba(5,150,105,.12);color:var(--green);font-size:11px;font-weight:700">Normal</span>`}
         </div>
       </div>
+      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${u.id}</div>
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;padding-bottom:4px;cursor:pointer" onclick="openUnitDetail('${u.id}')">
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${flr?.label||'—'}</div><div class="bs-lbl">Floor</div></div>
@@ -3045,10 +3045,11 @@ function renderFloors(){
     const assets = DB.assets.filter(a=>a.floorId===f.id);
     const tickets= DB.tickets.filter(t=>t.floorId===f.id && t.status!=='Closed');
     return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <div style="font-size:15px;font-weight:700;flex:1;cursor:pointer" onclick="openFloorDetail('${f.id}')">${f.label}</div>
       </div>
-      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;padding-bottom:4px;cursor:pointer;display:grid;grid-template-columns:repeat(4,1fr)" onclick="openFloorDetail('${f.id}')">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${f.id}</div>
+      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:4px;cursor:pointer;display:grid;grid-template-columns:repeat(4,1fr)" onclick="openFloorDetail('${f.id}')">
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${units.length}</div><div class="bs-lbl">Units</div></div>
         <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${assets.length}</div><div class="bs-lbl">Assets</div></div>
@@ -3272,9 +3273,10 @@ function renderBlds(){
     const tixBadge=openTix>0?`<span style="background:rgba(217,119,6,.12);color:var(--amber);border:1px solid rgba(217,119,6,.25);border-radius:20px;font-size:11px;font-weight:700;padding:3px 9px;white-space:nowrap;flex-shrink:0">${openTix} open tix</span>`:'';
     return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
       <div class="bc-hdr">
-        <div style="min-width:0;flex:1"><div class="bc-name">${b.name}</div><div class="bc-addr">${b.address||'—'}</div>${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''} ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px">${b.phone}</div>`:''}</div>
+        <div style="min-width:0;flex:1"><div class="bc-name">${b.name}</div></div>
         ${tixBadge}
       </div>
+      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;padding:0 4px">${b.id}${b.address ? ' · ' + b.address : ''}${b.daysOpen||b.timeOpen ? ' · ' + [b.daysOpen,b.timeOpen].filter(Boolean).join(' ') : ''}${b.phone ? ' · ' + b.phone : ''}</div>
       <div class="bc-body">
         <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
         <div class="bs"><div class="bs-val">${unitCount}</div><div class="bs-lbl">Units</div></div>
@@ -3376,8 +3378,9 @@ function renderSuppliers(){
     const activeExp=expertiseVal!=='All'?expertiseVal:null;
     return`<div class="sup-card" style="padding-bottom:${s.phone?'0':'14px'}" onclick="openSupDetail('${s.id}')">
       <div class="sup-hdr">
-        <div>
+        <div style="flex:1;min-width:0">
           <div class="sup-name">${s.name}</div>
+          <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px">${s.id}</div>
           ${exp.length?`<div style="font-size:11px;color:var(--sub);margin-top:2px;line-height:1.4">${exp.join(', ')}</div>`:''}
           <div style="display:flex;gap:16px;margin:6px 0 4px;align-items:flex-end">
             <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Rate/hr</div><div class="sup-rate">€ ${s.ratePerHour||0}</div></div>
@@ -4399,17 +4402,15 @@ function renderLogbook(){
     const astNav  = r.assetId   ? `navTo('assets')`    : '';
     html += `<div class="ti" style="flex-direction:column;padding-bottom:0;cursor:default">
       <div style="width:100%">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-          <div style="min-width:0;flex:1">
-            <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:2px">${r.id} · ${r.date ? df(r.date) : '—'}</div>
-            <div class="ti-subj">${r.subject||'—'}</div>
-          </div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+          <div class="ti-subj" style="margin-bottom:0;flex:1;min-width:0">${r.subject||'—'}</div>
           <div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px;align-items:center">
             ${r.type   ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color}">${r.type}</span>` : ''}
             ${r.status ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${sc.bg};color:${sc.color}">${r.status}</span>` : ''}
           </div>
         </div>
-        <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:0;display:grid;grid-template-columns:repeat(4,1fr)">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${r.id}${r.date ? ' · ' + df(r.date) : ''}</div>
+        <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:0;display:grid;grid-template-columns:repeat(4,1fr)">
           <div class="bs" style="${r.buildingId?'cursor:pointer':''}" ${r.buildingId?`onclick="${bldNav}"`:''}><div class="bs-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;${r.buildingId?'color:var(--blue)':''}">${r.building||'—'}</div><div class="bs-lbl">Building</div></div>
           <div class="bs" style="${r.floorId?'cursor:pointer':''}" ${r.floorId?`onclick="${flrNav}"`:''}><div class="bs-val" style="${r.floorId?'color:var(--blue)':''}">${r.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
           <div class="bs" style="${r.unitId?'cursor:pointer':''}" ${r.unitId?`onclick="${unitNav}"`:''}><div class="bs-val" style="${r.unitId?'color:var(--blue)':''}">${r.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
