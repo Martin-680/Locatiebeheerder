@@ -183,7 +183,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .p-ordered{background:var(--teal);}
 .ti-left{flex:1;min-width:0;}
 .ti-id{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:2px;}
-.ti-subj{font-size:15px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ti-subj,.ct{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cm{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;}
 .ti-meta{display:flex;gap:10px;flex-wrap:wrap;}
 .ti-meta span{font-size:11px;color:var(--sub);}
 .ti-right{flex-shrink:0;}
@@ -240,14 +241,14 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .bc-wrap{background:var(--card);border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06);border-radius:var(--r);margin:0 14px 12px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s;}
 .bc-wrap:active{transform:scale(.98);border-color:var(--blue);}
 .bc-hdr{padding:14px 16px;background:var(--card);display:flex;justify-content:space-between;align-items:flex-start;}
-.bc-name{font-size:15px;font-weight:700;margin-bottom:2px;}
+.bc-name,.sup-name,.insp-list-title{font-size:15px;font-weight:700;}
 .bc-addr{font-size:13px;color:var(--sub);font-weight:500;}
 .bc-body{padding:12px 16px;display:flex;}
 .bc-body .bs{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 0;}
 .bc-body .bs+.bs{border-left:1px solid var(--border);}
 .bc-wrap .bc-body{border-top:1px solid var(--border);padding-top:12px;}
 .bs{text-align:center;}
-.bs-val{font-size:13px;font-weight:700;}
+.bs-val{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bs-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
 .bc-subs{padding:0 16px 14px;}
 .sub-tag{display:inline-flex;align-items:center;gap:5px;background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:8px;padding:4px 10px;font-size:12px;margin:3px 3px 3px 0;}
@@ -255,7 +256,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 /* ── SUPPLIER ── */
 .sup-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);margin:0 14px 8px;padding:14px 16px;cursor:pointer;}
 .sup-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
-.sup-name{font-size:15px;font-weight:700;}
 .sup-contact{font-size:12px;color:var(--muted);margin-top:2px;}
 .sup-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
 .sup-tag{background:#F0F9FF;border:1px solid #BAE6FD;border-radius:6px;padding:3px 8px;font-size:11px;color:var(--sub);}
@@ -322,8 +322,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .insp-list-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);margin:0 14px 10px;padding:14px 16px;cursor:pointer;transition:border-color .15s;}
 .insp-list-card:active{border-color:var(--border2);}
 .insp-list-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
-.insp-list-title{font-size:15px;font-weight:700;}
-.insp-list-sub{font-size:12px;color:var(--sub);margin-top:2px;}
 .insp-progress-pill{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:#EEF2FF;color:var(--indigo);flex-shrink:0;}
 .insp-stat-row{display:flex;gap:0;border-top:1px solid var(--border);margin:0 -16px -14px;border-radius:0 0 var(--r) var(--r);overflow:hidden;}
 .insp-stat{flex:1;padding:9px 6px;text-align:center;border-right:1px solid var(--border);}
@@ -2109,15 +2107,15 @@ function tixItemHTML(t,clickable=true){
   return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-        <div class="ti-subj" style="margin-bottom:0;flex:1;min-width:0">${t.subject}</div>
+        <div class="ct" style="flex:1;min-width:0">${t.subject}</div>
         <span class="badge ${stCls}" style="flex-shrink:0;margin-left:8px">${t.status}</span>
       </div>
-      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${t.id}${t.dateOpened ? ' · ' + df(t.dateOpened) : ''}</div>
+      <div class="cm">${t.id}${t.dateOpened ? ' · ' + df(t.dateOpened) : ''}</div>
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:10px">
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.building}</div><div class="bs-lbl">Building</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${floorLabel}</div><div class="bs-lbl">Floor</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;${daysColor}">${days||'—'}</div><div class="bs-lbl">Age</div></div>
+        <div class="bs"><div class="bs-val">${t.building}</div><div class="bs-lbl">Building</div></div>
+        <div class="bs"><div class="bs-val">${floorLabel}</div><div class="bs-lbl">Floor</div></div>
+        <div class="bs"><div class="bs-val">${t.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
+        <div class="bs"><div class="bs-val" style="${daysColor}">${days||'—'}</div><div class="bs-lbl">Age</div></div>
       </div>
     </div>
   </div>`;
@@ -2405,15 +2403,15 @@ function astCardHTML(a, onclick){
     : `<span class="badge" style="background:rgba(5,150,105,.12);color:var(--green);font-size:11px;font-weight:700">Normal</span>`;
   return`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px 0;margin-bottom:8px;cursor:pointer" onclick="${onclick}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-      <div style="font-size:15px;font-weight:600;flex:1;min-width:0">${a.name}</div>
+      <div class="ct" style="flex:1;min-width:0">${a.name}</div>
       ${tixBadge}
     </div>
-    <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${a.id}</div>
+    <div class="cm">${a.id}</div>
     <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px;display:grid;grid-template-columns:repeat(4,1fr)">
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.building||'—'}</div><div class="bs-lbl">Building</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
-      <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;color:${tixColor}">${openTix}</div><div class="bs-lbl">Tickets</div></div>
+      <div class="bs"><div class="bs-val">${a.building||'—'}</div><div class="bs-lbl">Building</div></div>
+      <div class="bs"><div class="bs-val">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
+      <div class="bs"><div class="bs-val">${a.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
+      <div class="bs"><div class="bs-val" style="color:${tixColor}">${openTix}</div><div class="bs-lbl">Tickets</div></div>
     </div>
   </div>`;
 }
@@ -2878,19 +2876,19 @@ function renderUnits(){
     const inUse   = openTix.length > 0;
     return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-        <div style="font-size:15px;font-weight:700;flex:1;cursor:pointer" onclick="openUnitDetail('${u.id}')">${u.label}</div>
+        <div class="ct" style="flex:1;cursor:pointer" onclick="openUnitDetail('${u.id}')">${u.label}</div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px">
           ${inUse
             ? `<span class="badge" style="background:rgba(220,38,38,.12);color:var(--red);font-size:11px;font-weight:700">Problem</span>`
             : `<span class="badge" style="background:rgba(5,150,105,.12);color:var(--green);font-size:11px;font-weight:700">Normal</span>`}
         </div>
       </div>
-      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${u.id}</div>
+      <div class="cm">${u.id}</div>
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;padding-bottom:4px;cursor:pointer" onclick="openUnitDetail('${u.id}')">
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${flr?.label||'—'}</div><div class="bs-lbl">Floor</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${assets.length}</div><div class="bs-lbl">Assets</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;color:${openTix.length?'var(--red)':'var(--text)'}">${openTix.length}</div><div class="bs-lbl">Tickets</div></div>
+        <div class="bs"><div class="bs-val">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
+        <div class="bs"><div class="bs-val">${flr?.label||'—'}</div><div class="bs-lbl">Floor</div></div>
+        <div class="bs"><div class="bs-val">${assets.length}</div><div class="bs-lbl">Assets</div></div>
+        <div class="bs"><div class="bs-val" style="color:${openTix.length?'var(--red)':'var(--text)'}">${openTix.length}</div><div class="bs-lbl">Tickets</div></div>
       </div>
     </div>`;
   }).join('') + '</div>';
@@ -3046,14 +3044,14 @@ function renderFloors(){
     const tickets= DB.tickets.filter(t=>t.floorId===f.id && t.status!=='Closed');
     return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-        <div style="font-size:15px;font-weight:700;flex:1;cursor:pointer" onclick="openFloorDetail('${f.id}')">${f.label}</div>
+        <div class="ct" style="flex:1;cursor:pointer" onclick="openFloorDetail('${f.id}')">${f.label}</div>
       </div>
-      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${f.id}</div>
+      <div class="cm">${f.id}</div>
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:4px;cursor:pointer;display:grid;grid-template-columns:repeat(4,1fr)" onclick="openFloorDetail('${f.id}')">
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${units.length}</div><div class="bs-lbl">Units</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${assets.length}</div><div class="bs-lbl">Assets</div></div>
-        <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;color:${tickets.length?'var(--red)':'var(--text)'}">${tickets.length}</div><div class="bs-lbl">Tickets</div></div>
+        <div class="bs"><div class="bs-val">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
+        <div class="bs"><div class="bs-val">${units.length}</div><div class="bs-lbl">Units</div></div>
+        <div class="bs"><div class="bs-val">${assets.length}</div><div class="bs-lbl">Assets</div></div>
+        <div class="bs"><div class="bs-val" style="color:${tickets.length?'var(--red)':'var(--text)'}">${tickets.length}</div><div class="bs-lbl">Tickets</div></div>
       </div>
     </div>`;
   }).join('') + '</div>';
@@ -3276,7 +3274,7 @@ function renderBlds(){
         <div style="min-width:0;flex:1"><div class="bc-name">${b.name}</div></div>
         ${tixBadge}
       </div>
-      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;padding:0 4px">${b.id}${b.address ? ' · ' + b.address : ''}${b.daysOpen||b.timeOpen ? ' · ' + [b.daysOpen,b.timeOpen].filter(Boolean).join(' ') : ''}${b.phone ? ' · ' + b.phone : ''}</div>
+      <div class="cm" style="padding:0 4px">${b.id}${b.address ? ' · ' + b.address : ''}${b.daysOpen||b.timeOpen ? ' · ' + [b.daysOpen,b.timeOpen].filter(Boolean).join(' ') : ''}${b.phone ? ' · ' + b.phone : ''}</div>
       <div class="bc-body">
         <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
         <div class="bs"><div class="bs-val">${unitCount}</div><div class="bs-lbl">Units</div></div>
@@ -3380,7 +3378,7 @@ function renderSuppliers(){
       <div class="sup-hdr">
         <div style="flex:1;min-width:0">
           <div class="sup-name">${s.name}</div>
-          <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px">${s.id}</div>
+          <div class="cm">${s.id}</div>
           ${exp.length?`<div style="font-size:11px;color:var(--sub);margin-top:2px;line-height:1.4">${exp.join(', ')}</div>`:''}
           <div style="display:flex;gap:16px;margin:6px 0 4px;align-items:flex-end">
             <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Rate/hr</div><div class="sup-rate">€ ${s.ratePerHour||0}</div></div>
@@ -3573,11 +3571,11 @@ function inspListCardHTML(r){
     : 'rgba(217,119,6,.1)';
   return `<div class="insp-list-card" onclick="openInspDetail('${r.id}')">
     <div class="insp-list-hdr">
-      <div>
-        <div class="insp-list-title">${r.building}${r.floor ? ' · ' + r.floor : ''}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
-        <div class="insp-list-sub">${df(r.date)} · ${r.inspector}</div>
+      <div style="min-width:0;flex:1">
+        <div class="ct">${r.building}${r.floor ? ' · ' + r.floor : ''}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
+        <div class="cm">${r.id} · ${df(r.date)} · ${r.inspector}</div>
       </div>
-      <span class="badge" style="background:${stBg};color:${stColor};flex-shrink:0">${stLabel}</span>
+      <span class="badge" style="background:${stBg};color:${stColor};flex-shrink:0;margin-left:8px">${stLabel}</span>
     </div>
     <div style="margin-bottom:12px">
       <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
@@ -3866,7 +3864,7 @@ function inspRoundItemHTML(item, idx){
             ${typeIconHTML}
             <div style="min-width:0">
               <div style="font-size:10px;color:${idColor};font-weight:600;margin-bottom:2px">${idLabel}</div>
-              <div style="font-size:15px;font-weight:700">${item.label}</div>
+              <div class="ct">${item.label}</div>
             </div>
           </div>
           ${isDone
@@ -3875,12 +3873,12 @@ function inspRoundItemHTML(item, idx){
           }
         </div>
         <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;padding-bottom:10px">
-          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${activeRound.building}</div><div class="bs-lbl">Building</div></div>
-          <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
+          <div class="bs"><div class="bs-val">${activeRound.building}</div><div class="bs-lbl">Building</div></div>
+          <div class="bs"><div class="bs-val">${item.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
           ${isUnit
-            ? `<div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">—</div><div class="bs-lbl">Category</div></div>`
-            : `<div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
-               <div class="bs"><div class="bs-val" style="font-size:13px;font-weight:700">${item.category}</div><div class="bs-lbl">Category</div></div>`
+            ? `<div class="bs"><div class="bs-val">—</div><div class="bs-lbl">Category</div></div>`
+            : `<div class="bs"><div class="bs-val">${item.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
+               <div class="bs"><div class="bs-val">${item.category}</div><div class="bs-lbl">Category</div></div>`
           }
         </div>
       </div>`;
@@ -4403,15 +4401,15 @@ function renderLogbook(){
     html += `<div class="ti" style="flex-direction:column;padding-bottom:0;cursor:default">
       <div style="width:100%">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-          <div class="ti-subj" style="margin-bottom:0;flex:1;min-width:0">${r.subject||'—'}</div>
+          <div class="ct" style="flex:1;min-width:0">${r.subject||'—'}</div>
           <div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px;align-items:center">
             ${r.type   ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color}">${r.type}</span>` : ''}
             ${r.status ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${sc.bg};color:${sc.color}">${r.status}</span>` : ''}
           </div>
         </div>
-        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">${r.id}${r.date ? ' · ' + df(r.date) : ''}</div>
+        <div class="cm">${r.id}${r.date ? ' · ' + df(r.date) : ''}</div>
         <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:0;display:grid;grid-template-columns:repeat(4,1fr)">
-          <div class="bs" style="${r.buildingId?'cursor:pointer':''}" ${r.buildingId?`onclick="${bldNav}"`:''}><div class="bs-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;${r.buildingId?'color:var(--blue)':''}">${r.building||'—'}</div><div class="bs-lbl">Building</div></div>
+          <div class="bs" style="${r.buildingId?'cursor:pointer':''}" ${r.buildingId?`onclick="${bldNav}"`:''}><div class="bs-val" style="${r.buildingId?'color:var(--blue)':''}">${r.building||'—'}</div><div class="bs-lbl">Building</div></div>
           <div class="bs" style="${r.floorId?'cursor:pointer':''}" ${r.floorId?`onclick="${flrNav}"`:''}><div class="bs-val" style="${r.floorId?'color:var(--blue)':''}">${r.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
           <div class="bs" style="${r.unitId?'cursor:pointer':''}" ${r.unitId?`onclick="${unitNav}"`:''}><div class="bs-val" style="${r.unitId?'color:var(--blue)':''}">${r.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
           <div class="bs" style="${r.assetId?'cursor:pointer':''}" ${r.assetId?`onclick="${astNav}"`:''}><div class="bs-val" style="${r.assetId?'color:var(--blue)':''}">${col4}</div><div class="bs-lbl">Asset</div></div>
