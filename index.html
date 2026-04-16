@@ -512,13 +512,18 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="asearch" placeholder="Search assets…" oninput="setPage('ast',1);renderAst()"/></div>
     <div class="fbar-wrap">
       <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
-        <select class="fsel" id="sel-ast-bldg" onchange="setPage('ast',1);renderAst()">
+        <select class="fsel" id="sel-ast-bldg" onchange="onAstBldgChange()">
           <option value="All">All Buildings</option>
         </select>
       </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Floor</div>
+      <div class="fsel-wrap" id="wrap-ast-floor" style="display:none"><div class="fsel-lbl">Floor</div>
         <select class="fsel" id="sel-ast-floor" onchange="setPage('ast',1);renderAst()">
           <option value="All">All Floors</option>
+        </select>
+      </div>
+      <div class="fsel-wrap" id="wrap-ast-unit" style="display:none"><div class="fsel-lbl">Unit</div>
+        <select class="fsel" id="sel-ast-unit" onchange="setPage('ast',1);renderAst()">
+          <option value="All">All Units</option>
         </select>
       </div>
       <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
@@ -1832,7 +1837,7 @@ function renderDash(){
           <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('units');setTimeout(()=>{const s=document.getElementById('sel-unit-bldg');if(s){s.value='${safeId}';renderUnits();}},150)">
             <span style="font-size:15px;font-weight:800;color:var(--indigo)">${unitQty||'—'}</span>
           </div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeName}';setPage('ast',1);renderAst();}},150)">
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeName}';onAstBldgChange();}},150)">
             <span style="font-size:15px;font-weight:800;color:var(--teal)">${assetQty||'—'}</span>
           </div>
           <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)">
@@ -2029,8 +2034,10 @@ function clearTixFilters(){
 }
 
 function clearAstFilters(){
-  ['sel-ast-bldg','sel-ast-floor','sel-ast-status','sel-ast-cat','sel-ast-acat','sel-ast-tix-status'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
+  ['sel-ast-bldg','sel-ast-floor','sel-ast-unit','sel-ast-status','sel-ast-cat','sel-ast-acat','sel-ast-tix-status'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const search=document.getElementById('asearch');if(search)search.value='';
+  document.getElementById('wrap-ast-floor').style.display='none';
+  document.getElementById('wrap-ast-unit').style.display='none';
   setPage('ast',1);renderAst();
 }
 
@@ -2411,31 +2418,62 @@ function astCardHTML(a, onclick){
   </div>`;
 }
 
+function onAstBldgChange(){
+  const bldVal = document.getElementById('sel-ast-bldg')?.value || 'All';
+  const floorWrap = document.getElementById('wrap-ast-floor');
+  const unitWrap  = document.getElementById('wrap-ast-unit');
+  const astFloorSel = document.getElementById('sel-ast-floor');
+  const astUnitSel  = document.getElementById('sel-ast-unit');
+  if(bldVal === 'All'){
+    if(floorWrap) floorWrap.style.display = 'none';
+    if(unitWrap)  unitWrap.style.display  = 'none';
+    if(astFloorSel) astFloorSel.innerHTML = '<option value="All">All Floors</option>';
+    if(astUnitSel)  astUnitSel.innerHTML  = '<option value="All">All Units</option>';
+  } else {
+    // Populate floors for selected building
+    const floors = getFloorsForBuilding(bldVal);
+    if(astFloorSel){
+      astFloorSel.innerHTML = '<option value="All">All Floors</option>'
+        + floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+      astFloorSel.value = 'All';
+    }
+    // Populate units for selected building (independent of floor)
+    const units = DB.units.filter(u=>u.building===bldVal).sort((a,z)=>a.label.localeCompare(z.label));
+    if(astUnitSel){
+      astUnitSel.innerHTML = '<option value="All">All Units</option>'
+        + units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+      astUnitSel.value = 'All';
+    }
+    if(floorWrap) floorWrap.style.display = floors.length ? '' : 'none';
+    if(unitWrap)  unitWrap.style.display  = units.length  ? '' : 'none';
+  }
+  setPage('ast',1); renderAst();
+}
+
 function renderAst(){
   const q=(document.getElementById('asearch')?.value||'').toLowerCase();
   const statusVal=document.getElementById('sel-ast-status')?.value||'All';
-  // Populate building filter
+  // Populate building filter (no onchange on innerHTML rebuild)
   const bldSel=document.getElementById('sel-ast-bldg');
   if(bldSel){
     const prev=bldSel.value;
     bldSel.innerHTML='<option value="All">All Buildings</option>'
       +[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
-    bldSel.value=prev;
+    if(bldSel.querySelector(`option[value="${prev}"]`)) bldSel.value=prev;
   }
   const bldVal=bldSel?.value||'All';
-  // Populate floor filter based on selected building
-  const astFloorSel=document.getElementById('sel-ast-floor');
-  if(astFloorSel){
-    const prev=astFloorSel.value;
-    const floors=bldVal!=='All'
-      ? getFloorsForBuilding(bldVal)
-      : [...DB.floors].sort((a,z)=>a.label.localeCompare(z.label));
-    astFloorSel.innerHTML='<option value="All">All Floors</option>'
-      +floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
-    astFloorSel.value=floors.some(f=>f.id===prev)?prev:'All';
+  // Show/hide floor+unit wraps based on building selection
+  const floorWrap = document.getElementById('wrap-ast-floor');
+  const unitWrap  = document.getElementById('wrap-ast-unit');
+  if(bldVal==='All'){
+    if(floorWrap) floorWrap.style.display='none';
+    if(unitWrap)  unitWrap.style.display='none';
   }
+  const astFloorSel=document.getElementById('sel-ast-floor');
   const floorVal=astFloorSel?.value||'All';
-  // Populate supplier filter from DB.suppliers, preserving selection
+  const astUnitSel=document.getElementById('sel-ast-unit');
+  const unitVal=astUnitSel?.value||'All';
+  // Populate supplier filter
   const catSel=document.getElementById('sel-ast-cat');
   if(catSel){
     const prev=catSel.value;
@@ -2443,7 +2481,7 @@ function renderAst(){
       +[...DB.suppliers].sort((a,z)=>a.name.localeCompare(z.name)).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
     catSel.value=prev;
   }
-  // Populate category filter from distinct asset categories, preserving selection
+  // Populate category filter
   const acatSel=document.getElementById('sel-ast-acat');
   if(acatSel){
     const prev=acatSel.value;
@@ -2455,10 +2493,11 @@ function renderAst(){
   const catVal=catSel?.value||'All';
   const acatVal=acatSel?.value||'All';
   const tixStatusVal=document.getElementById('sel-ast-tix-status')?.value||'All';
-  syncSelActive('sel-ast-bldg'); syncSelActive('sel-ast-floor'); syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat'); syncSelActive('sel-ast-tix-status');
+  syncSelActive('sel-ast-bldg'); syncSelActive('sel-ast-floor'); syncSelActive('sel-ast-unit'); syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat'); syncSelActive('sel-ast-tix-status');
   let list=DB.assets;
   if(bldVal!=='All')    list=list.filter(a=>a.building===bldVal);
   if(floorVal!=='All')  list=list.filter(a=>a.floorId===floorVal);
+  if(unitVal!=='All')   list=list.filter(a=>a.unitId===unitVal);
   if(statusVal!=='All') list=list.filter(a=>a.status===statusVal);
   if(catVal!=='All')    list=list.filter(a=>a.supplierId===catVal);
   if(acatVal!=='All')   list=list.filter(a=>a.category===acatVal);
@@ -3189,7 +3228,7 @@ function openBldDetail(id){
       <div class="bs" style="cursor:pointer" onclick="navTo('floors');setTimeout(()=>{const s=document.getElementById('sel-floor-bldg');if(s){s.value='${b.id}';renderFloors();}},150)"><div class="bs-val" style="color:var(--blue)">${floorCount}</div><div class="bs-lbl">Floors</div></div>
       <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
       <div class="bs" style="cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)"><div class="bs-val" style="color:var(--blue)">${openTix.length}</div><div class="bs-lbl">Open Tix</div></div>
-      <div class="bs" style="cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeName}';setPage('ast',1);renderAst();}},150)"><div class="bs-val" style="color:var(--blue)">${allAsts.length}</div><div class="bs-lbl">Assets</div></div>
+      <div class="bs" style="cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeName}';onAstBldgChange();}},150)"><div class="bs-val" style="color:var(--blue)">${allAsts.length}</div><div class="bs-lbl">Assets</div></div>
     </div>
   </div>`;
 
