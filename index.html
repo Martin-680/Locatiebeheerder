@@ -1871,9 +1871,9 @@ function renderDash(){
   // Logbook dashboard grid: Building | Assets (total) | Suppliers (total)
   const logContainer=document.getElementById('dash-bldg-log');
   if(logContainer){
-    // Group logs by building
+    // Group logs by building — exclude closed (Gesloten) entries
     const bldgLogMap={};
-    DB.logs.forEach(r=>{
+    DB.logs.filter(r=>r.status!=='gesloten').forEach(r=>{
       const bld=DB.buildings.find(b=>b.id===r.buildingId);
       const bName=bld?bld.name:(r.building||'').trim();
       if(!bName) return;
@@ -1887,8 +1887,9 @@ function renderDash(){
     if(!logEntries.length){
       logContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No logbook data</div>';
     } else {
-      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
+      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Entries</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Suppliers</div>
       </div>`;
@@ -1898,8 +1899,9 @@ function renderDash(){
         const goLog=`navTo('logbook');setTimeout(()=>{const s=document.getElementById('sel-log-bldg');if(s){s.value='${safeId}';setPage('log',1);renderLogbook();}},150)`;
         const assetCount=m.assets.size;
         const supCount=m.suppliers.size;
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:4px;${border}align-items:center">
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
           <div style="padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goLog}">${name}</div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goLog}"><span style="font-size:15px;font-weight:800;color:${m.total?'var(--blue)':'var(--muted)'}">${m.total||'—'}</span></div>
           <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goLog}"><span style="font-size:15px;font-weight:800;color:${assetCount?'var(--teal)':'var(--muted)'}">${assetCount||'—'}</span></div>
           <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goLog}"><span style="font-size:15px;font-weight:800;color:${supCount?'var(--indigo)':'var(--muted)'}">${supCount||'—'}</span></div>
         </div>`;
