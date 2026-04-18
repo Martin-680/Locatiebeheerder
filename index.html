@@ -508,49 +508,34 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="asearch" placeholder="Search assets…" oninput="setPage('ast',1);renderAst()"/></div>
-    <div class="fbar-wrap">
-      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
-        <select class="fsel" id="sel-ast-bldg" onchange="onAstBldgChange()">
-          <option value="All">All Buildings</option>
-        </select>
-      </div>
-      <div class="fsel-wrap" id="wrap-ast-floor" style="display:none"><div class="fsel-lbl">Floor</div>
-        <select class="fsel" id="sel-ast-floor" onchange="setPage('ast',1);renderAst()">
-          <option value="All">All Floors</option>
-        </select>
-      </div>
-      <div class="fsel-wrap" id="wrap-ast-unit" style="display:none"><div class="fsel-lbl">Unit</div>
-        <select class="fsel" id="sel-ast-unit" onchange="setPage('ast',1);renderAst()">
-          <option value="All">All Units</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
-        <select class="fsel" id="sel-ast-status" onchange="setPage('ast',1);renderAst()">
-          <option value="All">All Statuses</option><option value="Active">Active</option>
-          <option value="Under Maintenance">Under Maintenance</option><option value="Decommissioned">Decommissioned</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Supplier</div>
-        <select class="fsel" id="sel-ast-cat" onchange="setPage('ast',1);renderAst()">
-          <option value="All">All Suppliers</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Category</div>
-        <select class="fsel" id="sel-ast-acat" onchange="setPage('ast',1);renderAst()">
-          <option value="All">All Categories</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Tickets</div>
-        <select class="fsel" id="sel-ast-tix-status" onchange="setPage('ast',1);renderAst()">
-          <option value="All">All</option>
-          <option value="Active">Problem</option>
-          <option value="Available">Normal</option>
-        </select>
-      </div>
+    <!-- hidden selects (drive filtering; values set from modal) -->
+    <select id="sel-ast-bldg"       style="display:none" onchange="onAstBldgChange()"><option value="All">All Buildings</option></select>
+    <select id="sel-ast-floor"      style="display:none" onchange="setPage('ast',1);renderAst()"><option value="All">All Floors</option></select>
+    <select id="sel-ast-unit"       style="display:none" onchange="setPage('ast',1);renderAst()"><option value="All">All Units</option></select>
+    <select id="sel-ast-status"     style="display:none" onchange="setPage('ast',1);renderAst()">
+      <option value="All">All Statuses</option>
+      <option value="Active">Active</option>
+      <option value="Under Maintenance">Under Maintenance</option>
+      <option value="Decommissioned">Decommissioned</option>
+    </select>
+    <select id="sel-ast-cat"        style="display:none" onchange="setPage('ast',1);renderAst()"><option value="All">All Suppliers</option></select>
+    <select id="sel-ast-acat"       style="display:none" onchange="setPage('ast',1);renderAst()"><option value="All">All Categories</option></select>
+    <select id="sel-ast-tix-status" style="display:none" onchange="setPage('ast',1);renderAst()">
+      <option value="All">All</option>
+      <option value="Active">Problem</option>
+      <option value="Available">Normal</option>
+    </select>
+    <!-- keep legacy wrap divs as no-op so existing JS refs don't throw -->
+    <div id="wrap-ast-floor" style="display:none"></div>
+    <div id="wrap-ast-unit"  style="display:none"></div>
+
+    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
+      <button id="ast-filter-btn" onclick="openAstFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filters<span id="ast-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
+      </button>
     </div>
-    <div style="padding:0 14px 10px">
-      <button class="btn-clear-filter" onclick="clearAstFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
-    </div>
+    <div id="ast-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="ast-list"></div>
   </div>
 
@@ -724,28 +709,22 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="unit-search" placeholder="Search units…" oninput="renderUnits()"/></div>
-    <div class="fbar-wrap">
-      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
-        <select class="fsel" id="sel-unit-bldg" onchange="renderUnits()">
-          <option value="All">All Buildings</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Floor</div>
-        <select class="fsel" id="sel-unit-floor" onchange="renderUnits()">
-          <option value="All">All Floors</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
-        <select class="fsel" id="sel-unit-status" onchange="renderUnits()">
-          <option value="All">All</option>
-          <option value="Active">Problem</option>
-          <option value="Available">Normal</option>
-        </select>
-      </div>
+    <!-- hidden selects (drive filtering; values set from modal) -->
+    <select id="sel-unit-bldg"   style="display:none" onchange="renderUnits()"><option value="All">All Buildings</option></select>
+    <select id="sel-unit-floor"  style="display:none" onchange="renderUnits()"><option value="All">All Floors</option></select>
+    <select id="sel-unit-status" style="display:none" onchange="renderUnits()">
+      <option value="All">All</option>
+      <option value="Active">Problem</option>
+      <option value="Available">Normal</option>
+    </select>
+
+    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
+      <button id="unit-filter-btn" onclick="openUnitFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filters<span id="unit-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
+      </button>
     </div>
-    <div style="padding:0 14px 10px">
-      <button class="btn-clear-filter" onclick="clearUnitFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
-    </div>
+    <div id="unit-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="unit-list"></div>
   </div>
 
@@ -2018,9 +1997,197 @@ function clearFloorFilters(){
   const s=document.getElementById('floor-search');if(s)s.value='';
   renderFloors();
 }
+/* ── Assets filter modal ── */
+function openAstFilterModal(){
+  // Populate building
+  const mBldg = document.getElementById('mf-ast-bldg');
+  if(mBldg){
+    const cur = document.getElementById('sel-ast-bldg')?.value || 'All';
+    mBldg.innerHTML = '<option value="All">All Buildings</option>' +
+      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
+        .map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+    mBldg.value = cur;
+    onMfAstBldgChange(true);
+    const mFloor = document.getElementById('mf-ast-floor');
+    if(mFloor) mFloor.value = document.getElementById('sel-ast-floor')?.value || 'All';
+    const mUnit = document.getElementById('mf-ast-unit');
+    if(mUnit) mUnit.value = document.getElementById('sel-ast-unit')?.value || 'All';
+  }
+  // Populate supplier
+  const mCat = document.getElementById('mf-ast-cat');
+  if(mCat){
+    const cur = document.getElementById('sel-ast-cat')?.value || 'All';
+    mCat.innerHTML = '<option value="All">All Suppliers</option>' +
+      [...DB.suppliers].sort((a,z)=>a.name.localeCompare(z.name))
+        .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    mCat.value = cur;
+  }
+  // Populate category
+  const mAcat = document.getElementById('mf-ast-acat');
+  if(mAcat){
+    const cur = document.getElementById('sel-ast-acat')?.value || 'All';
+    const cats = [...new Set(DB.assets.map(a=>a.category).filter(Boolean))].sort();
+    mAcat.innerHTML = '<option value="All">All Categories</option>' +
+      cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+    mAcat.value = cur;
+  }
+  // Sync remaining selects
+  ['status','tix-status'].forEach(k=>{
+    const mEl = document.getElementById('mf-ast-'+k);
+    const hEl = document.getElementById('sel-ast-'+k);
+    if(mEl && hEl) mEl.value = hEl.value;
+  });
+  openMo('mo-ast-filter');
+}
+function onMfAstBldgChange(silent){
+  const bldVal = document.getElementById('mf-ast-bldg')?.value || 'All';
+  const mFloor = document.getElementById('mf-ast-floor');
+  const mUnit  = document.getElementById('mf-ast-unit');
+  if(bldVal === 'All'){
+    if(mFloor) mFloor.innerHTML = '<option value="All">All Floors</option>';
+    if(mUnit)  mUnit.innerHTML  = '<option value="All">All Units</option>';
+  } else {
+    const bld = DB.buildings.find(b=>b.name===bldVal);
+    if(mFloor){
+      const floors = bld ? DB.floors.filter(f=>f.buildingId===bld.id).sort((a,z)=>a.sortOrder-z.sortOrder) : [];
+      mFloor.innerHTML = '<option value="All">All Floors</option>' +
+        floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+    }
+    if(mUnit){
+      const units = DB.units.filter(u=>u.building===bldVal).sort((a,z)=>a.label.localeCompare(z.label));
+      mUnit.innerHTML = '<option value="All">All Units</option>' +
+        units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+    }
+  }
+}
+function applyAstFilterModal(){
+  const map = {'bldg':'sel-ast-bldg','floor':'sel-ast-floor','unit':'sel-ast-unit',
+               'status':'sel-ast-status','cat':'sel-ast-cat','acat':'sel-ast-acat','tix-status':'sel-ast-tix-status'};
+  Object.entries(map).forEach(([mk,hk])=>{
+    const mVal = document.getElementById('mf-ast-'+mk)?.value || 'All';
+    const hSel = document.getElementById(hk);
+    if(hSel) hSel.value = mVal;
+  });
+  closeMo('mo-ast-filter');
+  setPage('ast',1);
+  renderAst();
+}
+function updateAstFilterBadge(){
+  const ids = ['sel-ast-bldg','sel-ast-floor','sel-ast-unit','sel-ast-status','sel-ast-cat','sel-ast-acat','sel-ast-tix-status'];
+  const active = ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length;
+  const countEl = document.getElementById('ast-filter-count');
+  const btnEl   = document.getElementById('ast-filter-btn');
+  if(countEl){ countEl.textContent=active; countEl.style.display=active?'inline':'none'; }
+  if(btnEl){
+    btnEl.style.borderColor = active?'var(--blue)':'var(--border)';
+    btnEl.style.color       = active?'var(--blue)':'var(--sub)';
+    btnEl.style.background  = active?'rgba(37,99,235,.06)':'#fff';
+  }
+  const chipsEl = document.getElementById('ast-filter-chips');
+  if(!chipsEl) return;
+  if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
+  chipsEl.style.display='flex';
+  const labels = {
+    'sel-ast-bldg'      : v=>v,
+    'sel-ast-floor'     : v=>DB.floors.find(f=>f.id===v)?.label||v,
+    'sel-ast-unit'      : v=>DB.units.find(u=>u.id===v)?.label||v,
+    'sel-ast-status'    : v=>v,
+    'sel-ast-cat'       : v=>DB.suppliers.find(s=>s.id===v)?.name||v,
+    'sel-ast-acat'      : v=>v,
+    'sel-ast-tix-status': v=>v==='Active'?'Problem':'Normal',
+  };
+  chipsEl.innerHTML = ids
+    .filter(id=>(document.getElementById(id)?.value||'All')!=='All')
+    .map(id=>{
+      const val=document.getElementById(id).value;
+      const lbl=labels[id]?.(val)||val;
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">
+        ${lbl}<button onclick="removeAstFilter('${id}')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button>
+      </span>`;
+    }).join('');
+}
+function removeAstFilter(id){
+  const el=document.getElementById(id); if(el) el.value='All';
+  if(id==='sel-ast-bldg') onAstBldgChange();
+  else { setPage('ast',1); renderAst(); }
+}
+
+/* ── Units filter modal ── */
+function openUnitFilterModal(){
+  const mBldg = document.getElementById('mf-unit-bldg');
+  if(mBldg){
+    const cur = document.getElementById('sel-unit-bldg')?.value || 'All';
+    mBldg.innerHTML = '<option value="All">All Buildings</option>' +
+      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
+        .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+    mBldg.value = cur;
+    onMfUnitBldgChange(true);
+    const mFloor = document.getElementById('mf-unit-floor');
+    if(mFloor) mFloor.value = document.getElementById('sel-unit-floor')?.value || 'All';
+  }
+  const mStatus = document.getElementById('mf-unit-status');
+  const hStatus = document.getElementById('sel-unit-status');
+  if(mStatus && hStatus) mStatus.value = hStatus.value;
+  openMo('mo-unit-filter');
+}
+function onMfUnitBldgChange(silent){
+  const bldgId = document.getElementById('mf-unit-bldg')?.value || 'All';
+  const mFloor = document.getElementById('mf-unit-floor');
+  if(mFloor){
+    const floors = bldgId==='All' ? DB.floors
+      : DB.floors.filter(f=>f.buildingId===bldgId);
+    mFloor.innerHTML = '<option value="All">All Floors</option>' +
+      floors.sort((a,z)=>a.sortOrder-z.sortOrder).map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+  }
+}
+function applyUnitFilterModal(){
+  ['bldg','floor','status'].forEach(k=>{
+    const mVal = document.getElementById('mf-unit-'+k)?.value || 'All';
+    const hSel = document.getElementById('sel-unit-'+k);
+    if(hSel) hSel.value = mVal;
+  });
+  closeMo('mo-unit-filter');
+  renderUnits();
+}
+function updateUnitFilterBadge(){
+  const ids = ['sel-unit-bldg','sel-unit-floor','sel-unit-status'];
+  const active = ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length;
+  const countEl = document.getElementById('unit-filter-count');
+  const btnEl   = document.getElementById('unit-filter-btn');
+  if(countEl){ countEl.textContent=active; countEl.style.display=active?'inline':'none'; }
+  if(btnEl){
+    btnEl.style.borderColor = active?'var(--blue)':'var(--border)';
+    btnEl.style.color       = active?'var(--blue)':'var(--sub)';
+    btnEl.style.background  = active?'rgba(37,99,235,.06)':'#fff';
+  }
+  const chipsEl = document.getElementById('unit-filter-chips');
+  if(!chipsEl) return;
+  if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
+  chipsEl.style.display='flex';
+  const labels = {
+    'sel-unit-bldg'  : v=>DB.buildings.find(b=>b.id===v)?.name||v,
+    'sel-unit-floor' : v=>DB.floors.find(f=>f.id===v)?.label||v,
+    'sel-unit-status': v=>v==='Active'?'Problem':'Normal',
+  };
+  chipsEl.innerHTML = ids
+    .filter(id=>(document.getElementById(id)?.value||'All')!=='All')
+    .map(id=>{
+      const val=document.getElementById(id).value;
+      const lbl=labels[id]?.(val)||val;
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">
+        ${lbl}<button onclick="removeUnitFilter('${id}')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button>
+      </span>`;
+    }).join('');
+}
+function removeUnitFilter(id){
+  const el=document.getElementById(id); if(el) el.value='All';
+  renderUnits();
+}
+
 function clearUnitFilters(){
   ['sel-unit-bldg','sel-unit-floor','sel-unit-status'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const s=document.getElementById('unit-search');if(s)s.value='';
+  closeMo('mo-unit-filter');
   renderUnits();
 }
 function clearTixFilters(){
@@ -2032,8 +2199,7 @@ function clearTixFilters(){
 function clearAstFilters(){
   ['sel-ast-bldg','sel-ast-floor','sel-ast-unit','sel-ast-status','sel-ast-cat','sel-ast-acat','sel-ast-tix-status'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const search=document.getElementById('asearch');if(search)search.value='';
-  document.getElementById('wrap-ast-floor').style.display='none';
-  document.getElementById('wrap-ast-unit').style.display='none';
+  closeMo('mo-ast-filter');
   setPage('ast',1);renderAst();
 }
 
@@ -2490,6 +2656,7 @@ function renderAst(){
   const acatVal=acatSel?.value||'All';
   const tixStatusVal=document.getElementById('sel-ast-tix-status')?.value||'All';
   syncSelActive('sel-ast-bldg'); syncSelActive('sel-ast-floor'); syncSelActive('sel-ast-unit'); syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat'); syncSelActive('sel-ast-tix-status');
+  updateAstFilterBadge();
   let list=DB.assets;
   if(bldVal!=='All')    list=list.filter(a=>a.building===bldVal);
   if(floorVal!=='All')  list=list.filter(a=>a.floorId===floorVal);
@@ -2817,6 +2984,7 @@ function renderUnits(){
   const floorVal = flrSel?.value || 'All';
   const statusVal = document.getElementById('sel-unit-status')?.value || 'All';
   syncSelActive('sel-unit-bldg'); syncSelActive('sel-unit-floor'); syncSelActive('sel-unit-status');
+  updateUnitFilterBadge();
 
   // Filter units
   let list = DB.units.filter(u => {
@@ -5137,6 +5305,85 @@ function exportCSV(type){
     </div>
 
     <div style="height:12px"></div>
+  </div>
+</div>
+
+<!-- ═══════ ASSETS FILTER MODAL ═══════ -->
+<div class="mo" id="mo-ast-filter" onclick="mcClick(event,'mo-ast-filter')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt">
+      <span style="display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filter Assets
+      </span>
+      <button class="mt-close" onclick="closeMo('mo-ast-filter')">&#x2715;</button>
+    </div>
+    <div class="fg"><label>Building</label>
+      <select class="fi2" id="mf-ast-bldg" onchange="onMfAstBldgChange()"><option value="All">All Buildings</option></select>
+    </div>
+    <div class="fg"><label>Floor</label>
+      <select class="fi2" id="mf-ast-floor"><option value="All">All Floors</option></select>
+    </div>
+    <div class="fg"><label>Unit</label>
+      <select class="fi2" id="mf-ast-unit"><option value="All">All Units</option></select>
+    </div>
+    <div class="fg"><label>Status</label>
+      <select class="fi2" id="mf-ast-status">
+        <option value="All">All Statuses</option>
+        <option value="Active">Active</option>
+        <option value="Under Maintenance">Under Maintenance</option>
+        <option value="Decommissioned">Decommissioned</option>
+      </select>
+    </div>
+    <div class="fg"><label>Supplier</label>
+      <select class="fi2" id="mf-ast-cat"><option value="All">All Suppliers</option></select>
+    </div>
+    <div class="fg"><label>Category</label>
+      <select class="fi2" id="mf-ast-acat"><option value="All">All Categories</option></select>
+    </div>
+    <div class="fg"><label>Tickets</label>
+      <select class="fi2" id="mf-ast-tix-status">
+        <option value="All">All</option>
+        <option value="Active">Problem</option>
+        <option value="Available">Normal</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;padding:4px 18px 18px">
+      <button onclick="clearAstFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
+      <button onclick="applyAstFilterModal()" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ UNITS FILTER MODAL ═══════ -->
+<div class="mo" id="mo-unit-filter" onclick="mcClick(event,'mo-unit-filter')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt">
+      <span style="display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filter Units
+      </span>
+      <button class="mt-close" onclick="closeMo('mo-unit-filter')">&#x2715;</button>
+    </div>
+    <div class="fg"><label>Building</label>
+      <select class="fi2" id="mf-unit-bldg" onchange="onMfUnitBldgChange()"><option value="All">All Buildings</option></select>
+    </div>
+    <div class="fg"><label>Floor</label>
+      <select class="fi2" id="mf-unit-floor"><option value="All">All Floors</option></select>
+    </div>
+    <div class="fg"><label>Status</label>
+      <select class="fi2" id="mf-unit-status">
+        <option value="All">All</option>
+        <option value="Active">Problem</option>
+        <option value="Available">Normal</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;padding:4px 18px 18px">
+      <button onclick="clearUnitFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
+      <button onclick="applyUnitFilterModal()" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff">Apply</button>
+    </div>
   </div>
 </div>
 
