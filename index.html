@@ -449,50 +449,35 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="tsearch" placeholder="Search tickets…" oninput="setPage('tix',1);renderTix()"/></div>
-    <div class="fbar-wrap">
-      <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
-        <select class="fsel" id="sel-tix-status" onchange="setPage('tix',1);renderTix()">
-          <option value="All">All Statuses</option><option value="Open">Open</option>
-          <option value="In Progress">In Progress</option><option value="Closed">Closed</option>
-          <option value="Planned">Planned</option><option value="Requested">Requested</option><option value="Ordered">Ordered</option>
-          <option value="mine">Assigned to Me</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Priority</div>
-        <select class="fsel" id="sel-tix-pri" onchange="setPage('tix',1);renderTix()">
-          <option value="All">All Priorities</option><option value="Critical">Critical</option>
-          <option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Category</div>
-        <select class="fsel" id="sel-tix-cat" onchange="setPage('tix',1);renderTix()">
-          <option value="All">All Categories</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
-        <select class="fsel" id="sel-tix-bldg" onchange="setPage('tix',1);renderTix()">
-          <option value="All">All Buildings</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Floor</div>
-        <select class="fsel" id="sel-tix-floor" onchange="setPage('tix',1);renderTix()">
-          <option value="All">All Floors</option>
-        </select>
-      </div>
+    <!-- hidden selects (drive filtering; values set from modal) -->
+    <select id="sel-tix-status" style="display:none" onchange="setPage('tix',1);renderTix()">
+      <option value="All">All Statuses</option><option value="Open">Open</option>
+      <option value="In Progress">In Progress</option><option value="Closed">Closed</option>
+      <option value="Planned">Planned</option><option value="Requested">Requested</option>
+      <option value="Ordered">Ordered</option><option value="mine">Assigned to Me</option>
+    </select>
+    <select id="sel-tix-pri"   style="display:none" onchange="setPage('tix',1);renderTix()">
+      <option value="All">All Priorities</option><option value="Critical">Critical</option>
+      <option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option>
+    </select>
+    <select id="sel-tix-cat"   style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Categories</option></select>
+    <select id="sel-tix-bldg"  style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Buildings</option></select>
+    <select id="sel-tix-floor" style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Floors</option></select>
+    <select id="sel-tix-sort"  style="display:none" onchange="setPage('tix',1);renderTix()">
+      <option value="newest">↓ Newest first</option>
+      <option value="oldest">↑ Oldest first</option>
+      <option value="priority">By priority</option>
+      <option value="days">⏱ Most overdue</option>
+    </select>
+
+    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
+      <button class="btn-clear-filter" id="tix-clear-btn" onclick="clearTixFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
+      <button id="tix-filter-btn" onclick="openTixFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filters<span id="tix-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
+      </button>
     </div>
-    <div style="display:flex;align-items:center;padding:0 14px 6px">
-      <div style="font-size:12px;color:var(--muted)">
-        <select id="sel-tix-sort" onchange="setPage('tix',1);renderTix()" style="background:none;border:none;font-size:12px;color:var(--muted);font-family:inherit;cursor:pointer;outline:none;padding:0">
-          <option value="newest">↓ Newest first</option>
-          <option value="oldest">↑ Oldest first</option>
-          <option value="priority">By priority</option>
-          <option value="days">⏱ Most overdue</option>
-        </select>
-      </div>
-    </div>
-    <div style="padding:0 14px 10px">
-      <button class="btn-clear-filter" onclick="clearTixFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
-    </div>
+    <div id="tix-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="tix-list"></div>
   </div>
 
@@ -597,31 +582,24 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
-    <div class="fbar-wrap">
-      <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
-        <select class="fsel" id="sel-insp-status" onchange="setPage('insp',1);renderInspections()">
-          <option value="All">All</option><option value="In Progress">In Progress</option><option value="Completed">Completed</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
-        <select class="fsel" id="sel-insp-bldg" onchange="setPage('insp',1);renderInspections()">
-          <option value="All">All Buildings</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Floor</div>
-        <select class="fsel" id="sel-insp-floor" onchange="setPage('insp',1);renderInspections()">
-          <option value="All">All Floors</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Category</div>
-        <select class="fsel" id="sel-insp-cat" onchange="setPage('insp',1);renderInspections()">
-          <option value="All">All Categories</option>
-        </select>
-      </div>
+    <!-- hidden selects (drive filtering; values set from modal) -->
+    <select id="sel-insp-status" style="display:none" onchange="setPage('insp',1);renderInspections()">
+      <option value="All">All</option>
+      <option value="In Progress">In Progress</option>
+      <option value="Completed">Completed</option>
+    </select>
+    <select id="sel-insp-bldg"  style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Buildings</option></select>
+    <select id="sel-insp-floor" style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Floors</option></select>
+    <select id="sel-insp-cat"   style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Categories</option></select>
+
+    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
+      <button class="btn-clear-filter" id="insp-clear-btn" onclick="clearInspFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
+      <button id="insp-filter-btn" onclick="openInspFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filters<span id="insp-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
+      </button>
     </div>
-    <div style="padding:0 14px 10px">
-      <button class="btn-clear-filter" onclick="clearInspFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
-    </div>
+    <div id="insp-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="insp-list"></div>
   </div>
 
@@ -2306,9 +2284,175 @@ function clearUnitFilters(){
   closeMo('mo-unit-filter');
   renderUnits();
 }
+/* ── Tickets filter modal ── */
+function openTixFilterModal(){
+  // Populate building
+  const mBldg = document.getElementById('mf-tix-bldg');
+  if(mBldg){
+    const cur = document.getElementById('sel-tix-bldg')?.value || 'All';
+    mBldg.innerHTML = '<option value="All">All Buildings</option>' +
+      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
+        .map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+    mBldg.value = cur;
+    onMfTixBldgChange(true);
+    const mFloor = document.getElementById('mf-tix-floor');
+    if(mFloor) mFloor.value = document.getElementById('sel-tix-floor')?.value || 'All';
+  }
+  // Populate category
+  const mCat = document.getElementById('mf-tix-cat');
+  if(mCat){
+    const cur = document.getElementById('sel-tix-cat')?.value || 'All';
+    mCat.innerHTML = '<option value="All">All Categories</option>' +
+      getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
+    mCat.value = getCategoryList().includes(cur) ? cur : 'All';
+  }
+  // Sync remaining
+  ['status','pri','sort'].forEach(k=>{
+    const mEl=document.getElementById('mf-tix-'+k);
+    const hEl=document.getElementById('sel-tix-'+k);
+    if(mEl&&hEl) mEl.value=hEl.value;
+  });
+  openMo('mo-tix-filter');
+}
+function onMfTixBldgChange(silent){
+  const bldg = document.getElementById('mf-tix-bldg')?.value || 'All';
+  const mFloor = document.getElementById('mf-tix-floor');
+  if(!mFloor) return;
+  if(bldg === 'All'){
+    mFloor.innerHTML = '<option value="All">All Floors</option>';
+  } else {
+    const floors = getFloorsForBuilding(bldg);
+    mFloor.innerHTML = '<option value="All">All Floors</option>' +
+      floors.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
+  }
+}
+function applyTixFilterModal(){
+  ['status','pri','cat','bldg','floor','sort'].forEach(k=>{
+    const mVal=document.getElementById('mf-tix-'+k)?.value||(k==='sort'?'newest':'All');
+    const hSel=document.getElementById('sel-tix-'+k);
+    if(hSel) hSel.value=mVal;
+  });
+  closeMo('mo-tix-filter');
+  setPage('tix',1);
+  renderTix();
+}
+function updateTixFilterBadge(){
+  const filterIds = ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor'];
+  const sortDefault = 'newest';
+  const active = filterIds.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length
+               + ((document.getElementById('sel-tix-sort')?.value||sortDefault)!==sortDefault ? 1 : 0);
+  const countEl=document.getElementById('tix-filter-count');
+  const btnEl=document.getElementById('tix-filter-btn');
+  const clearEl=document.getElementById('tix-clear-btn');
+  if(countEl){ countEl.textContent=active; countEl.style.display=active?'inline':'none'; }
+  if(btnEl){ btnEl.style.borderColor=active?'var(--blue)':'var(--border)'; btnEl.style.color=active?'var(--blue)':'var(--sub)'; btnEl.style.background=active?'rgba(37,99,235,.06)':'#fff'; }
+  if(clearEl) clearEl.style.display=active?'flex':'none';
+  const chipsEl=document.getElementById('tix-filter-chips');
+  if(!chipsEl) return;
+  if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
+  chipsEl.style.display='flex';
+  const sortLabels={newest:'\u2193 Newest',oldest:'\u2191 Oldest',priority:'By priority',days:'\u23f1 Overdue'};
+  const allIds=[...filterIds,'sel-tix-sort'];
+  chipsEl.innerHTML = allIds.filter(id=>{
+    const v=document.getElementById(id)?.value||'All';
+    return id==='sel-tix-sort' ? v!==sortDefault : v!=='All';
+  }).map(id=>{
+    const val=document.getElementById(id).value;
+    const lbl=id==='sel-tix-sort'?sortLabels[val]||val:val;
+    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">${lbl}<button onclick="removeTixFilter('${id}')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`;
+  }).join('');
+}
+function removeTixFilter(id){
+  const el=document.getElementById(id);
+  if(el) el.value = id==='sel-tix-sort' ? 'newest' : 'All';
+  setPage('tix',1); renderTix();
+}
+
+/* ── Inspections filter modal ── */
+function openInspFilterModal(){
+  // Populate building
+  const mBldg = document.getElementById('mf-insp-bldg');
+  if(mBldg){
+    const cur = document.getElementById('sel-insp-bldg')?.value || 'All';
+    mBldg.innerHTML = '<option value="All">All Buildings</option>' +
+      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
+        .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+    mBldg.value = cur;
+    onMfInspBldgChange(true);
+    const mFloor = document.getElementById('mf-insp-floor');
+    if(mFloor) mFloor.value = document.getElementById('sel-insp-floor')?.value || 'All';
+  }
+  // Populate category
+  const mCat = document.getElementById('mf-insp-cat');
+  if(mCat){
+    const cur = document.getElementById('sel-insp-cat')?.value || 'All';
+    mCat.innerHTML = '<option value="All">All Categories</option>' +
+      getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
+    mCat.value = getCategoryList().includes(cur) ? cur : 'All';
+  }
+  // Sync status
+  const mStatus = document.getElementById('mf-insp-status');
+  const hStatus = document.getElementById('sel-insp-status');
+  if(mStatus&&hStatus) mStatus.value=hStatus.value;
+  openMo('mo-insp-filter');
+}
+function onMfInspBldgChange(silent){
+  const bldgId = document.getElementById('mf-insp-bldg')?.value || 'All';
+  const mFloor = document.getElementById('mf-insp-floor');
+  if(!mFloor) return;
+  const floors = bldgId==='All'
+    ? [...DB.floors].sort((a,z)=>a.label.localeCompare(z.label))
+    : getFloorsForBuilding(bldgId);
+  const seen=new Set();
+  const unique=floors.filter(f=>{ if(seen.has(f.label)) return false; seen.add(f.label); return true; });
+  mFloor.innerHTML = '<option value="All">All Floors</option>' +
+    unique.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
+}
+function applyInspFilterModal(){
+  ['status','bldg','floor','cat'].forEach(k=>{
+    const mVal=document.getElementById('mf-insp-'+k)?.value||'All';
+    const hSel=document.getElementById('sel-insp-'+k);
+    if(hSel) hSel.value=mVal;
+  });
+  closeMo('mo-insp-filter');
+  setPage('insp',1);
+  renderInspections();
+}
+function updateInspFilterBadge(){
+  const ids=['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat'];
+  const active=ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length;
+  const countEl=document.getElementById('insp-filter-count');
+  const btnEl=document.getElementById('insp-filter-btn');
+  const clearEl=document.getElementById('insp-clear-btn');
+  if(countEl){ countEl.textContent=active; countEl.style.display=active?'inline':'none'; }
+  if(btnEl){ btnEl.style.borderColor=active?'var(--blue)':'var(--border)'; btnEl.style.color=active?'var(--blue)':'var(--sub)'; btnEl.style.background=active?'rgba(37,99,235,.06)':'#fff'; }
+  if(clearEl) clearEl.style.display=active?'flex':'none';
+  const chipsEl=document.getElementById('insp-filter-chips');
+  if(!chipsEl) return;
+  if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
+  chipsEl.style.display='flex';
+  const labels={
+    'sel-insp-status': v=>v,
+    'sel-insp-bldg'  : v=>DB.buildings.find(b=>b.id===v)?.name||v,
+    'sel-insp-floor' : v=>v,
+    'sel-insp-cat'   : v=>v,
+  };
+  chipsEl.innerHTML=ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').map(id=>{
+    const val=document.getElementById(id).value;
+    const lbl=labels[id]?.(val)||val;
+    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">${lbl}<button onclick="removeInspFilter('${id}')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`;
+  }).join('');
+}
+function removeInspFilter(id){
+  const el=document.getElementById(id); if(el) el.value='All';
+  setPage('insp',1); renderInspections();
+}
+
 function clearTixFilters(){
   ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
+  const sort=document.getElementById('sel-tix-sort');if(sort)sort.value='newest';
   const search=document.getElementById('tsearch');if(search)search.value='';
+  closeMo('mo-tix-filter');
   setPage('tix',1);renderTix();
 }
 
@@ -2355,6 +2499,7 @@ function renderTix(){
   }
   const catVal=tixCatSel?.value||'All';
   syncSelActive('sel-tix-status'); syncSelActive('sel-tix-pri'); syncSelActive('sel-tix-cat'); syncSelActive('sel-tix-bldg'); syncSelActive('sel-tix-floor');
+  updateTixFilterBadge();
   let list=DB.tickets;
   if(statusVal==='mine') list=list.filter(t=>t.assignedTo===currentUser?.name||t.createdBy===currentUser?.name);
   else if(statusVal==='notclosed') list=list.filter(t=>t.status!=='Closed');
@@ -3768,6 +3913,7 @@ function clearInspFilters(){
   ['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='All';
   });
+  closeMo('mo-insp-filter');
   setPage('insp',1); renderInspections();
 }
 
@@ -3813,6 +3959,7 @@ function renderInspections(){
 
   syncSelActive('sel-insp-status'); syncSelActive('sel-insp-bldg');
   syncSelActive('sel-insp-floor');  syncSelActive('sel-insp-cat');
+  updateInspFilterBadge();
 
   let list = [...DB.inspections].sort((a,b)=> (b.dateStart||'') > (a.dateStart||'') ? 1 : -1);
   if(statusVal !== 'All') list = list.filter(r => r.status === statusVal);
@@ -5429,6 +5576,96 @@ function exportCSV(type){
     </div>
 
     <div style="height:12px"></div>
+  </div>
+</div>
+
+<!-- ═══════ TICKETS FILTER MODAL ═══════ -->
+<div class="mo" id="mo-tix-filter" onclick="mcClick(event,'mo-tix-filter')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt">
+      <span style="display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filter Tickets
+      </span>
+      <button class="mt-close" onclick="closeMo('mo-tix-filter')">&#x2715;</button>
+    </div>
+    <div class="fg"><label>Status</label>
+      <select class="fi2" id="mf-tix-status">
+        <option value="All">All Statuses</option>
+        <option value="Open">Open</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Closed">Closed</option>
+        <option value="Planned">Planned</option>
+        <option value="Requested">Requested</option>
+        <option value="Ordered">Ordered</option>
+        <option value="mine">Assigned to Me</option>
+      </select>
+    </div>
+    <div class="fg"><label>Priority</label>
+      <select class="fi2" id="mf-tix-pri">
+        <option value="All">All Priorities</option>
+        <option value="Critical">Critical</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+    </div>
+    <div class="fg"><label>Category</label>
+      <select class="fi2" id="mf-tix-cat"><option value="All">All Categories</option></select>
+    </div>
+    <div class="fg"><label>Building</label>
+      <select class="fi2" id="mf-tix-bldg" onchange="onMfTixBldgChange()"><option value="All">All Buildings</option></select>
+    </div>
+    <div class="fg"><label>Floor</label>
+      <select class="fi2" id="mf-tix-floor"><option value="All">All Floors</option></select>
+    </div>
+    <div class="fg"><label>Sort</label>
+      <select class="fi2" id="mf-tix-sort">
+        <option value="newest">&#x2193; Newest first</option>
+        <option value="oldest">&#x2191; Oldest first</option>
+        <option value="priority">By priority</option>
+        <option value="days">&#x23f1; Most overdue</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;padding:4px 18px 18px">
+      <button onclick="clearTixFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
+      <button onclick="applyTixFilterModal()" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ INSPECTIONS FILTER MODAL ═══════ -->
+<div class="mo" id="mo-insp-filter" onclick="mcClick(event,'mo-insp-filter')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt">
+      <span style="display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filter Inspections
+      </span>
+      <button class="mt-close" onclick="closeMo('mo-insp-filter')">&#x2715;</button>
+    </div>
+    <div class="fg"><label>Status</label>
+      <select class="fi2" id="mf-insp-status">
+        <option value="All">All</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Completed">Completed</option>
+      </select>
+    </div>
+    <div class="fg"><label>Building</label>
+      <select class="fi2" id="mf-insp-bldg" onchange="onMfInspBldgChange()"><option value="All">All Buildings</option></select>
+    </div>
+    <div class="fg"><label>Floor</label>
+      <select class="fi2" id="mf-insp-floor"><option value="All">All Floors</option></select>
+    </div>
+    <div class="fg"><label>Category</label>
+      <select class="fi2" id="mf-insp-cat"><option value="All">All Categories</option></select>
+    </div>
+    <div style="display:flex;gap:10px;padding:4px 18px 18px">
+      <button onclick="clearInspFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
+      <button onclick="applyInspFilterModal()" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff">Apply</button>
+    </div>
   </div>
 </div>
 
