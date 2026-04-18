@@ -437,6 +437,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="sh fu"><span class="sh-title">Logbook</span></div>
     <div id="dash-bldg-log" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
+    <div class="sh fu"><span class="sh-title">Stats</span></div>
+    <div id="dash-stats" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
+
     <div class="sh fu"><span class="sh-title">By Priority</span></div>
     <div class="card fu" id="pri-chart"></div>
     <div class="sh fu"><span class="sh-title">Last 8 Weeks</span></div>
@@ -1959,6 +1962,59 @@ function renderDash(){
         </div>`;
       }).join('');
       logContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
+    }
+  }
+  // Building Stats — activity percentage
+  const statsEl=document.getElementById('dash-stats');
+  if(statsEl){
+    const bldgStats=DB.buildings.map(b=>{
+      const logs       = DB.logs.filter(r=>r.buildingId===b.id).length;
+      const units      = DB.units.filter(u=>u.buildingId===b.id).length;
+      const assets     = DB.assets.filter(a=>a.buildingId===b.id).length;
+      const inspections= DB.inspections.filter(i=>i.buildingId===b.id).length;
+      const score      = logs+units+assets+inspections;
+      return{b,logs,units,assets,inspections,score};
+    }).filter(s=>s.score>0).sort((a,z)=>z.score-a.score);
+
+    if(!bldgStats.length){
+      statsEl.innerHTML='<div style="font-size:13px;color:var(--muted);padding:0 0 8px">No data yet</div>';
+    } else {
+      const maxScore=bldgStats[0].score;
+      statsEl.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        ${bldgStats.map((s,i)=>{
+          const pct=Math.round(s.score/maxScore*100);
+          const border=i<bldgStats.length-1?'border-bottom:1px solid var(--border);':'';
+          const barColor=pct===100?'var(--blue)':pct>=70?'var(--indigo)':pct>=40?'var(--teal)':'var(--muted)';
+          const goB=`navTo('buildings');setTimeout(()=>openBldDetail('${s.b.id.replace(/'/g,"\\'")}'),150)`;
+          return`<div style="${border}padding:12px 14px;cursor:pointer" onclick="${goB}">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+              <span style="font-size:13px;font-weight:700;color:var(--blue)">${s.b.name}</span>
+              <span style="font-size:12px;font-weight:800;color:${barColor}">${pct}%</span>
+            </div>
+            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:7px">
+              <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .4s ease"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+              <div style="text-align:center">
+                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.logs}</div>
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Logbook</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.units}</div>
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Units</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.assets}</div>
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Assets</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.inspections}</div>
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Inspections</div>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
     }
   }
   // Priority chart
