@@ -787,54 +787,38 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
-    <div class="fbar-wrap">
-      <div class="fsel-wrap"><div class="fsel-lbl">Type</div>
-        <select class="fsel" id="sel-log-type" onchange="setPage('log',1);renderLogbook()">
-          <option value="All">All Types</option>
-          <option value="onderhoud">Onderhoud</option>
-          <option value="keuring">Keuring</option>
-          <option value="her-keuring">Her-keuring</option>
-          <option value="ontvangen">Ontvangen</option>
-          <option value="bestelling">Bestelling</option>
-          <option value="bezoek">Bezoek</option>
-          <option value="evaluatie">Evaluatie</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
-        <select class="fsel" id="sel-log-status" onchange="setPage('log',1);renderLogbook()">
-          <option value="All">All</option>
-          <option value="open">Open</option>
-          <option value="gesloten">Gesloten</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
-        <select class="fsel" id="sel-log-bldg" onchange="onLogBldgChange()">
-          <option value="All">All Buildings</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Floor</div>
-        <select class="fsel" id="sel-log-floor" onchange="onLogFloorChange()">
-          <option value="All">All Floors</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Unit</div>
-        <select class="fsel" id="sel-log-unit" onchange="onLogUnitChange()">
-          <option value="All">All Units</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Asset</div>
-        <select class="fsel" id="sel-log-asset" onchange="setPage('log',1);renderLogbook()">
-          <option value="All">All Assets</option>
-        </select>
-      </div>
-    </div>
-    <div style="padding:0 14px 8px;display:flex;gap:8px;align-items:center">
+    <!-- hidden selects that drive filtering (values set from modal) -->
+    <select id="sel-log-type"   style="display:none" onchange="setPage('log',1);renderLogbook()">
+      <option value="All">All Types</option>
+      <option value="onderhoud">Onderhoud</option>
+      <option value="keuring">Keuring</option>
+      <option value="her-keuring">Her-keuring</option>
+      <option value="ontvangen">Ontvangen</option>
+      <option value="bestelling">Bestelling</option>
+      <option value="bezoek">Bezoek</option>
+      <option value="evaluatie">Evaluatie</option>
+    </select>
+    <select id="sel-log-status" style="display:none" onchange="setPage('log',1);renderLogbook()">
+      <option value="All">All</option>
+      <option value="open">Open</option>
+      <option value="gesloten">Gesloten</option>
+    </select>
+    <select id="sel-log-bldg"  style="display:none" onchange="onLogBldgChange()"><option value="All">All Buildings</option></select>
+    <select id="sel-log-floor" style="display:none" onchange="onLogFloorChange()"><option value="All">All Floors</option></select>
+    <select id="sel-log-unit"  style="display:none" onchange="onLogUnitChange()"><option value="All">All Units</option></select>
+    <select id="sel-log-asset" style="display:none" onchange="setPage('log',1);renderLogbook()"><option value="All">All Assets</option></select>
+
+    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center">
       <div style="flex:1;position:relative">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="log-search" placeholder="Search entries…" oninput="setPage('log',1);renderLogbook()" style="width:100%;padding:8px 10px 8px 32px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;background:var(--surface);color:var(--text)"/>
       </div>
-      <button class="btn-clear-filter" onclick="clearLogFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
+      <button id="log-filter-btn" onclick="openLogFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);flex-shrink:0;transition:all .15s">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filters<span id="log-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
+      </button>
     </div>
+    <div id="log-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="log-list"></div>
   </div>
 
@@ -4342,7 +4326,92 @@ const LOG_STATUS_COLORS = {
   'gesloten': { bg:'rgba(16,185,129,.12)',  color:'var(--green)' },
 };
 
+/* ── Logbook filter modal helpers ── */
+
+function openLogFilterModal(){
+  // Populate building list
+  const mBldg = document.getElementById('mf-log-bldg');
+  if(mBldg){
+    const cur = document.getElementById('sel-log-bldg')?.value || 'All';
+    mBldg.innerHTML = '<option value="All">All Buildings</option>' +
+      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
+        .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+    mBldg.value = cur;
+    // Sync cascading selects into modal
+    onMfLogBldgChange(true);
+    const mFloor = document.getElementById('mf-log-floor');
+    if(mFloor) mFloor.value = document.getElementById('sel-log-floor')?.value || 'All';
+    onMfLogFloorChange(true);
+    const mUnit = document.getElementById('mf-log-unit');
+    if(mUnit) mUnit.value = document.getElementById('sel-log-unit')?.value || 'All';
+    onMfLogUnitChange(true);
+    const mAsset = document.getElementById('mf-log-asset');
+    if(mAsset) mAsset.value = document.getElementById('sel-log-asset')?.value || 'All';
+  }
+  // Sync type & status
+  const mType   = document.getElementById('mf-log-type');
+  const mStatus = document.getElementById('mf-log-status');
+  if(mType)   mType.value   = document.getElementById('sel-log-type')?.value   || 'All';
+  if(mStatus) mStatus.value = document.getElementById('sel-log-status')?.value || 'All';
+  openMo('mo-log-filter');
+}
+
+function onMfLogBldgChange(silent){
+  const bldgId = document.getElementById('mf-log-bldg')?.value || 'All';
+  const fSel = document.getElementById('mf-log-floor');
+  if(fSel){
+    const floors = bldgId==='All' ? [] : DB.floors.filter(f=>f.buildingId===bldgId).sort((a,z)=>a.sortOrder-z.sortOrder);
+    fSel.innerHTML = '<option value="All">All Floors</option>' + floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+  }
+  const uSel = document.getElementById('mf-log-unit');
+  if(uSel) uSel.innerHTML = '<option value="All">All Units</option>';
+  const aSel = document.getElementById('mf-log-asset');
+  if(aSel) aSel.innerHTML = '<option value="All">All Assets</option>';
+}
+
+function onMfLogFloorChange(silent){
+  const floorId = document.getElementById('mf-log-floor')?.value || 'All';
+  const bldgId  = document.getElementById('mf-log-bldg')?.value  || 'All';
+  const uSel = document.getElementById('mf-log-unit');
+  if(uSel){
+    const units = (floorId==='All'&&bldgId==='All') ? [] :
+      DB.units.filter(u=>(floorId!=='All'?u.floorId===floorId:(bldgId!=='All'?u.buildingId===bldgId:true))).sort((a,z)=>a.label.localeCompare(z.label));
+    uSel.innerHTML = '<option value="All">All Units</option>' + units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+  }
+  const aSel = document.getElementById('mf-log-asset');
+  if(aSel) aSel.innerHTML = '<option value="All">All Assets</option>';
+}
+
+function onMfLogUnitChange(silent){
+  const unitId  = document.getElementById('mf-log-unit')?.value  || 'All';
+  const floorId = document.getElementById('mf-log-floor')?.value || 'All';
+  const bldgId  = document.getElementById('mf-log-bldg')?.value  || 'All';
+  const aSel = document.getElementById('mf-log-asset');
+  if(aSel){
+    const assets = DB.assets.filter(a=>{
+      if(unitId !=='All') return a.unitId===unitId;
+      if(floorId!=='All') return a.floorId===floorId;
+      if(bldgId !=='All') return a.buildingId===bldgId;
+      return false;
+    }).sort((a,z)=>a.label.localeCompare(z.label));
+    aSel.innerHTML = '<option value="All">All Assets</option>' + assets.map(a=>`<option value="${a.id}">${a.label}</option>`).join('');
+  }
+}
+
+function applyLogFilterModal(){
+  // Push modal values into the hidden selects
+  ['type','status','bldg','floor','unit','asset'].forEach(k=>{
+    const mVal = document.getElementById('mf-log-'+k)?.value || 'All';
+    const hSel = document.getElementById('sel-log-'+k);
+    if(hSel) hSel.value = mVal;
+  });
+  closeMo('mo-log-filter');
+  setPage('log',1);
+  renderLogbook();
+}
+
 function populateLogBldgFilter(){
+  // Keep hidden select in sync (used by onLogBldgChange cascade chain)
   const bSel = document.getElementById('sel-log-bldg');
   if(!bSel) return;
   const cur = bSel.value;
@@ -4352,7 +4421,6 @@ function populateLogBldgFilter(){
   if(bSel.querySelector(`option[value="${cur}"]`)) bSel.value = cur;
 }
 function onLogBldgChange(){
-  // Cascade floor/unit/asset filters when building changes
   const bldgId = document.getElementById('sel-log-bldg')?.value || 'All';
   const fSel = document.getElementById('sel-log-floor');
   if(fSel){
@@ -4395,8 +4463,61 @@ function onLogUnitChange(){
   setPage('log',1); renderLogbook();
 }
 
+function updateLogFilterBadge(){
+  const filters = ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset'];
+  const activeCount = filters.filter(id => (document.getElementById(id)?.value||'All') !== 'All').length;
+  const countEl = document.getElementById('log-filter-count');
+  const btnEl   = document.getElementById('log-filter-btn');
+  if(countEl){
+    if(activeCount > 0){
+      countEl.textContent = activeCount;
+      countEl.style.display = 'inline';
+    } else {
+      countEl.style.display = 'none';
+    }
+  }
+  if(btnEl){
+    btnEl.style.borderColor = activeCount > 0 ? 'var(--blue)' : 'var(--border)';
+    btnEl.style.color       = activeCount > 0 ? 'var(--blue)' : 'var(--sub)';
+    btnEl.style.background  = activeCount > 0 ? 'rgba(37,99,235,.06)' : '#fff';
+  }
+
+  // Render active-filter chips
+  const chipsEl = document.getElementById('log-filter-chips');
+  if(!chipsEl) return;
+  if(activeCount === 0){ chipsEl.style.display = 'none'; chipsEl.innerHTML = ''; return; }
+  chipsEl.style.display = 'flex';
+  const labels = {
+    'sel-log-type'  : v => v,
+    'sel-log-status': v => v,
+    'sel-log-bldg'  : v => DB.buildings.find(b=>b.id===v)?.name || v,
+    'sel-log-floor' : v => DB.floors.find(f=>f.id===v)?.label  || v,
+    'sel-log-unit'  : v => DB.units.find(u=>u.id===v)?.label   || v,
+    'sel-log-asset' : v => DB.assets.find(a=>a.id===v)?.label  || v,
+  };
+  chipsEl.innerHTML = filters
+    .filter(id => (document.getElementById(id)?.value||'All') !== 'All')
+    .map(id => {
+      const val = document.getElementById(id).value;
+      const lbl = labels[id](val);
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">
+        ${lbl}
+        <button onclick="removeLogFilter('${id}')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button>
+      </span>`;
+    }).join('');
+}
+
+function removeLogFilter(id){
+  const el = document.getElementById(id);
+  if(el) el.value = 'All';
+  // Reset downstream cascades
+  if(id==='sel-log-bldg'){ onLogBldgChange(); return; }
+  if(id==='sel-log-floor'){ onLogFloorChange(); return; }
+  if(id==='sel-log-unit'){ onLogUnitChange(); return; }
+  setPage('log',1); renderLogbook();
+}
+
 function renderLogbook(){
-  // populate building filter without triggering onchange
   populateLogBldgFilter();
 
   const typeF   = (document.getElementById('sel-log-type')?.value   || 'All');
@@ -4406,6 +4527,9 @@ function renderLogbook(){
   const unitF   = (document.getElementById('sel-log-unit')?.value   || 'All');
   const assetF  = (document.getElementById('sel-log-asset')?.value  || 'All');
   const searchF = (document.getElementById('log-search')?.value     || '').toLowerCase().trim();
+
+  // Update filter badge + chips
+  updateLogFilterBadge();
 
   let rows = DB.logs.slice().sort((a,z)=>(z.date||'').localeCompare(a.date||''));
   if(typeF   !== 'All') rows = rows.filter(r=>r.type===typeF);
@@ -4445,7 +4569,7 @@ function renderLogbook(){
   slice.forEach(r=>{
     const tc  = LOG_TYPE_COLORS[r.type]    || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
     const sc  = LOG_STATUS_COLORS[r.status]|| { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
-    const col4 = r.assetLabel || '—';
+    const col4 = r.assetLabel || '\u2014';
     const bldNav  = r.buildingId ? `navTo('buildings')` : '';
     const flrNav  = r.floorId   ? `navTo('floors')`    : '';
     const unitNav = r.unitId    ? `navTo('units')`     : '';
@@ -4453,17 +4577,17 @@ function renderLogbook(){
     html += `<div class="ti" style="flex-direction:column;padding-bottom:0;cursor:default">
       <div style="width:100%">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-          <div class="ct" style="flex:1;min-width:0">${r.subject||'—'}</div>
+          <div class="ct" style="flex:1;min-width:0">${r.subject||'\u2014'}</div>
           <div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px;align-items:center">
             ${r.type   ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color}">${r.type}</span>` : ''}
             ${r.status ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${sc.bg};color:${sc.color}">${r.status}</span>` : ''}
           </div>
         </div>
-        <div class="cm">${r.id}${r.date ? ' · ' + df(r.date) : ''}</div>
+        <div class="cm">${r.id}${r.date ? ' \xb7 ' + df(r.date) : ''}</div>
         <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:0;display:grid;grid-template-columns:repeat(4,1fr)">
-          <div class="bs" style="${r.buildingId?'cursor:pointer':''}" ${r.buildingId?`onclick="${bldNav}"`:''}><div class="bs-val" style="${r.buildingId?'color:var(--blue)':''}">${r.building||'—'}</div><div class="bs-lbl">Building</div></div>
-          <div class="bs" style="${r.floorId?'cursor:pointer':''}" ${r.floorId?`onclick="${flrNav}"`:''}><div class="bs-val" style="${r.floorId?'color:var(--blue)':''}">${r.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
-          <div class="bs" style="${r.unitId?'cursor:pointer':''}" ${r.unitId?`onclick="${unitNav}"`:''}><div class="bs-val" style="${r.unitId?'color:var(--blue)':''}">${r.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
+          <div class="bs" style="${r.buildingId?'cursor:pointer':''}" ${r.buildingId?`onclick="${bldNav}"`:''}><div class="bs-val" style="${r.buildingId?'color:var(--blue)':''}">${r.building||'\u2014'}</div><div class="bs-lbl">Building</div></div>
+          <div class="bs" style="${r.floorId?'cursor:pointer':''}" ${r.floorId?`onclick="${flrNav}"`:''}><div class="bs-val" style="${r.floorId?'color:var(--blue)':''}">${r.floor||'\u2014'}</div><div class="bs-lbl">Floor</div></div>
+          <div class="bs" style="${r.unitId?'cursor:pointer':''}" ${r.unitId?`onclick="${unitNav}"`:''}><div class="bs-val" style="${r.unitId?'color:var(--blue)':''}">${r.unit||'\u2014'}</div><div class="bs-lbl">Unit</div></div>
           <div class="bs" style="${r.assetId?'cursor:pointer':''}" ${r.assetId?`onclick="${astNav}"`:''}><div class="bs-val" style="${r.assetId?'color:var(--blue)':''}">${col4}</div><div class="bs-lbl">Asset</div></div>
         </div>
         ${r.note ? `<div style="font-size:13px;color:var(--sub);line-height:1.5;border-top:1px solid var(--border);padding:8px 0 4px">${r.note}</div>` : ''}
@@ -4484,10 +4608,10 @@ function clearLogFilters(){
     const el=document.getElementById(id); if(el) el.value='All';
   });
   const s=document.getElementById('log-search'); if(s) s.value='';
-  // Reset cascading dropdowns to "All" only
   const fSel=document.getElementById('sel-log-floor'); if(fSel) fSel.innerHTML='<option value="All">All Floors</option>';
   const uSel=document.getElementById('sel-log-unit');  if(uSel) uSel.innerHTML='<option value="All">All Units</option>';
   const aSel=document.getElementById('sel-log-asset'); if(aSel) aSel.innerHTML='<option value="All">All Assets</option>';
+  closeMo('mo-log-filter');
   setPage('log',1);
   renderLogbook();
 }
@@ -5013,6 +5137,65 @@ function exportCSV(type){
     </div>
 
     <div style="height:12px"></div>
+  </div>
+</div>
+
+<!-- ═══════ LOGBOOK FILTER MODAL ═══════ -->
+<div class="mo" id="mo-log-filter" onclick="mcClick(event,'mo-log-filter')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt">
+      <span style="display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filter Logbook
+      </span>
+      <button class="mt-close" onclick="closeMo('mo-log-filter')">&#x2715;</button>
+    </div>
+
+    <div class="fg"><label>Type</label>
+      <select class="fi2" id="mf-log-type">
+        <option value="All">All Types</option>
+        <option value="onderhoud">Onderhoud</option>
+        <option value="keuring">Keuring</option>
+        <option value="her-keuring">Her-keuring</option>
+        <option value="ontvangen">Ontvangen</option>
+        <option value="bestelling">Bestelling</option>
+        <option value="bezoek">Bezoek</option>
+        <option value="evaluatie">Evaluatie</option>
+      </select>
+    </div>
+    <div class="fg"><label>Status</label>
+      <select class="fi2" id="mf-log-status">
+        <option value="All">All Statuses</option>
+        <option value="open">Open</option>
+        <option value="gesloten">Gesloten</option>
+      </select>
+    </div>
+    <div class="fg"><label>Building</label>
+      <select class="fi2" id="mf-log-bldg" onchange="onMfLogBldgChange()">
+        <option value="All">All Buildings</option>
+      </select>
+    </div>
+    <div class="fg"><label>Floor</label>
+      <select class="fi2" id="mf-log-floor" onchange="onMfLogFloorChange()">
+        <option value="All">All Floors</option>
+      </select>
+    </div>
+    <div class="fg"><label>Unit</label>
+      <select class="fi2" id="mf-log-unit" onchange="onMfLogUnitChange()">
+        <option value="All">All Units</option>
+      </select>
+    </div>
+    <div class="fg"><label>Asset</label>
+      <select class="fi2" id="mf-log-asset">
+        <option value="All">All Assets</option>
+      </select>
+    </div>
+
+    <div style="display:flex;gap:10px;padding:4px 18px 18px">
+      <button onclick="clearLogFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
+      <button onclick="applyLogFilterModal()" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff">Apply</button>
+    </div>
   </div>
 </div>
 
