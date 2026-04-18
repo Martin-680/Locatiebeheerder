@@ -469,6 +469,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <option value="priority">By priority</option>
       <option value="days">⏱ Most overdue</option>
     </select>
+    <select id="sel-tix-sup" style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Suppliers</option></select>
 
     <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
       <button class="btn-clear-filter" id="tix-clear-btn" onclick="clearTixFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
@@ -776,6 +777,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <select id="sel-log-floor" style="display:none" onchange="onLogFloorChange()"><option value="All">All Floors</option></select>
     <select id="sel-log-unit"  style="display:none" onchange="onLogUnitChange()"><option value="All">All Units</option></select>
     <select id="sel-log-asset" style="display:none" onchange="setPage('log',1);renderLogbook()"><option value="All">All Assets</option></select>
+    <select id="sel-log-sup"   style="display:none" onchange="setPage('log',1);renderLogbook()"><option value="All">All Suppliers</option></select>
 
     <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center">
       <div style="flex:1;position:relative">
@@ -2306,6 +2308,15 @@ function openTixFilterModal(){
       getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
     mCat.value = getCategoryList().includes(cur) ? cur : 'All';
   }
+  // Populate supplier
+  const mSup = document.getElementById('mf-tix-sup');
+  if(mSup){
+    const cur = document.getElementById('sel-tix-sup')?.value || 'All';
+    mSup.innerHTML = '<option value="All">All Suppliers</option>' +
+      [...DB.suppliers].sort((a,z)=>a.name.localeCompare(z.name))
+        .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    mSup.value = cur;
+  }
   // Sync remaining
   ['status','pri','sort'].forEach(k=>{
     const mEl=document.getElementById('mf-tix-'+k);
@@ -2327,7 +2338,7 @@ function onMfTixBldgChange(silent){
   }
 }
 function applyTixFilterModal(){
-  ['status','pri','cat','bldg','floor','sort'].forEach(k=>{
+  ['status','pri','cat','bldg','floor','sort','sup'].forEach(k=>{
     const mVal=document.getElementById('mf-tix-'+k)?.value||(k==='sort'?'newest':'All');
     const hSel=document.getElementById('sel-tix-'+k);
     if(hSel) hSel.value=mVal;
@@ -2337,7 +2348,7 @@ function applyTixFilterModal(){
   renderTix();
 }
 function updateTixFilterBadge(){
-  const filterIds = ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor'];
+  const filterIds = ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup'];
   const sortDefault = 'newest';
   const active = filterIds.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length
                + ((document.getElementById('sel-tix-sort')?.value||sortDefault)!==sortDefault ? 1 : 0);
@@ -2358,7 +2369,9 @@ function updateTixFilterBadge(){
     return id==='sel-tix-sort' ? v!==sortDefault : v!=='All';
   }).map(id=>{
     const val=document.getElementById(id).value;
-    const lbl=id==='sel-tix-sort'?sortLabels[val]||val:val;
+    const lbl=id==='sel-tix-sort'?sortLabels[val]||val
+             :id==='sel-tix-sup'?DB.suppliers.find(s=>s.id===val)?.name||val
+             :val;
     return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">${lbl}<button onclick="removeTixFilter('${id}')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`;
   }).join('');
 }
@@ -2449,7 +2462,7 @@ function removeInspFilter(id){
 }
 
 function clearTixFilters(){
-  ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
+  ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const sort=document.getElementById('sel-tix-sort');if(sort)sort.value='newest';
   const search=document.getElementById('tsearch');if(search)search.value='';
   closeMo('mo-tix-filter');
@@ -2498,6 +2511,7 @@ function renderTix(){
     tixCatSel.value=prev;
   }
   const catVal=tixCatSel?.value||'All';
+  const supVal=document.getElementById('sel-tix-sup')?.value||'All';
   syncSelActive('sel-tix-status'); syncSelActive('sel-tix-pri'); syncSelActive('sel-tix-cat'); syncSelActive('sel-tix-bldg'); syncSelActive('sel-tix-floor');
   updateTixFilterBadge();
   let list=DB.tickets;
@@ -2506,6 +2520,7 @@ function renderTix(){
   else if(statusVal!=='All') list=list.filter(t=>t.status===statusVal);
   if(priVal!=='All') list=list.filter(t=>t.priority===priVal);
   if(catVal!=='All') list=list.filter(t=>t.category===catVal);
+  if(supVal!=='All') list=list.filter(t=>t.supplierId===supVal);
   if(bldgVal!=='All') list=list.filter(t=>t.building===bldgVal);
   if(floorVal!=='All') list=list.filter(t=>t.floor===floorVal);
   if(q) list=list.filter(t=>t.subject.toLowerCase().includes(q)||t.building.toLowerCase().includes(q)||t.id.toLowerCase().includes(q)||t.assignedTo?.toLowerCase().includes(q)||(t.reportedBy||'').toLowerCase().includes(q));
@@ -4784,6 +4799,15 @@ function openLogFilterModal(){
     onMfLogUnitChange(true);
     const mAsset = document.getElementById('mf-log-asset');
     if(mAsset) mAsset.value = document.getElementById('sel-log-asset')?.value || 'All';
+    // Populate supplier
+    const mSup = document.getElementById('mf-log-sup');
+    if(mSup){
+      const cur = document.getElementById('sel-log-sup')?.value || 'All';
+      mSup.innerHTML = '<option value="All">All Suppliers</option>' +
+        [...DB.suppliers].sort((a,z)=>a.name.localeCompare(z.name))
+          .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+      mSup.value = cur;
+    }
   }
   // Sync type & status
   const mType   = document.getElementById('mf-log-type');
@@ -4837,7 +4861,7 @@ function onMfLogUnitChange(silent){
 
 function applyLogFilterModal(){
   // Push modal values into the hidden selects
-  ['type','status','bldg','floor','unit','asset'].forEach(k=>{
+  ['type','status','bldg','floor','unit','asset','sup'].forEach(k=>{
     const mVal = document.getElementById('mf-log-'+k)?.value || 'All';
     const hSel = document.getElementById('sel-log-'+k);
     if(hSel) hSel.value = mVal;
@@ -4901,7 +4925,7 @@ function onLogUnitChange(){
 }
 
 function updateLogFilterBadge(){
-  const filters = ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset'];
+  const filters = ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset','sel-log-sup'];
   const activeCount = filters.filter(id => (document.getElementById(id)?.value||'All') !== 'All').length;
   const countEl = document.getElementById('log-filter-count');
   const btnEl   = document.getElementById('log-filter-btn');
@@ -4933,6 +4957,7 @@ function updateLogFilterBadge(){
     'sel-log-floor' : v => DB.floors.find(f=>f.id===v)?.label  || v,
     'sel-log-unit'  : v => DB.units.find(u=>u.id===v)?.label   || v,
     'sel-log-asset' : v => DB.assets.find(a=>a.id===v)?.label  || v,
+    'sel-log-sup'   : v => DB.suppliers.find(s=>s.id===v)?.name || v,
   };
   chipsEl.innerHTML = filters
     .filter(id => (document.getElementById(id)?.value||'All') !== 'All')
@@ -4965,6 +4990,7 @@ function renderLogbook(){
   const floorF  = (document.getElementById('sel-log-floor')?.value  || 'All');
   const unitF   = (document.getElementById('sel-log-unit')?.value   || 'All');
   const assetF  = (document.getElementById('sel-log-asset')?.value  || 'All');
+  const supF    = (document.getElementById('sel-log-sup')?.value    || 'All');
   const searchF = (document.getElementById('log-search')?.value     || '').toLowerCase().trim();
 
   // Update filter badge + chips
@@ -4977,6 +5003,7 @@ function renderLogbook(){
   if(floorF  !== 'All') rows = rows.filter(r=>r.floorId===floorF);
   if(unitF   !== 'All') rows = rows.filter(r=>r.unitId===unitF);
   if(assetF  !== 'All') rows = rows.filter(r=>r.assetId===assetF);
+  if(supF    !== 'All') rows = rows.filter(r=>r.supplierId===supF);
   if(searchF) rows = rows.filter(r=>
     (r.subject||'').toLowerCase().includes(searchF) ||
     (r.note||'').toLowerCase().includes(searchF) ||
@@ -5043,7 +5070,7 @@ function renderLogbook(){
 }
 
 function clearLogFilters(){
-  ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset'].forEach(id=>{
+  ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset','sel-log-sup'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='All';
   });
   const s=document.getElementById('log-search'); if(s) s.value='';
@@ -5620,6 +5647,9 @@ function exportCSV(type){
     <div class="fg"><label>Floor</label>
       <select class="fi2" id="mf-tix-floor"><option value="All">All Floors</option></select>
     </div>
+    <div class="fg"><label>Supplier</label>
+      <select class="fi2" id="mf-tix-sup"><option value="All">All Suppliers</option></select>
+    </div>
     <div class="fg"><label>Sort</label>
       <select class="fi2" id="mf-tix-sort">
         <option value="newest">&#x2193; Newest first</option>
@@ -5859,6 +5889,9 @@ function exportCSV(type){
       <select class="fi2" id="mf-log-asset">
         <option value="All">All Assets</option>
       </select>
+    </div>
+    <div class="fg"><label>Supplier</label>
+      <select class="fi2" id="mf-log-sup"><option value="All">All Suppliers</option></select>
     </div>
 
     <div style="display:flex;gap:10px;padding:4px 18px 18px">
