@@ -1077,7 +1077,7 @@ const SHEET_ID    = '1UkjXu3yOwPWlb1bKjMnXuCrYkxsvzC6wBZ48nPr1P4A';
 const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email openid';
 
 /* Sheet tab names — must match exactly what you created */
-const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', floors:'Floors', units:'Units', categories:'Categories', logs:'Logs' };
+const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', inspectionItems:'InspectionItems', floors:'Floors', units:'Units', categories:'Categories', logs:'Logs' };
 
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
@@ -1086,7 +1086,8 @@ const COLS = {
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
-  inspections: ['id','buildingId','floorId','categoryId','date','inspector','status','items','notes'],
+  inspections:      ['id','buildingId','floorId','categoryId','dateStart','dateEnd','inspector','status','notes'],
+  inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note'],
   floors:    ['id','buildingId','label','sortOrder'],
   units:     ['id','floorId','buildingId','label','sortOrder'],
   categories:['id','category'],
@@ -1111,7 +1112,7 @@ function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
    STATE
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
-let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], floors:[], units:[], categories:[], logs:[] };
+let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], inspectionItems:[], floors:[], units:[], categories:[], logs:[] };
 let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null, floor:null, log:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
@@ -1326,13 +1327,14 @@ function rowsToObjects(rows, cols){
 }
 
 async function loadAllData(){
-  const [users,buildings,assets,tickets,suppliers,inspections,floors,units,categories,logs] = await Promise.all([
+  const [users,buildings,assets,tickets,suppliers,inspections,inspectionItems,floors,units,categories,logs] = await Promise.all([
     sheetsGet(`${TABS.users}!A:Z`),
     sheetsGet(`${TABS.buildings}!A:Z`),
     sheetsGet(`${TABS.assets}!A:Z`),
     sheetsGet(`${TABS.tickets}!A:Z`),
     sheetsGet(`${TABS.suppliers}!A:Z`),
     sheetsGet(`${TABS.inspections}!A:Z`),
+    sheetsGet(`${TABS.inspectionItems}!A:Z`),
     sheetsGet(`${TABS.floors}!A:Z`),
     sheetsGet(`${TABS.units}!A:Z`),
     sheetsGet(`${TABS.categories}!A:Z`),
@@ -1358,15 +1360,16 @@ async function loadAllData(){
       category : cat ? cat.category : r.categoryId,
     };
   });
+  DB.inspectionItems = rowsToObjects(inspectionItems, COLS.inspectionItems);
   DB.inspections = rowsToObjects(inspections, COLS.inspections).map(r=>{
-    try{ r.items = typeof r.items==='string' ? JSON.parse(r.items) : (r.items||[]); }
-    catch(e){ r.items=[]; }
     const bld = DB.buildings.find(b=>b.id===r.buildingId);
     const flr = DB.floors.find(f=>f.id===r.floorId);
     const cat = DB.categories.find(x=>x.id===r.categoryId);
     r.building = bld ? bld.name     : r.buildingId;
     r.floor    = flr ? flr.label    : r.floorId;
     r.category = cat ? cat.category : r.categoryId;
+    // Attach items from InspectionItems tab
+    r.items = DB.inspectionItems.filter(i => i.inspectionId === r.id);
     return r;
   });
   DB.assets = rowsToObjects(assets, COLS.assets).map(r=>{
@@ -1405,6 +1408,13 @@ async function loadAllData(){
 async function loadSheet(key){
   const rows = await sheetsGet(`${TABS[key]}!A:Z`);
   DB[key] = rowsToObjects(rows, COLS[key]);
+  // After reloading inspections or inspectionItems, re-join items onto inspections
+  if(key === 'inspections' || key === 'inspectionItems'){
+    DB.inspections = (DB.inspections || []).map(r => ({
+      ...r,
+      items: (DB.inspectionItems || []).filter(i => i.inspectionId === r.id),
+    }));
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1471,6 +1481,10 @@ async function writeSheet(key){
         categoryId : cat ? cat.id : (r.categoryId || r.category),
       };
     });
+  }
+  // InspectionItems: straightforward write
+  if(key === 'inspectionItems'){
+    // records are already plain objects — no transformation needed
   }
   const rows = [cols, ...records.map(o=>objToRow(o,cols))];
   try {
@@ -3526,7 +3540,7 @@ function renderInspections(){
   syncSelActive('sel-insp-status'); syncSelActive('sel-insp-bldg');
   syncSelActive('sel-insp-floor');  syncSelActive('sel-insp-cat');
 
-  let list = [...DB.inspections].sort((a,b)=> b.date > a.date ? 1 : -1);
+  let list = [...DB.inspections].sort((a,b)=> (b.dateStart||'') > (a.dateStart||'') ? 1 : -1);
   if(statusVal !== 'All') list = list.filter(r => r.status === statusVal);
   if(bldgVal   !== 'All') list = list.filter(r => r.buildingId === bldgVal);
   if(floorVal  !== 'All') list = list.filter(r => r.floor === floorVal);
@@ -3573,7 +3587,7 @@ function inspListCardHTML(r){
     <div class="insp-list-hdr">
       <div style="min-width:0;flex:1">
         <div class="ct">${r.building}${r.floor ? ' · ' + r.floor : ''}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
-        <div class="cm">${r.id} · ${df(r.date)} · ${r.inspector}</div>
+        <div class="cm">${r.id} · ${df(r.dateStart)} · ${r.inspector}</div>
       </div>
       <span class="badge" style="background:${stBg};color:${stColor};flex-shrink:0;margin-left:8px">${stLabel}</span>
     </div>
@@ -3778,9 +3792,10 @@ function launchInspectionRound(){
   const inspId = nextId(DB.inspections, 'INS');
   activeRound = {
     inspId,
-    building : bldg,
-    floor    : floor,
-    category : inspType === 'category' ? cat : (inspType === 'units' ? 'Units' : 'Assets'),
+    building  : bldg,
+    floor     : floor,
+    category  : inspType === 'category' ? cat : (inspType === 'units' ? 'Units' : 'Assets'),
+    dateStart : today.toISOString().split('T')[0],
     items,
   };
 
@@ -4058,6 +4073,7 @@ function continueInspection(id){
     buildingId : r.buildingId,
     floorId    : r.floorId,
     categoryId : r.categoryId,
+    dateStart  : r.dateStart || today.toISOString().split('T')[0],
     items      : copiedItems,
     resuming   : true,
   };
@@ -4085,9 +4101,12 @@ async function saveInspectionRound(){
 
   const allApproved = activeRound.items.every(i => i.result === 'Approved');
   const allChecked  = activeRound.items.every(i => i.result !== 'Open');
+  const isCompleted = allApproved || (allChecked && !activeRound.items.some(i => i.result === 'Open'));
   const inspBld = DB.buildings.find(b=>b.name===activeRound.building);
   const inspFlr = DB.floors.find(f=>f.label===activeRound.floor);
   const inspCat = DB.categories.find(x=>x.category===activeRound.category);
+  const todayStr = today.toISOString().split('T')[0];
+  const newStatus = allApproved ? 'Completed' : 'In Progress';
   const inspRecord = {
     id         : activeRound.inspId,
     buildingId : inspBld ? inspBld.id : activeRound.building,
@@ -4096,15 +4115,37 @@ async function saveInspectionRound(){
     building   : activeRound.building,
     floor      : activeRound.floor,
     category   : activeRound.category,
-    date       : today.toISOString().split('T')[0],
+    dateStart  : activeRound.dateStart || todayStr,
+    dateEnd    : newStatus === 'Completed' ? todayStr : '',
     inspector  : currentUser.name,
-    status     : allApproved ? 'Completed' : 'In Progress',
-    items      : activeRound.items,
+    status     : newStatus,
     notes      : ''
   };
 
+  // Build InspectionItems rows for this round
+  // Remove any existing items for this inspection, then add fresh ones
+  DB.inspectionItems = DB.inspectionItems.filter(i => i.inspectionId !== activeRound.inspId);
+  const newItems = activeRound.items.map(item => ({
+    id           : nextId(DB.inspectionItems, 'II'),
+    inspectionId : activeRound.inspId,
+    unitId       : item.unitId  || '',
+    assetId      : item.assetId || '',
+    label        : item.label   || '',
+    result       : item.result  || 'Open',
+    note         : item.note    || '',
+  }));
+  // Assign sequential IDs (nextId uses current array state, so push one-by-one)
+  const numbered = [];
+  for(const item of newItems){
+    item.id = nextId([...DB.inspectionItems, ...numbered], 'II');
+    numbered.push(item);
+  }
+  DB.inspectionItems.push(...numbered);
+
+  // Attach items back onto the inspRecord for in-memory use
+  inspRecord.items = numbered;
+
   if(activeRound.resuming){
-    // Overwrite the existing record in-place
     const idx = DB.inspections.findIndex(x => x.id === activeRound.inspId);
     if(idx >= 0) DB.inspections[idx] = inspRecord;
     else DB.inspections.unshift(inspRecord);
@@ -4116,6 +4157,7 @@ async function saveInspectionRound(){
 
   try {
     await writeSheet('inspections');
+    await writeSheet('inspectionItems');
     toast('Inspection round saved');
   } catch(e){
     toast('Save failed – check Sheets permissions','err');
@@ -4225,7 +4267,8 @@ function openInspDetail(id){
       </div>
     </div>
     <div style="padding:0 18px">
-      <div class="dr"><span class="dk">Date</span><span class="dv">${df(r.date)}</span></div>
+      <div class="dr"><span class="dk">Started</span><span class="dv">${df(r.dateStart)}</span></div>
+      ${r.dateEnd ? `<div class="dr"><span class="dk">Completed</span><span class="dv">${df(r.dateEnd)}</span></div>` : ''}
       <div class="dr"><span class="dk">Inspector</span><span class="dv">${r.inspector}</span></div>
       <div class="dr"><span class="dk">Items</span><span class="dv">${items.length}</span></div>
       <div class="dr"><span class="dk">Approved</span><span class="dv" style="color:var(--green);font-weight:700">${approved}</span></div>
@@ -4261,8 +4304,17 @@ async function doConfirmedDelete(){
   const map={ticket:'tickets',asset:'assets',supplier:'suppliers',user:'users',building:'buildings',inspection:'inspections'};
   const key=map[type];
   if(key) DB[key]=DB[key].filter(x=>x.id!==id);
+  // When deleting an inspection, also remove its items
+  if(type==='inspection'){
+    DB.inspectionItems = DB.inspectionItems.filter(i => i.inspectionId !== id);
+  }
   closeMo('mo-confirm');
-  await writeSheet(key);
+  if(type==='inspection'){
+    await writeSheet('inspections');
+    await writeSheet('inspectionItems');
+  } else {
+    await writeSheet(key);
+  }
   toast(`${type} deleted`);
   if(currentScreen==='tickets') renderTix();
   if(currentScreen==='assets') renderAst();
@@ -4752,13 +4804,13 @@ function exportCSV(type){
     headers=['ID','Name','Contact','Status','Rating','Rate/Hr','Phone','Email'];
     rows=DB.suppliers.map(s=>[s.id,s.name,s.contact||'',s.status,s.rating||'',s.ratePerHour||0,s.phone||'',s.email||'']);
   } else if(type==='inspections'){
-    headers=['ID','Building','Floor','Category','Date','Inspector','Status','Total Items','Approved','Failed','Pending'];
+    headers=['ID','Building','Floor','Category','Date Started','Date Completed','Inspector','Status','Total Items','Approved','Failed','Pending'];
     rows=DB.inspections.map(r=>{
       const items=Array.isArray(r.items)?r.items:[];
       const approved=items.filter(i=>i.result==='Approved').length;
       const failed=items.filter(i=>i.result==='Failed').length;
       const pending=items.filter(i=>i.result==='Open').length;
-      return[r.id,r.building||'',r.floor||'',r.category||'',r.date||'',r.inspector||'',r.status||'',items.length,approved,failed,pending];
+      return[r.id,r.building||'',r.floor||'',r.category||'',r.dateStart||'',r.dateEnd||'',r.inspector||'',r.status||'',items.length,approved,failed,pending];
     });
   }
   const csv=[headers,...rows].map(r=>r.map(v=>'"'+(String(v||'').replace(/"/g,'""'))+'"').join(',')).join('\n');
