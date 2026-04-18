@@ -423,11 +423,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
     <div id="dash-bldg-tix" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
-    <div class="sh fu" style="display:flex;align-items:baseline;justify-content:space-between">
-      <span class="sh-title">Item Inspections</span>
-      <span style="font-size:11px;color:var(--muted);font-weight:400;padding-right:14px">(units and assets combined)</span>
+    <div class="sh fu">
+      <span class="sh-title">Inspections</span>
     </div>
     <div id="dash-bldg-insp" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
+
+    <div class="sh fu"><span class="sh-title">Logbook</span></div>
+    <div id="dash-bldg-log" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
     <div class="sh fu"><span class="sh-title">By Priority</span></div>
     <div class="card fu" id="pri-chart"></div>
@@ -1864,6 +1866,45 @@ function renderDash(){
         </div>`;
       }).join('');
       inspContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
+    }
+  }
+  // Logbook dashboard grid: Building | Assets (total) | Suppliers (total)
+  const logContainer=document.getElementById('dash-bldg-log');
+  if(logContainer){
+    // Group logs by building
+    const bldgLogMap={};
+    DB.logs.forEach(r=>{
+      const bld=DB.buildings.find(b=>b.id===r.buildingId);
+      const bName=bld?bld.name:(r.building||'').trim();
+      if(!bName) return;
+      if(!bldgLogMap[bName]) bldgLogMap[bName]={id:r.buildingId||'',assets:new Set(),suppliers:new Set(),total:0};
+      const m=bldgLogMap[bName];
+      m.total++;
+      if(r.assetId) m.assets.add(r.assetId);
+      if(r.supplierId) m.suppliers.add(r.supplierId);
+    });
+    const logEntries=Object.entries(bldgLogMap).sort((a,b)=>a[0].localeCompare(b[0]));
+    if(!logEntries.length){
+      logContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No logbook data</div>';
+    } else {
+      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Suppliers</div>
+      </div>`;
+      const rows=logEntries.map(([name,m],i)=>{
+        const safeId=(m.id||'').replace(/'/g,"\\'");
+        const border=i<logEntries.length-1?'border-bottom:1px solid var(--border);':'';
+        const goLog=`navTo('logbook');setTimeout(()=>{const s=document.getElementById('sel-log-bldg');if(s){s.value='${safeId}';setPage('log',1);renderLogbook();}},150)`;
+        const assetCount=m.assets.size;
+        const supCount=m.suppliers.size;
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:4px;${border}align-items:center">
+          <div style="padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goLog}">${name}</div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goLog}"><span style="font-size:15px;font-weight:800;color:${assetCount?'var(--teal)':'var(--muted)'}">${assetCount||'—'}</span></div>
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goLog}"><span style="font-size:15px;font-weight:800;color:${supCount?'var(--indigo)':'var(--muted)'}">${supCount||'—'}</span></div>
+        </div>`;
+      }).join('');
+      logContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
     }
   }
   // Priority chart
