@@ -423,6 +423,12 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
     <div id="dash-bldg-tix" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
+    <div class="sh fu" style="display:flex;align-items:center;justify-content:space-between">
+      <span class="sh-title">Problem Assets</span>
+      <span id="dash-prob-ast-link" style="font-size:12px;color:var(--blue);font-weight:600;padding-right:14px;cursor:pointer;display:none" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-tix-status');if(s){s.value='Active';setPage('ast',1);renderAst();}},150)">View all →</span>
+    </div>
+    <div id="dash-prob-ast" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:6px"></div>
+
     <div class="sh fu">
       <span class="sh-title">Inspections</span>
     </div>
@@ -1821,6 +1827,52 @@ function renderDash(){
   const ob=document.getElementById('open-badge');
   const nonClosed=DB.tickets.filter(t=>t.status!=='Closed').length;
   if(ob){ if(nonClosed>0){ob.textContent=nonClosed;ob.style.display='flex';}else ob.style.display='none'; }
+
+  // Problem Assets
+  const probAstEl=document.getElementById('dash-prob-ast');
+  const probAstLink=document.getElementById('dash-prob-ast-link');
+  if(probAstEl){
+    const problemAssets=DB.assets.filter(a=>{
+      const hasOpenTix=DB.tickets.some(t=>t.assetId===a.id&&t.status!=='Closed');
+      const badStatus=a.status==='Under Maintenance'||a.status==='Decommissioned';
+      return hasOpenTix||badStatus;
+    }).sort((a,b)=>{
+      // Sort: Decommissioned first, then Under Maintenance, then by open ticket count desc
+      const rank=s=>s==='Decommissioned'?0:s==='Under Maintenance'?1:2;
+      if(rank(a.status)!==rank(b.status)) return rank(a.status)-rank(b.status);
+      const tA=DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
+      const tB=DB.tickets.filter(t=>t.assetId===b.id&&t.status!=='Closed').length;
+      return tB-tA;
+    });
+    const LIMIT=10;
+    const shown=problemAssets.slice(0,LIMIT);
+    if(probAstLink) probAstLink.style.display=problemAssets.length>LIMIT?'':'none';
+    if(!shown.length){
+      probAstEl.innerHTML='<div style="font-size:13px;color:var(--muted);padding:0 0 8px">All assets are normal \u2714</div>';
+    } else {
+      probAstEl.innerHTML=shown.map(a=>{
+        const openTix=DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
+        // Status badge
+        const stBadge=a.status==='Decommissioned'
+          ? `<span class="badge" style="background:rgba(100,116,139,.15);color:var(--muted);flex-shrink:0">Decommissioned</span>`
+          : a.status==='Under Maintenance'
+          ? `<span class="badge" style="background:rgba(245,158,11,.12);color:var(--amber);flex-shrink:0">Maintenance</span>`
+          : '';
+        // Ticket badge
+        const tixBadge=openTix>0
+          ? `<span class="badge" style="background:rgba(220,38,38,.12);color:var(--red);flex-shrink:0">${openTix} open ticket${openTix!==1?'s':''}</span>`
+          : '';
+        const loc=[a.building,a.floor,a.unit].filter(Boolean).join(' · ');
+        return`<div onclick="openAstDetail('${a.id}')" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:border-color .15s" onmouseenter="this.style.borderColor='var(--border2)'" onmouseleave="this.style.borderColor='var(--border)'">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.label||a.name}</div>
+            <div style="font-size:11px;color:var(--sub);margin-top:2px">${a.id}${loc?' · '+loc:''}</div>
+          </div>
+          <div style="display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">${stBadge}${tixBadge}</div>
+        </div>`;
+      }).join('');
+    }
+  }
   // Inspections building grid
   const inspContainer=document.getElementById('dash-bldg-insp');
   if(inspContainer){
