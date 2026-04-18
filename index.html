@@ -530,6 +530,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="wrap-ast-unit"  style="display:none"></div>
 
     <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
+      <button class="btn-clear-filter" id="ast-clear-btn" onclick="clearAstFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
       <button id="ast-filter-btn" onclick="openAstFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
         Filters<span id="ast-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
@@ -566,9 +567,20 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="bld-search" placeholder="Search buildings…" oninput="renderBlds()"/></div>
-    <div style="padding:0 14px 10px">
-      <button class="btn-clear-filter" onclick="clearBldFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
+    <select id="sel-bld-status" style="display:none" onchange="renderBlds()">
+      <option value="All">All</option>
+      <option value="Active">Active</option>
+      <option value="Issues">Issues</option>
+    </select>
+
+    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
+      <button class="btn-clear-filter" id="bld-clear-btn" onclick="clearBldFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
+      <button id="bld-filter-btn" onclick="openBldFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filters<span id="bld-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
+      </button>
     </div>
+    <div id="bld-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="bld-list"></div>
   </div>
 
@@ -654,29 +666,28 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="ssearch" placeholder="Search suppliers…" oninput="setPage('sup',1);renderSuppliers()"/></div>
-    <div class="fbar-wrap">
-      <div class="fsel-wrap"><div class="fsel-lbl">Status</div>
-        <select class="fsel" id="sel-sup-status" onchange="setPage('sup',1);renderSuppliers()">
-          <option value="All">All Statuses</option><option value="Active">Active</option>
-          <option value="Preferred">Preferred</option><option value="Inactive">Inactive</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Expertise</div>
-        <select class="fsel" id="sel-sup-expertise" onchange="setPage('sup',1);renderSuppliers()">
-          <option value="All">All Expertise</option>
-        </select>
-      </div>
-      <div class="fsel-wrap"><div class="fsel-lbl">Sort by Rate</div>
-        <select class="fsel" id="sel-sup-sort" onchange="renderSuppliers()">
-          <option value="none">Default</option>
-          <option value="asc">Rate ↑ Low → High</option>
-          <option value="desc">Rate ↓ High → Low</option>
-        </select>
-      </div>
+    <!-- hidden selects (drive filtering; values set from modal) -->
+    <select id="sel-sup-status"    style="display:none" onchange="setPage('sup',1);renderSuppliers()">
+      <option value="All">All Statuses</option>
+      <option value="Active">Active</option>
+      <option value="Preferred">Preferred</option>
+      <option value="Inactive">Inactive</option>
+    </select>
+    <select id="sel-sup-expertise" style="display:none" onchange="setPage('sup',1);renderSuppliers()"><option value="All">All Expertise</option></select>
+    <select id="sel-sup-sort"      style="display:none" onchange="renderSuppliers()">
+      <option value="none">Default</option>
+      <option value="asc">Rate ↑ Low → High</option>
+      <option value="desc">Rate ↓ High → Low</option>
+    </select>
+
+    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
+      <button class="btn-clear-filter" id="sup-clear-btn" onclick="clearSupFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
+      <button id="sup-filter-btn" onclick="openSupFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filters<span id="sup-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
+      </button>
     </div>
-    <div style="padding:0 14px 10px">
-      <button class="btn-clear-filter" onclick="clearSupFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
-    </div>
+    <div id="sup-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="sup-list"></div>
   </div>
 
@@ -719,6 +730,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </select>
 
     <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
+      <button class="btn-clear-filter" id="unit-clear-btn" onclick="clearUnitFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
       <button id="unit-filter-btn" onclick="openUnitFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
         Filters<span id="unit-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
@@ -792,6 +804,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="log-search" placeholder="Search entries…" oninput="setPage('log',1);renderLogbook()" style="width:100%;padding:8px 10px 8px 32px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;background:var(--surface);color:var(--text)"/>
       </div>
+      <button class="btn-clear-filter" id="log-clear-btn" onclick="clearLogFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
       <button id="log-filter-btn" onclick="openLogFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);flex-shrink:0;transition:all .15s">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
         Filters<span id="log-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
@@ -1988,8 +2001,107 @@ function clearGlobalSearch(){ const inp=document.getElementById('global-search')
 /* ══════════════════════════════════════════════════════════
    TICKETS
 ══════════════════════════════════════════════════════════ */
+/* ── Buildings filter modal ── */
+function openBldFilterModal(){
+  const mStatus = document.getElementById('mf-bld-status');
+  if(mStatus) mStatus.value = document.getElementById('sel-bld-status')?.value || 'All';
+  openMo('mo-bld-filter');
+}
+function applyBldFilterModal(){
+  const mVal = document.getElementById('mf-bld-status')?.value || 'All';
+  const hSel = document.getElementById('sel-bld-status');
+  if(hSel) hSel.value = mVal;
+  closeMo('mo-bld-filter');
+  renderBlds();
+}
+function updateBldFilterBadge(){
+  const active = (document.getElementById('sel-bld-status')?.value||'All') !== 'All' ? 1 : 0;
+  const countEl = document.getElementById('bld-filter-count');
+  const btnEl   = document.getElementById('bld-filter-btn');
+  const clearEl = document.getElementById('bld-clear-btn');
+  if(countEl){ countEl.textContent=active; countEl.style.display=active?'inline':'none'; }
+  if(btnEl){ btnEl.style.borderColor=active?'var(--blue)':'var(--border)'; btnEl.style.color=active?'var(--blue)':'var(--sub)'; btnEl.style.background=active?'rgba(37,99,235,.06)':'#fff'; }
+  if(clearEl) clearEl.style.display = active ? 'flex' : 'none';
+  const chipsEl = document.getElementById('bld-filter-chips');
+  if(!chipsEl) return;
+  if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
+  chipsEl.style.display='flex';
+  const val = document.getElementById('sel-bld-status').value;
+  const lbl = val==='Active'?'Normal':'Has Open Tickets';
+  chipsEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">${lbl}<button onclick="clearBldFilters()" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`;
+}
+
+/* ── Suppliers filter modal ── */
+function openSupFilterModal(){
+  // Populate expertise
+  const mEx = document.getElementById('mf-sup-expertise');
+  if(mEx){
+    const cur = document.getElementById('sel-sup-expertise')?.value || 'All';
+    const all = new Set();
+    DB.suppliers.forEach(s=>{
+      const exp = Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
+      exp.forEach(e=>{ if(e) all.add(e); });
+    });
+    mEx.innerHTML = '<option value="All">All Expertise</option>' + [...all].sort().map(e=>`<option value="${e}">${e}</option>`).join('');
+    mEx.value = cur;
+  }
+  ['status','sort'].forEach(k=>{
+    const mEl=document.getElementById('mf-sup-'+k);
+    const hEl=document.getElementById('sel-sup-'+k);
+    if(mEl&&hEl) mEl.value=hEl.value;
+  });
+  openMo('mo-sup-filter');
+}
+function applySupFilterModal(){
+  ['status','expertise','sort'].forEach(k=>{
+    const mVal=document.getElementById('mf-sup-'+k)?.value||'All';
+    const hSel=document.getElementById('sel-sup-'+k);
+    if(hSel) hSel.value=mVal;
+  });
+  closeMo('mo-sup-filter');
+  setPage('sup',1);
+  renderSuppliers();
+}
+function updateSupFilterBadge(){
+  const ids = ['sel-sup-status','sel-sup-expertise','sel-sup-sort'];
+  const defaults = {'sel-sup-sort':'none'};
+  const active = ids.filter(id=>{
+    const v=document.getElementById(id)?.value||'All';
+    return v!==(defaults[id]||'All');
+  }).length;
+  const countEl=document.getElementById('sup-filter-count');
+  const btnEl=document.getElementById('sup-filter-btn');
+  const clearEl=document.getElementById('sup-clear-btn');
+  if(countEl){ countEl.textContent=active; countEl.style.display=active?'inline':'none'; }
+  if(btnEl){ btnEl.style.borderColor=active?'var(--blue)':'var(--border)'; btnEl.style.color=active?'var(--blue)':'var(--sub)'; btnEl.style.background=active?'rgba(37,99,235,.06)':'#fff'; }
+  if(clearEl) clearEl.style.display=active?'flex':'none';
+  const chipsEl=document.getElementById('sup-filter-chips');
+  if(!chipsEl) return;
+  if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
+  chipsEl.style.display='flex';
+  const labels={
+    'sel-sup-status'   : v=>v,
+    'sel-sup-expertise': v=>v,
+    'sel-sup-sort'     : v=>v==='asc'?'Rate: Low\u2192High':'Rate: High\u2192Low',
+  };
+  chipsEl.innerHTML = ids
+    .filter(id=>{ const v=document.getElementById(id)?.value||'All'; return v!==(defaults[id]||'All'); })
+    .map(id=>{
+      const val=document.getElementById(id).value;
+      const lbl=labels[id]?.(val)||val;
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">${lbl}<button onclick="removeSupFilter('${id}')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`;
+    }).join('');
+}
+function removeSupFilter(id){
+  const el=document.getElementById(id);
+  if(el) el.value = id==='sel-sup-sort'?'none':'All';
+  setPage('sup',1); renderSuppliers();
+}
+
 function clearBldFilters(){
   const s=document.getElementById('bld-search');if(s)s.value='';
+  const st=document.getElementById('sel-bld-status');if(st)st.value='All';
+  closeMo('mo-bld-filter');
   renderBlds();
 }
 function clearFloorFilters(){
@@ -2077,12 +2189,14 @@ function updateAstFilterBadge(){
   const active = ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length;
   const countEl = document.getElementById('ast-filter-count');
   const btnEl   = document.getElementById('ast-filter-btn');
+  const clearEl = document.getElementById('ast-clear-btn');
   if(countEl){ countEl.textContent=active; countEl.style.display=active?'inline':'none'; }
   if(btnEl){
     btnEl.style.borderColor = active?'var(--blue)':'var(--border)';
     btnEl.style.color       = active?'var(--blue)':'var(--sub)';
     btnEl.style.background  = active?'rgba(37,99,235,.06)':'#fff';
   }
+  if(clearEl) clearEl.style.display = active ? 'flex' : 'none';
   const chipsEl = document.getElementById('ast-filter-chips');
   if(!chipsEl) return;
   if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
@@ -2154,12 +2268,14 @@ function updateUnitFilterBadge(){
   const active = ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length;
   const countEl = document.getElementById('unit-filter-count');
   const btnEl   = document.getElementById('unit-filter-btn');
+  const clearEl = document.getElementById('unit-clear-btn');
   if(countEl){ countEl.textContent=active; countEl.style.display=active?'inline':'none'; }
   if(btnEl){
     btnEl.style.borderColor = active?'var(--blue)':'var(--border)';
     btnEl.style.color       = active?'var(--blue)':'var(--sub)';
     btnEl.style.background  = active?'rgba(37,99,235,.06)':'#fff';
   }
+  if(clearEl) clearEl.style.display = active ? 'flex' : 'none';
   const chipsEl = document.getElementById('unit-filter-chips');
   if(!chipsEl) return;
   if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
@@ -3426,7 +3542,11 @@ function openBldDetail(id){
 
 function renderBlds(){
   const q=(document.getElementById('bld-search')?.value||'').toLowerCase();
-  const list=DB.buildings.filter(b=>!q||b.name.toLowerCase().includes(q)||(b.address||'').toLowerCase().includes(q));
+  const statusVal=document.getElementById('sel-bld-status')?.value||'All';
+  updateBldFilterBadge();
+  let list=DB.buildings.filter(b=>!q||b.name.toLowerCase().includes(q)||(b.address||'').toLowerCase().includes(q));
+  if(statusVal==='Active')  list=list.filter(b=>!DB.tickets.some(t=>t.building===b.name&&t.status!=='Closed'));
+  if(statusVal==='Issues')  list=list.filter(b=> DB.tickets.some(t=>t.building===b.name&&t.status!=='Closed'));
   document.getElementById('bld-lbl').textContent=`${list.length} building${list.length!==1?'s':''}`;
   const c=document.getElementById('bld-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><div style="font-size:13px">No buildings yet</div></div>';return;}
@@ -3494,6 +3614,7 @@ function clearSupFilters(){
   const st=document.getElementById('sel-sup-status'); if(st) st.value='All';
   const ex=document.getElementById('sel-sup-expertise'); if(ex) ex.value='All';
   const so=document.getElementById('sel-sup-sort'); if(so) so.value='none';
+  closeMo('mo-sup-filter');
   setPage('sup',1); renderSuppliers();
 }
 function populateExpertiseFilter(){
@@ -3518,6 +3639,7 @@ function renderSuppliers(){
   syncSelActive('sel-sup-status');
   syncSelActive('sel-sup-expertise');
   syncSelActive('sel-sup-sort');
+  updateSupFilterBadge();
   let list=[...DB.suppliers];
   if(statusVal!=='All') list=list.filter(s=>s.status===statusVal);
   if(expertiseVal!=='All'){
@@ -4636,6 +4758,7 @@ function updateLogFilterBadge(){
   const activeCount = filters.filter(id => (document.getElementById(id)?.value||'All') !== 'All').length;
   const countEl = document.getElementById('log-filter-count');
   const btnEl   = document.getElementById('log-filter-btn');
+  const clearEl = document.getElementById('log-clear-btn');
   if(countEl){
     if(activeCount > 0){
       countEl.textContent = activeCount;
@@ -4649,6 +4772,7 @@ function updateLogFilterBadge(){
     btnEl.style.color       = activeCount > 0 ? 'var(--blue)' : 'var(--sub)';
     btnEl.style.background  = activeCount > 0 ? 'rgba(37,99,235,.06)' : '#fff';
   }
+  if(clearEl) clearEl.style.display = activeCount > 0 ? 'flex' : 'none';
 
   // Render active-filter chips
   const chipsEl = document.getElementById('log-filter-chips');
@@ -5305,6 +5429,67 @@ function exportCSV(type){
     </div>
 
     <div style="height:12px"></div>
+  </div>
+</div>
+
+<!-- ═══════ BUILDINGS FILTER MODAL ═══════ -->
+<div class="mo" id="mo-bld-filter" onclick="mcClick(event,'mo-bld-filter')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt">
+      <span style="display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filter Buildings
+      </span>
+      <button class="mt-close" onclick="closeMo('mo-bld-filter')">&#x2715;</button>
+    </div>
+    <div class="fg"><label>Status</label>
+      <select class="fi2" id="mf-bld-status">
+        <option value="All">All</option>
+        <option value="Active">Normal (no open tickets)</option>
+        <option value="Issues">Has Open Tickets</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;padding:4px 18px 18px">
+      <button onclick="clearBldFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
+      <button onclick="applyBldFilterModal()" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ SUPPLIERS FILTER MODAL ═══════ -->
+<div class="mo" id="mo-sup-filter" onclick="mcClick(event,'mo-sup-filter')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt">
+      <span style="display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filter Suppliers
+      </span>
+      <button class="mt-close" onclick="closeMo('mo-sup-filter')">&#x2715;</button>
+    </div>
+    <div class="fg"><label>Status</label>
+      <select class="fi2" id="mf-sup-status">
+        <option value="All">All Statuses</option>
+        <option value="Active">Active</option>
+        <option value="Preferred">Preferred</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+    </div>
+    <div class="fg"><label>Expertise</label>
+      <select class="fi2" id="mf-sup-expertise"><option value="All">All Expertise</option></select>
+    </div>
+    <div class="fg"><label>Sort by Rate</label>
+      <select class="fi2" id="mf-sup-sort">
+        <option value="none">Default (alphabetical)</option>
+        <option value="asc">Rate &#x2191; Low &rarr; High</option>
+        <option value="desc">Rate &#x2193; High &rarr; Low</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;padding:4px 18px 18px">
+      <button onclick="clearSupFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
+      <button onclick="applySupFilterModal()" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff">Apply</button>
+    </div>
   </div>
 </div>
 
