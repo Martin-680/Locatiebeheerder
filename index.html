@@ -2412,13 +2412,52 @@ function onMfAstBldgChange(silent){
   }
 }
 function applyAstFilterModal(){
-  const map = {'bldg':'sel-ast-bldg','floor':'sel-ast-floor','unit':'sel-ast-unit',
-               'status':'sel-ast-status','cat':'sel-ast-cat','acat':'sel-ast-acat','tix-status':'sel-ast-tix-status'};
-  Object.entries(map).forEach(([mk,hk])=>{
-    const mVal = document.getElementById('mf-ast-'+mk)?.value || 'All';
-    const hSel = document.getElementById(hk);
+  // Step 1: copy non-cascading filters straight to hidden selects
+  ['status','cat','acat','tix-status'].forEach(k=>{
+    const mVal = document.getElementById('mf-ast-'+k)?.value || 'All';
+    const hSel = document.getElementById('sel-ast-'+k);
     if(hSel) hSel.value = mVal;
   });
+  // Step 2: apply building — this populates the hidden floor+unit options via onAstBldgChange
+  const mBldgVal = document.getElementById('mf-ast-bldg')?.value || 'All';
+  const hBldgSel = document.getElementById('sel-ast-bldg');
+  if(hBldgSel) hBldgSel.value = mBldgVal;
+  // Populate hidden floor+unit options for the chosen building
+  const floorSel = document.getElementById('sel-ast-floor');
+  const unitSel  = document.getElementById('sel-ast-unit');
+  const floorWrap = document.getElementById('wrap-ast-floor');
+  const unitWrap  = document.getElementById('wrap-ast-unit');
+  if(mBldgVal === 'All'){
+    if(floorSel) floorSel.innerHTML = '<option value="All">All Floors</option>';
+    if(unitSel)  unitSel.innerHTML  = '<option value="All">All Units</option>';
+    if(floorWrap) floorWrap.style.display = 'none';
+    if(unitWrap)  unitWrap.style.display  = 'none';
+  } else {
+    const floors = getFloorsForBuilding(mBldgVal);
+    if(floorSel){
+      floorSel.innerHTML = '<option value="All">All Floors</option>'
+        + floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+    }
+    const units = DB.units.filter(u=>u.buildingId===mBldgVal).sort((a,z)=>a.label.localeCompare(z.label));
+    if(unitSel){
+      unitSel.innerHTML = '<option value="All">All Units</option>'
+        + units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+    }
+    if(floorWrap) floorWrap.style.display = floors.length ? '' : 'none';
+    if(unitWrap)  unitWrap.style.display  = units.length  ? '' : 'none';
+  }
+  // Step 3: now set the floor value (options exist, so browser won't reset it)
+  const mFloorVal = document.getElementById('mf-ast-floor')?.value || 'All';
+  if(floorSel) floorSel.value = mFloorVal;
+  // Step 4: if a floor is selected, narrow units to that floor then set unit value
+  const mUnitVal = document.getElementById('mf-ast-unit')?.value || 'All';
+  if(mBldgVal !== 'All' && mFloorVal !== 'All' && unitSel){
+    const narrowedUnits = DB.units.filter(u=>u.buildingId===mBldgVal&&u.floorId===mFloorVal)
+      .sort((a,z)=>a.label.localeCompare(z.label));
+    unitSel.innerHTML = '<option value="All">All Units</option>'
+      + narrowedUnits.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+  }
+  if(unitSel) unitSel.value = mUnitVal;
   closeMo('mo-ast-filter');
   setPage('ast',1);
   renderAst();
@@ -3181,13 +3220,35 @@ function renderAst(){
   // Show/hide floor+unit wraps based on building selection
   const floorWrap = document.getElementById('wrap-ast-floor');
   const unitWrap  = document.getElementById('wrap-ast-unit');
+  const astFloorSel=document.getElementById('sel-ast-floor');
+  const astUnitSel=document.getElementById('sel-ast-unit');
   if(bldVal==='All'){
     if(floorWrap) floorWrap.style.display='none';
     if(unitWrap)  unitWrap.style.display='none';
+  } else {
+    // Ensure floor options are populated (they may have been set by applyAstFilterModal)
+    if(astFloorSel && astFloorSel.options.length<=1){
+      const floors=getFloorsForBuilding(bldVal);
+      const prevF=astFloorSel.value;
+      astFloorSel.innerHTML='<option value="All">All Floors</option>'
+        +floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+      if(astFloorSel.querySelector(`option[value="${prevF}"]`)) astFloorSel.value=prevF;
+      if(floorWrap) floorWrap.style.display=floors.length?'':'none';
+    } else {
+      if(floorWrap) floorWrap.style.display='';
+    }
+    if(astUnitSel && astUnitSel.options.length<=1){
+      const units=DB.units.filter(u=>u.buildingId===bldVal).sort((a,z)=>a.label.localeCompare(z.label));
+      const prevU=astUnitSel.value;
+      astUnitSel.innerHTML='<option value="All">All Units</option>'
+        +units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+      if(astUnitSel.querySelector(`option[value="${prevU}"]`)) astUnitSel.value=prevU;
+      if(unitWrap) unitWrap.style.display=units.length?'':'none';
+    } else {
+      if(unitWrap) unitWrap.style.display='';
+    }
   }
-  const astFloorSel=document.getElementById('sel-ast-floor');
   const floorVal=astFloorSel?.value||'All';
-  const astUnitSel=document.getElementById('sel-ast-unit');
   const unitVal=astUnitSel?.value||'All';
   // Populate supplier filter
   const catSel=document.getElementById('sel-ast-cat');
