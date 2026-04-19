@@ -507,7 +507,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="asearch" placeholder="Search assets…" oninput="setPage('ast',1);renderAst()"/></div>
     <!-- hidden selects (drive filtering; values set from modal) -->
     <select id="sel-ast-bldg"       style="display:none" onchange="onAstBldgChange()"><option value="All">All Buildings</option></select>
-    <select id="sel-ast-floor"      style="display:none" onchange="setPage('ast',1);renderAst()"><option value="All">All Floors</option></select>
+    <select id="sel-ast-floor"      style="display:none" onchange="onAstFloorChange()"><option value="All">All Floors</option></select>
     <select id="sel-ast-unit"       style="display:none" onchange="setPage('ast',1);renderAst()"><option value="All">All Units</option></select>
     <select id="sel-ast-status"     style="display:none" onchange="setPage('ast',1);renderAst()">
       <option value="All">All Statuses</option>
@@ -1876,7 +1876,7 @@ function renderDash(){
           <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('units');setTimeout(()=>{const s=document.getElementById('sel-unit-bldg');if(s){s.value='${safeId}';renderUnits();}},150)">
             <span style="font-size:15px;font-weight:800;color:var(--indigo)">${unitQty||'—'}</span>
           </div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeName}';onAstBldgChange();}},150)">
+          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeId}';onAstBldgChange();}},150)">
             <span style="font-size:15px;font-weight:800;color:var(--teal)">${assetQty||'—'}</span>
           </div>
           <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)">
@@ -2428,7 +2428,7 @@ function updateAstFilterBadge(){
   if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
   chipsEl.style.display='flex';
   const labels = {
-    'sel-ast-bldg'      : v=>v,
+    'sel-ast-bldg'      : v=>DB.buildings.find(b=>b.id===v)?.name||v,
     'sel-ast-floor'     : v=>DB.floors.find(f=>f.id===v)?.label||v,
     'sel-ast-unit'      : v=>DB.units.find(u=>u.id===v)?.label||v,
     'sel-ast-status'    : v=>v,
@@ -3102,6 +3102,25 @@ function astCardHTML(a, onclick){
   </div>`;
 }
 
+function onAstFloorChange(){
+  const bldVal   = document.getElementById('sel-ast-bldg')?.value  || 'All';
+  const floorVal = document.getElementById('sel-ast-floor')?.value || 'All';
+  const unitWrap  = document.getElementById('wrap-ast-unit');
+  const astUnitSel = document.getElementById('sel-ast-unit');
+  if(bldVal !== 'All'){
+    // Filter units to selected floor (or all units in building if floor is All)
+    const units = floorVal === 'All'
+      ? DB.units.filter(u=>u.buildingId===bldVal).sort((a,z)=>a.label.localeCompare(z.label))
+      : DB.units.filter(u=>u.buildingId===bldVal&&u.floorId===floorVal).sort((a,z)=>a.label.localeCompare(z.label));
+    if(astUnitSel){
+      astUnitSel.innerHTML = '<option value="All">All Units</option>'
+        + units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+      astUnitSel.value = 'All';
+    }
+    if(unitWrap) unitWrap.style.display = units.length ? '' : 'none';
+  }
+  setPage('ast',1); renderAst();
+}
 function onAstBldgChange(){
   const bldVal = document.getElementById('sel-ast-bldg')?.value || 'All';
   const floorWrap = document.getElementById('wrap-ast-floor');
@@ -3122,7 +3141,7 @@ function onAstBldgChange(){
       astFloorSel.value = 'All';
     }
     // Populate units for selected building (independent of floor)
-    const units = DB.units.filter(u=>u.building===bldVal).sort((a,z)=>a.label.localeCompare(z.label));
+    const units = DB.units.filter(u=>u.buildingId===bldVal).sort((a,z)=>a.label.localeCompare(z.label));
     if(astUnitSel){
       astUnitSel.innerHTML = '<option value="All">All Units</option>'
         + units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
@@ -3142,7 +3161,7 @@ function renderAst(){
   if(bldSel){
     const prev=bldSel.value;
     bldSel.innerHTML='<option value="All">All Buildings</option>'
-      +[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+      +[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
     if(bldSel.querySelector(`option[value="${prev}"]`)) bldSel.value=prev;
   }
   const bldVal=bldSel?.value||'All';
@@ -3180,7 +3199,7 @@ function renderAst(){
   syncSelActive('sel-ast-bldg'); syncSelActive('sel-ast-floor'); syncSelActive('sel-ast-unit'); syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat'); syncSelActive('sel-ast-tix-status');
   updateAstFilterBadge();
   let list=DB.assets;
-  if(bldVal!=='All')    list=list.filter(a=>a.building===bldVal);
+  if(bldVal!=='All')    list=list.filter(a=>a.buildingId===bldVal);
   if(floorVal!=='All')  list=list.filter(a=>a.floorId===floorVal);
   if(unitVal!=='All')   list=list.filter(a=>a.unitId===unitVal);
   if(statusVal!=='All') list=list.filter(a=>a.status===statusVal);
@@ -3915,7 +3934,7 @@ function openBldDetail(id){
       <div class="bs" style="cursor:pointer" onclick="navTo('floors');setTimeout(()=>{const s=document.getElementById('sel-floor-bldg');if(s){s.value='${b.id}';renderFloors();}},150)"><div class="bs-val" style="color:var(--blue)">${floorCount}</div><div class="bs-lbl">Floors</div></div>
       <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
       <div class="bs" style="cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)"><div class="bs-val" style="color:var(--blue)">${openTix.length}</div><div class="bs-lbl">Open Tix</div></div>
-      <div class="bs" style="cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeName}';onAstBldgChange();}},150)"><div class="bs-val" style="color:var(--blue)">${allAsts.length}</div><div class="bs-lbl">Assets</div></div>
+      <div class="bs" style="cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${b.id}';onAstBldgChange();}},150)"><div class="bs-val" style="color:var(--blue)">${allAsts.length}</div><div class="bs-lbl">Assets</div></div>
     </div>
   </div>`;
 
