@@ -1985,10 +1985,23 @@ function renderDash(){
       const openTix     = DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed').length;
       const activeInsp  = DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed').length;
       const recentLogs  = DB.logs.filter(r=>r.buildingId===b.id&&r.date&&new Date(r.date)>=cutoff).length;
-      const activityScore = (openTix*4)+(activeInsp*3)+(recentLogs*1);
+      // Failed assets: unique assets flagged Failed in inspection items OR with bad status referenced in open tickets
+      const failedFromInsp = new Set();
+      DB.inspections.filter(i=>i.buildingId===b.id).forEach(insp=>{
+        (insp.items||[]).forEach(item=>{
+          if(item.result==='Failed'&&item.assetId) failedFromInsp.add(item.assetId);
+        });
+      });
+      const failedFromTix = new Set();
+      DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&t.assetId).forEach(t=>{
+        const ast=DB.assets.find(a=>a.id===t.assetId);
+        if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned')) failedFromTix.add(t.assetId);
+      });
+      const failedAssets = new Set([...failedFromInsp,...failedFromTix]).size;
+      const activityScore = (openTix*4)+(activeInsp*3)+(recentLogs*1)+(failedAssets*5);
       const sizeFactor  = Math.max(rawSizes[bi]/avgSize, 0.5); // min 0.5 to avoid division extremes
       const score       = activityScore/sizeFactor;
-      return{b,floors,units,assets,openTix,activeInsp,recentLogs,score};
+      return{b,floors,units,assets,openTix,activeInsp,recentLogs,failedAssets,score};
     }).filter(s=>s.score>0).sort((a,z)=>z.score-a.score).slice(0,5);
 
     if(!bldgStats.length){
@@ -2001,6 +2014,7 @@ function renderDash(){
           const border=i<bldgStats.length-1?'border-bottom:1px solid var(--border);':'';
           const barColor=pct===100?'var(--blue)':pct>=70?'var(--indigo)':pct>=40?'var(--teal)':'var(--muted)';
           const goB=`navTo('buildings');setTimeout(()=>openBldDetail('${s.b.id.replace(/'/g,"\\'")}'),150)`;
+          const failColor=s.failedAssets>0?'var(--red)':'var(--text)';
           return`<div style="${border}padding:12px 14px;cursor:pointer" onclick="${goB}">
             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
               <span style="font-size:13px;font-weight:700;color:var(--blue)">${s.b.name}</span>
@@ -2023,8 +2037,8 @@ function renderDash(){
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Logbook</div>
               </div>
               <div style="text-align:center">
-                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.units}</div>
-                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Units</div>
+                <div style="font-size:13px;font-weight:800;color:${failColor}">${s.failedAssets}</div>
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Failed</div>
               </div>
             </div>
           </div>`;
