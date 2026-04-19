@@ -2343,7 +2343,7 @@ function openAstFilterModal(){
     const cur = document.getElementById('sel-ast-bldg')?.value || 'All';
     mBldg.innerHTML = '<option value="All">All Buildings</option>' +
       [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
-        .map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+        .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
     mBldg.value = cur;
     onMfAstBldgChange(true);
     const mFloor = document.getElementById('mf-ast-floor');
@@ -2377,6 +2377,19 @@ function openAstFilterModal(){
   });
   openMo('mo-ast-filter');
 }
+function onMfAstFloorChange(){
+  const bldVal   = document.getElementById('mf-ast-bldg')?.value  || 'All';
+  const floorVal = document.getElementById('mf-ast-floor')?.value || 'All';
+  const mUnit    = document.getElementById('mf-ast-unit');
+  if(bldVal !== 'All' && mUnit){
+    const units = floorVal === 'All'
+      ? DB.units.filter(u=>u.buildingId===bldVal).sort((a,z)=>a.label.localeCompare(z.label))
+      : DB.units.filter(u=>u.buildingId===bldVal&&u.floorId===floorVal).sort((a,z)=>a.label.localeCompare(z.label));
+    mUnit.innerHTML = '<option value="All">All Units</option>'
+      + units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
+    mUnit.value = 'All';
+  }
+}
 function onMfAstBldgChange(silent){
   const bldVal = document.getElementById('mf-ast-bldg')?.value || 'All';
   const mFloor = document.getElementById('mf-ast-floor');
@@ -2385,14 +2398,14 @@ function onMfAstBldgChange(silent){
     if(mFloor) mFloor.innerHTML = '<option value="All">All Floors</option>';
     if(mUnit)  mUnit.innerHTML  = '<option value="All">All Units</option>';
   } else {
-    const bld = DB.buildings.find(b=>b.name===bldVal);
+    const bld = DB.buildings.find(b=>b.id===bldVal);
     if(mFloor){
       const floors = bld ? DB.floors.filter(f=>f.buildingId===bld.id).sort((a,z)=>a.sortOrder-z.sortOrder) : [];
       mFloor.innerHTML = '<option value="All">All Floors</option>' +
         floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
     }
     if(mUnit){
-      const units = DB.units.filter(u=>u.building===bldVal).sort((a,z)=>a.label.localeCompare(z.label));
+      const units = bld ? DB.units.filter(u=>u.buildingId===bld.id).sort((a,z)=>a.label.localeCompare(z.label)) : [];
       mUnit.innerHTML = '<option value="All">All Units</option>' +
         units.map(u=>`<option value="${u.id}">${u.label}</option>`).join('');
     }
@@ -6040,7 +6053,7 @@ function exportCSV(type){
       <select class="fi2" id="mf-ast-bldg" onchange="onMfAstBldgChange()"><option value="All">All Buildings</option></select>
     </div>
     <div class="fg"><label>Floor</label>
-      <select class="fi2" id="mf-ast-floor"><option value="All">All Floors</option></select>
+      <select class="fi2" id="mf-ast-floor" onchange="onMfAstFloorChange()"><option value="All">All Floors</option></select>
     </div>
     <div class="fg"><label>Unit</label>
       <select class="fi2" id="mf-ast-unit"><option value="All">All Units</option></select>
