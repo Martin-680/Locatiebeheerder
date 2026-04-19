@@ -1964,17 +1964,32 @@ function renderDash(){
       logContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
     }
   }
-  // Building Stats — activity percentage
+  // Building Stats — size-normalised workload score (top 5)
   const statsEl=document.getElementById('dash-stats');
   if(statsEl){
-    const bldgStats=DB.buildings.map(b=>{
-      const logs       = DB.logs.filter(r=>r.buildingId===b.id).length;
-      const units      = DB.units.filter(u=>u.buildingId===b.id).length;
-      const assets     = DB.assets.filter(a=>a.buildingId===b.id).length;
-      const inspections= DB.inspections.filter(i=>i.buildingId===b.id).length;
-      const score      = logs+units+assets+inspections;
-      return{b,logs,units,assets,inspections,score};
-    }).filter(s=>s.score>0).sort((a,z)=>z.score-a.score);
+    const now=new Date();
+    const cutoff=new Date(now.getTime()-90*24*60*60*1000); // 90 days ago
+    // Step 1: compute raw size scores for all buildings
+    const rawSizes=DB.buildings.map(b=>{
+      const floors = DB.floors.filter(f=>f.buildingId===b.id).length;
+      const units  = DB.units.filter(u=>u.buildingId===b.id).length;
+      const assets = DB.assets.filter(a=>a.buildingId===b.id).length;
+      return floors + units + (assets*0.5);
+    });
+    const avgSize=rawSizes.length ? rawSizes.reduce((a,v)=>a+v,0)/rawSizes.length : 1;
+    // Step 2: compute per-building stats
+    const bldgStats=DB.buildings.map((b,bi)=>{
+      const floors      = DB.floors.filter(f=>f.buildingId===b.id).length;
+      const units       = DB.units.filter(u=>u.buildingId===b.id).length;
+      const assets      = DB.assets.filter(a=>a.buildingId===b.id).length;
+      const openTix     = DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed').length;
+      const activeInsp  = DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed').length;
+      const recentLogs  = DB.logs.filter(r=>r.buildingId===b.id&&r.date&&new Date(r.date)>=cutoff).length;
+      const activityScore = (openTix*4)+(activeInsp*3)+(recentLogs*1);
+      const sizeFactor  = Math.max(rawSizes[bi]/avgSize, 0.5); // min 0.5 to avoid division extremes
+      const score       = activityScore/sizeFactor;
+      return{b,floors,units,assets,openTix,activeInsp,recentLogs,score};
+    }).filter(s=>s.score>0).sort((a,z)=>z.score-a.score).slice(0,5);
 
     if(!bldgStats.length){
       statsEl.innerHTML='<div style="font-size:13px;color:var(--muted);padding:0 0 8px">No data yet</div>';
@@ -1996,20 +2011,20 @@ function renderDash(){
             </div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
               <div style="text-align:center">
-                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.logs}</div>
+                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.openTix}</div>
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Tickets</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.activeInsp}</div>
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Inspections</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.recentLogs}</div>
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Logbook</div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:13px;font-weight:800;color:var(--text)">${s.units}</div>
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Units</div>
-              </div>
-              <div style="text-align:center">
-                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.assets}</div>
-                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Assets</div>
-              </div>
-              <div style="text-align:center">
-                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.inspections}</div>
-                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Inspections</div>
               </div>
             </div>
           </div>`;
