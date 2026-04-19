@@ -2072,7 +2072,13 @@ function renderDash(){
         ${bldgStats.map((s,i)=>{
           const pct=Math.round(s.score/maxScore*100);
           const border=i<bldgStats.length-1?'border-bottom:1px solid var(--border);':'';
-          const barColor=pct===100?'var(--blue)':pct>=70?'var(--indigo)':pct>=40?'var(--teal)':'var(--muted)';
+          const barColor=(p=>{
+            // 0% = green (#10B981), 50% = amber (#F59E0B), 100% = red (#EF4444)
+            const r=p<50?Math.round(16+(239-16)*(p/50)):239;
+            const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));
+            const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));
+            return`rgb(${r},${g},${b})`;
+          })(pct);
           const goB=`navTo('buildings');setTimeout(()=>openBldDetail('${s.b.id.replace(/'/g,"\\'")}'),150)`;
           const failColor=s.failedAssets>0?'var(--red)':'var(--text)';
           return`<div style="${border}padding:12px 14px;cursor:pointer" onclick="${goB}">
