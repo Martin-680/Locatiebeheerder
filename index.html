@@ -839,6 +839,62 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="dash-stats-page" style="padding:0 14px 20px;display:flex;flex-direction:column;gap:8px"></div>
   </div>
 
+
+  <!-- ═══════ PRIORITIES SCREEN ═══════ -->
+  <div id="screen-priorities" class="screen">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left"><div class="topbar-title">Priorities</div><div class="topbar-sub">Asset &amp; unit health</div></div>
+        <div class="topbar-actions">
+          <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
+        </div>
+      </div>
+    </div>
+    <!-- Explanation card -->
+    <div style="padding:14px 14px 0">
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:7px">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue);flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          How is this calculated?
+        </div>
+        <div style="font-size:12.5px;color:var(--sub);line-height:1.65">
+          Every asset and unit in your portfolio is scored based on how many problem signals are pointing at it. The more signals, the higher the priority band it lands in.
+        </div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-size:15px;flex-shrink:0">🔍</span>
+            <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Failed in an inspection</strong> is the strongest signal (+4 points). An item that did not pass an inspection round needs attention regardless of whether a ticket exists yet.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-size:15px;flex-shrink:0">🎫</span>
+            <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">An open ticket</strong> linked to the asset or unit adds +3 points — it means active work is already pending.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-size:15px;flex-shrink:0">⚠️</span>
+            <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Asset status</strong> matters too. Decommissioned adds +3 points, Under Maintenance adds +2 — both signal the asset is not in normal operation.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-size:15px;flex-shrink:0">🔒</span>
+            <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Warranty alerts</strong> add weight too. An expired warranty adds +3 points, a warranty expiring within 30 days adds +1.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-size:15px;flex-shrink:0">📋</span>
+            <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">A recent logbook entry</strong> (last 90 days) adds +1 point — it shows the item has been on the radar lately.</div>
+          </div>
+        </div>
+        <div style="margin-top:11px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--sub);line-height:1.6">
+          The total score determines the band: <strong style="color:#A32D2D">Critical</strong> (7+ points), <strong style="color:#854F0B">High</strong> (4–6), <strong style="color:#633806">Medium</strong> (2–3), <strong style="color:#3B6D11">Low</strong> (1). Items with zero points are healthy and don't appear.
+        </div>
+        <div style="margin-top:10px;padding:9px 12px;background:rgba(37,99,235,.07);border-radius:var(--rs);font-size:12px;color:var(--blue);font-weight:600">
+          Tap any band to see the full list of affected assets and units and navigate directly to them.
+        </div>
+      </div>
+    </div>
+    <!-- Priority chart (reuses same element rendered by renderDash) -->
+    <div style="padding:14px 14px 4px"><div class="sh" style="margin:0 0 8px"><span class="sh-title">Entity health</span></div></div>
+    <div id="pri-chart-page" style="padding:0 14px 20px"></div>
+  </div>
+
   <!-- ═══════ NAV ═══════ -->
   <nav class="bottom-nav" style="grid-template-columns:repeat(4,1fr)">
     <button class="ni active" onclick="navTo('dashboard')"><span class="ni-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dash</button>
@@ -1564,6 +1620,7 @@ function openDrawer(){
 
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>','Dashboard',"navTo('dashboard');closeDrawer()",'dashboard');
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>','Stats',"navTo('stats');closeDrawer()",'stats');
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>','Priorities',"navTo('priorities');closeDrawer()",'priorities');
   if(alertCount) html+=`<div class="drawer-item" onclick="closeDrawer();openAlerts()"><div class="drawer-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1">Alerts</div><span class="drawer-item-badge">${alertCount}</span></div>`;
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>','Team',"navTo('users');closeDrawer()",'users');
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-6-7 6v3l-4-3v12z"/><path d="M17 20v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/></svg>','Suppliers',"navTo('suppliers');closeDrawer()",'suppliers');
@@ -1622,6 +1679,7 @@ function navTo(s){
   if(s==='floors')      renderFloors();
   if(s==='logbook')     renderLogbook();
   if(s==='stats')       {renderDash();renderStats();}
+  if(s==='priorities')  {renderDash();renderPriorities();}
 }
 function navBack(){
   if(prevScreen==='insp-round') navTo('inspections');
@@ -1950,6 +2008,15 @@ function renderStats(){
   const src=document.getElementById('dash-stats');
   const dst=document.getElementById('dash-stats-page');
   if(dst&&src) dst.innerHTML=src.innerHTML;
+}
+function renderPriorities(){
+  // Mirror the pri-chart content into pri-chart-page for the Priorities screen
+  const src=document.getElementById('pri-chart');
+  const dst=document.getElementById('pri-chart-page');
+  if(!dst||!src) return;
+  // Clone content and rewire onclick to work from the priorities screen too
+  dst.innerHTML=src.innerHTML;
+  // Re-expose _priGroups so tapping cards in the priorities screen also works
 }
 function renderDash(){
   document.getElementById('dash-date').textContent=today.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
