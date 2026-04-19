@@ -5372,33 +5372,21 @@ function renderLogbook(){
 
   let html = '<div class="tlist">';
   slice.forEach(r=>{
-    const tc  = LOG_TYPE_COLORS[r.type]    || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
-    const sc  = LOG_STATUS_COLORS[r.status]|| { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
-    const col4 = r.assetLabel || '\u2014';
-    const bldNav  = r.buildingId ? `navTo('buildings')` : '';
-    const flrNav  = r.floorId   ? `navTo('floors')`    : '';
-    const unitNav = r.unitId    ? `navTo('units')`     : '';
-    const astNav  = r.assetId   ? `navTo('assets')`    : '';
-    html += `<div class="ti" style="flex-direction:column;padding-bottom:0;cursor:default">
+    const tc = LOG_TYPE_COLORS[r.type]    || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
+    const sc = LOG_STATUS_COLORS[r.status]|| { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
+    const bldLine = [r.building, r.date ? df(r.date) : ''].filter(Boolean).join(' · ');
+    html += `<div class="ti" style="flex-direction:column;padding-bottom:13px;cursor:default">
       <div style="width:100%">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-          <div class="ct" style="flex:1;min-width:0">${r.subject||'\u2014'}</div>
-          <div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px;align-items:center">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div class="ct" style="flex:1;min-width:0;color:var(--blue);cursor:pointer" onclick="editLogEntry('${r.id}')">${r.subject||'—'}</div>
+          <div style="display:flex;gap:5px;flex-shrink:0">
             ${r.type   ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color}">${r.type}</span>` : ''}
             ${r.status ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${sc.bg};color:${sc.color}">${r.status}</span>` : ''}
           </div>
         </div>
-        <div class="cm">${r.id}${r.date ? ' \xb7 ' + df(r.date) : ''}</div>
-        <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:0;display:grid;grid-template-columns:repeat(4,1fr)">
-          <div class="bs" style="${r.buildingId?'cursor:pointer':''}" ${r.buildingId?`onclick="${bldNav}"`:''}><div class="bs-val" style="${r.buildingId?'color:var(--blue)':''}">${r.building||'\u2014'}</div><div class="bs-lbl">Building</div></div>
-          <div class="bs" style="${r.floorId?'cursor:pointer':''}" ${r.floorId?`onclick="${flrNav}"`:''}><div class="bs-val" style="${r.floorId?'color:var(--blue)':''}">${r.floor||'\u2014'}</div><div class="bs-lbl">Floor</div></div>
-          <div class="bs" style="${r.unitId?'cursor:pointer':''}" ${r.unitId?`onclick="${unitNav}"`:''}><div class="bs-val" style="${r.unitId?'color:var(--blue)':''}">${r.unit||'\u2014'}</div><div class="bs-lbl">Unit</div></div>
-          <div class="bs" style="${r.assetId?'cursor:pointer':''}" ${r.assetId?`onclick="${astNav}"`:''}><div class="bs-val" style="${r.assetId?'color:var(--blue)':''}">${col4}</div><div class="bs-lbl">Asset</div></div>
-        </div>
-        ${r.note ? `<div style="font-size:13px;color:var(--sub);line-height:1.5;border-top:1px solid var(--border);padding:8px 0 4px">${r.note}</div>` : ''}
-        <div style="display:flex;gap:8px;border-top:1px solid var(--border);padding:10px 0 12px;margin-top:6px">
-          <button onclick="editLogEntry('${r.id}')" style="flex:1;padding:9px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--blue)">Edit</button>
-          ${can('canCreateTickets') ? `<button onclick="quickTicketFromLog('${r.id}')" style="flex:1;padding:9px;background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.25);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--green)">New Ticket</button>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding-top:9px;border-top:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--sub)">${bldLine||'—'}</span>
+          ${can('canCreateTickets') ? `<button onclick="quickTicketFromLog('${r.id}')" style="flex-shrink:0;padding:5px 12px;background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.3);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--green)">+ Ticket</button>` : ''}
         </div>
       </div>
     </div>`;
