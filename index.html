@@ -463,6 +463,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <option value="days">⏱ Most overdue</option>
     </select>
     <select id="sel-tix-sup" style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Suppliers</option></select>
+    <input type="hidden" id="sel-tix-date-from" value="">
+    <input type="hidden" id="sel-tix-date-to" value="">
 
     <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
       <button class="btn-clear-filter" id="tix-clear-btn" onclick="clearTixFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
@@ -585,6 +587,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <select id="sel-insp-bldg"  style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Buildings</option></select>
     <select id="sel-insp-floor" style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Floors</option></select>
     <select id="sel-insp-cat"   style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Categories</option></select>
+    <input type="hidden" id="sel-insp-date-from" value="">
+    <input type="hidden" id="sel-insp-date-to" value="">
 
     <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
       <button class="btn-clear-filter" id="insp-clear-btn" onclick="clearInspFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
@@ -771,6 +775,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <select id="sel-log-unit"  style="display:none" onchange="onLogUnitChange()"><option value="All">All Units</option></select>
     <select id="sel-log-asset" style="display:none" onchange="setPage('log',1);renderLogbook()"><option value="All">All Assets</option></select>
     <select id="sel-log-sup"   style="display:none" onchange="setPage('log',1);renderLogbook()"><option value="All">All Suppliers</option></select>
+    <input type="hidden" id="sel-log-date-from" value="">
+    <input type="hidden" id="sel-log-date-to" value="">
 
     <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center">
       <div style="flex:1;position:relative">
@@ -2888,6 +2894,11 @@ function openTixFilterModal(){
     const hEl=document.getElementById('sel-tix-'+k);
     if(mEl&&hEl) mEl.value=hEl.value;
   });
+  // Sync date range
+  const dtFrom = document.getElementById('mf-tix-date-from');
+  const dtTo   = document.getElementById('mf-tix-date-to');
+  if(dtFrom) dtFrom.value = document.getElementById('sel-tix-date-from')?.value || '';
+  if(dtTo)   dtTo.value   = document.getElementById('sel-tix-date-to')?.value   || '';
   openMo('mo-tix-filter');
 }
 function onMfTixBldgChange(silent){
@@ -2908,6 +2919,11 @@ function applyTixFilterModal(){
     const hSel=document.getElementById('sel-tix-'+k);
     if(hSel) hSel.value=mVal;
   });
+  // Apply date range
+  const hFrom = document.getElementById('sel-tix-date-from');
+  const hTo   = document.getElementById('sel-tix-date-to');
+  if(hFrom) hFrom.value = document.getElementById('mf-tix-date-from')?.value || '';
+  if(hTo)   hTo.value   = document.getElementById('mf-tix-date-to')?.value   || '';
   closeMo('mo-tix-filter');
   setPage('tix',1);
   renderTix();
@@ -2915,8 +2931,11 @@ function applyTixFilterModal(){
 function updateTixFilterBadge(){
   const filterIds = ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup'];
   const sortDefault = 'newest';
+  const dateFrom = document.getElementById('sel-tix-date-from')?.value || '';
+  const dateTo   = document.getElementById('sel-tix-date-to')?.value   || '';
   const active = filterIds.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length
-               + ((document.getElementById('sel-tix-sort')?.value||sortDefault)!==sortDefault ? 1 : 0);
+               + ((document.getElementById('sel-tix-sort')?.value||sortDefault)!==sortDefault ? 1 : 0)
+               + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0);
   const countEl=document.getElementById('tix-filter-count');
   const btnEl=document.getElementById('tix-filter-btn');
   const clearEl=document.getElementById('tix-clear-btn');
@@ -2929,7 +2948,7 @@ function updateTixFilterBadge(){
   chipsEl.style.display='flex';
   const sortLabels={newest:'\u2193 Newest',oldest:'\u2191 Oldest',priority:'By priority',days:'\u23f1 Overdue'};
   const allIds=[...filterIds,'sel-tix-sort'];
-  chipsEl.innerHTML = allIds.filter(id=>{
+  let chips = allIds.filter(id=>{
     const v=document.getElementById(id)?.value||'All';
     return id==='sel-tix-sort' ? v!==sortDefault : v!=='All';
   }).map(id=>{
@@ -2938,11 +2957,15 @@ function updateTixFilterBadge(){
              :id==='sel-tix-sup'?DB.suppliers.find(s=>s.id===val)?.name||val
              :val;
     return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">${lbl}<button onclick="removeTixFilter('${id}')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`;
-  }).join('');
+  });
+  if(dateFrom) chips.push(`<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">From: ${dateFrom}<button onclick="removeTixFilter('sel-tix-date-from')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`);
+  if(dateTo)   chips.push(`<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">To: ${dateTo}<button onclick="removeTixFilter('sel-tix-date-to')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`);
+  chipsEl.innerHTML = chips.join('');
 }
 function removeTixFilter(id){
   const el=document.getElementById(id);
-  if(el) el.value = id==='sel-tix-sort' ? 'newest' : 'All';
+  if(el) el.value = id==='sel-tix-sort' ? 'newest' : '';
+  if(el && !id.includes('date')) el.value = id==='sel-tix-sort' ? 'newest' : 'All';
   setPage('tix',1); renderTix();
 }
 
@@ -2972,6 +2995,11 @@ function openInspFilterModal(){
   const mStatus = document.getElementById('mf-insp-status');
   const hStatus = document.getElementById('sel-insp-status');
   if(mStatus&&hStatus) mStatus.value=hStatus.value;
+  // Sync date range
+  const dtFrom = document.getElementById('mf-insp-date-from');
+  const dtTo   = document.getElementById('mf-insp-date-to');
+  if(dtFrom) dtFrom.value = document.getElementById('sel-insp-date-from')?.value || '';
+  if(dtTo)   dtTo.value   = document.getElementById('sel-insp-date-to')?.value   || '';
   openMo('mo-insp-filter');
 }
 function onMfInspBldgChange(silent){
@@ -2992,13 +3020,20 @@ function applyInspFilterModal(){
     const hSel=document.getElementById('sel-insp-'+k);
     if(hSel) hSel.value=mVal;
   });
+  const hFrom = document.getElementById('sel-insp-date-from');
+  const hTo   = document.getElementById('sel-insp-date-to');
+  if(hFrom) hFrom.value = document.getElementById('mf-insp-date-from')?.value || '';
+  if(hTo)   hTo.value   = document.getElementById('mf-insp-date-to')?.value   || '';
   closeMo('mo-insp-filter');
   setPage('insp',1);
   renderInspections();
 }
 function updateInspFilterBadge(){
   const ids=['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat'];
-  const active=ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length;
+  const inspDateFrom = document.getElementById('sel-insp-date-from')?.value || '';
+  const inspDateTo   = document.getElementById('sel-insp-date-to')?.value   || '';
+  const active=ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length
+             + (inspDateFrom ? 1 : 0) + (inspDateTo ? 1 : 0);
   const countEl=document.getElementById('insp-filter-count');
   const btnEl=document.getElementById('insp-filter-btn');
   const clearEl=document.getElementById('insp-clear-btn');
@@ -3015,14 +3050,18 @@ function updateInspFilterBadge(){
     'sel-insp-floor' : v=>v,
     'sel-insp-cat'   : v=>v,
   };
-  chipsEl.innerHTML=ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').map(id=>{
+  let chips = ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').map(id=>{
     const val=document.getElementById(id).value;
     const lbl=labels[id]?.(val)||val;
     return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">${lbl}<button onclick="removeInspFilter('${id}')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`;
-  }).join('');
+  });
+  if(inspDateFrom) chips.push(`<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">From: ${inspDateFrom}<button onclick="removeInspFilter('sel-insp-date-from')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`);
+  if(inspDateTo)   chips.push(`<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">To: ${inspDateTo}<button onclick="removeInspFilter('sel-insp-date-to')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`);
+  chipsEl.innerHTML = chips.join('');
 }
 function removeInspFilter(id){
-  const el=document.getElementById(id); if(el) el.value='All';
+  const el=document.getElementById(id);
+  if(el) el.value = id.includes('date') ? '' : 'All';
   setPage('insp',1); renderInspections();
 }
 
@@ -3030,6 +3069,10 @@ function clearTixFilters(){
   ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const sort=document.getElementById('sel-tix-sort');if(sort)sort.value='newest';
   const search=document.getElementById('tsearch');if(search)search.value='';
+  const dfrom=document.getElementById('sel-tix-date-from');if(dfrom)dfrom.value='';
+  const dto=document.getElementById('sel-tix-date-to');if(dto)dto.value='';
+  const mfFrom=document.getElementById('mf-tix-date-from');if(mfFrom)mfFrom.value='';
+  const mfTo=document.getElementById('mf-tix-date-to');if(mfTo)mfTo.value='';
   closeMo('mo-tix-filter');
   setPage('tix',1);renderTix();
 }
@@ -3088,6 +3131,10 @@ function renderTix(){
   if(supVal!=='All') list=list.filter(t=>t.supplierId===supVal);
   if(bldgVal!=='All') list=list.filter(t=>t.building===bldgVal);
   if(floorVal!=='All') list=list.filter(t=>t.floor===floorVal);
+  const dateFrom = document.getElementById('sel-tix-date-from')?.value || '';
+  const dateTo   = document.getElementById('sel-tix-date-to')?.value   || '';
+  if(dateFrom) list=list.filter(t=>(t.dateOpened||'')>=dateFrom);
+  if(dateTo)   list=list.filter(t=>(t.dateOpened||'')<=dateTo);
   if(q) list=list.filter(t=>t.subject.toLowerCase().includes(q)||t.building.toLowerCase().includes(q)||t.id.toLowerCase().includes(q)||t.assignedTo?.toLowerCase().includes(q)||(t.reportedBy||'').toLowerCase().includes(q));
   // Sort
   const priOrder={Critical:0,High:1,Medium:2,Low:3};
@@ -4534,6 +4581,10 @@ function clearInspFilters(){
   ['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='All';
   });
+  const dfrom=document.getElementById('sel-insp-date-from');if(dfrom)dfrom.value='';
+  const dto=document.getElementById('sel-insp-date-to');if(dto)dto.value='';
+  const mfFrom=document.getElementById('mf-insp-date-from');if(mfFrom)mfFrom.value='';
+  const mfTo=document.getElementById('mf-insp-date-to');if(mfTo)mfTo.value='';
   closeMo('mo-insp-filter');
   setPage('insp',1); renderInspections();
 }
@@ -4587,6 +4638,10 @@ function renderInspections(){
   if(bldgVal   !== 'All') list = list.filter(r => r.buildingId === bldgVal);
   if(floorVal  !== 'All') list = list.filter(r => r.floor === floorVal);
   if(catVal    !== 'All') list = list.filter(r => r.category === catVal);
+  const inspDateFrom = document.getElementById('sel-insp-date-from')?.value || '';
+  const inspDateTo   = document.getElementById('sel-insp-date-to')?.value   || '';
+  if(inspDateFrom) list = list.filter(r => (r.dateStart||'') >= inspDateFrom);
+  if(inspDateTo)   list = list.filter(r => (r.dateStart||'') <= inspDateTo);
 
   const lbl = document.getElementById('insp-lbl');
   if(lbl) lbl.textContent = `${list.length} round${list.length!==1?'s':''}`;
@@ -5420,6 +5475,11 @@ function openLogFilterModal(){
   const mStatus = document.getElementById('mf-log-status');
   if(mType)   mType.value   = document.getElementById('sel-log-type')?.value   || 'All';
   if(mStatus) mStatus.value = document.getElementById('sel-log-status')?.value || 'All';
+  // Sync date range
+  const dtFrom = document.getElementById('mf-log-date-from');
+  const dtTo   = document.getElementById('mf-log-date-to');
+  if(dtFrom) dtFrom.value = document.getElementById('sel-log-date-from')?.value || '';
+  if(dtTo)   dtTo.value   = document.getElementById('sel-log-date-to')?.value   || '';
   openMo('mo-log-filter');
 }
 
@@ -5472,6 +5532,11 @@ function applyLogFilterModal(){
     const hSel = document.getElementById('sel-log-'+k);
     if(hSel) hSel.value = mVal;
   });
+  // Apply date range
+  const hFrom = document.getElementById('sel-log-date-from');
+  const hTo   = document.getElementById('sel-log-date-to');
+  if(hFrom) hFrom.value = document.getElementById('mf-log-date-from')?.value || '';
+  if(hTo)   hTo.value   = document.getElementById('mf-log-date-to')?.value   || '';
   closeMo('mo-log-filter');
   setPage('log',1);
   renderLogbook();
@@ -5532,7 +5597,10 @@ function onLogUnitChange(){
 
 function updateLogFilterBadge(){
   const filters = ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset','sel-log-sup'];
-  const activeCount = filters.filter(id => (document.getElementById(id)?.value||'All') !== 'All').length;
+  const logDateFrom = document.getElementById('sel-log-date-from')?.value || '';
+  const logDateTo   = document.getElementById('sel-log-date-to')?.value   || '';
+  const activeCount = filters.filter(id => (document.getElementById(id)?.value||'All') !== 'All').length
+                    + (logDateFrom ? 1 : 0) + (logDateTo ? 1 : 0);
   const countEl = document.getElementById('log-filter-count');
   const btnEl   = document.getElementById('log-filter-btn');
   const clearEl = document.getElementById('log-clear-btn');
@@ -5565,7 +5633,7 @@ function updateLogFilterBadge(){
     'sel-log-asset' : v => DB.assets.find(a=>a.id===v)?.label  || v,
     'sel-log-sup'   : v => DB.suppliers.find(s=>s.id===v)?.name || v,
   };
-  chipsEl.innerHTML = filters
+  let chips = filters
     .filter(id => (document.getElementById(id)?.value||'All') !== 'All')
     .map(id => {
       const val = document.getElementById(id).value;
@@ -5574,12 +5642,15 @@ function updateLogFilterBadge(){
         ${lbl}
         <button onclick="removeLogFilter('${id}')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button>
       </span>`;
-    }).join('');
+    });
+  if(logDateFrom) chips.push(`<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">From: ${logDateFrom}<button onclick="removeLogFilter('sel-log-date-from')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`);
+  if(logDateTo)   chips.push(`<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">To: ${logDateTo}<button onclick="removeLogFilter('sel-log-date-to')" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`);
+  chipsEl.innerHTML = chips.join('');
 }
 
 function removeLogFilter(id){
   const el = document.getElementById(id);
-  if(el) el.value = 'All';
+  if(el) el.value = id.includes('date') ? '' : 'All';
   // Reset downstream cascades
   if(id==='sel-log-bldg'){ onLogBldgChange(); return; }
   if(id==='sel-log-floor'){ onLogFloorChange(); return; }
@@ -5610,6 +5681,10 @@ function renderLogbook(){
   if(unitF   !== 'All') rows = rows.filter(r=>r.unitId===unitF);
   if(assetF  !== 'All') rows = rows.filter(r=>r.assetId===assetF);
   if(supF    !== 'All') rows = rows.filter(r=>r.supplierId===supF);
+  const logDateFrom = (document.getElementById('sel-log-date-from')?.value || '');
+  const logDateTo   = (document.getElementById('sel-log-date-to')?.value   || '');
+  if(logDateFrom) rows = rows.filter(r=>(r.date||'')>=logDateFrom);
+  if(logDateTo)   rows = rows.filter(r=>(r.date||'')<=logDateTo);
   if(searchF) rows = rows.filter(r=>
     (r.subject||'').toLowerCase().includes(searchF) ||
     (r.note||'').toLowerCase().includes(searchF) ||
@@ -5659,9 +5734,11 @@ function renderLogbook(){
     </div>`;
   });
   html += '</div>';
-  html += renderPagination('log', total, ()=>renderLogbook());
+  html += renderPagination('log', total, 'goLogPage');
   el.innerHTML = html;
 }
+
+function goLogPage(p){ setPage('log',p); renderLogbook(); }
 
 function clearLogFilters(){
   ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset','sel-log-sup'].forEach(id=>{
@@ -5671,6 +5748,10 @@ function clearLogFilters(){
   const fSel=document.getElementById('sel-log-floor'); if(fSel) fSel.innerHTML='<option value="All">All Floors</option>';
   const uSel=document.getElementById('sel-log-unit');  if(uSel) uSel.innerHTML='<option value="All">All Units</option>';
   const aSel=document.getElementById('sel-log-asset'); if(aSel) aSel.innerHTML='<option value="All">All Assets</option>';
+  const dfrom=document.getElementById('sel-log-date-from');if(dfrom)dfrom.value='';
+  const dto=document.getElementById('sel-log-date-to');if(dto)dto.value='';
+  const mfFrom=document.getElementById('mf-log-date-from');if(mfFrom)mfFrom.value='';
+  const mfTo=document.getElementById('mf-log-date-to');if(mfTo)mfTo.value='';
   closeMo('mo-log-filter');
   setPage('log',1);
   renderLogbook();
@@ -6252,6 +6333,12 @@ function exportCSV(type){
         <option value="days">&#x23f1; Most overdue</option>
       </select>
     </div>
+    <div class="fg"><label>Date from</label>
+      <input type="date" class="fi2" id="mf-tix-date-from" style="font-size:14px">
+    </div>
+    <div class="fg"><label>Date to</label>
+      <input type="date" class="fi2" id="mf-tix-date-to" style="font-size:14px">
+    </div>
     <div style="display:flex;gap:10px;padding:4px 18px 18px">
       <button onclick="clearTixFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
       <button onclick="applyTixFilterModal()" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff">Apply</button>
@@ -6285,6 +6372,12 @@ function exportCSV(type){
     </div>
     <div class="fg"><label>Category</label>
       <select class="fi2" id="mf-insp-cat"><option value="All">All Categories</option></select>
+    </div>
+    <div class="fg"><label>Date from</label>
+      <input type="date" class="fi2" id="mf-insp-date-from" style="font-size:14px">
+    </div>
+    <div class="fg"><label>Date to</label>
+      <input type="date" class="fi2" id="mf-insp-date-to" style="font-size:14px">
     </div>
     <div style="display:flex;gap:10px;padding:4px 18px 18px">
       <button onclick="clearInspFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
@@ -6486,6 +6579,12 @@ function exportCSV(type){
     </div>
     <div class="fg"><label>Supplier</label>
       <select class="fi2" id="mf-log-sup"><option value="All">All Suppliers</option></select>
+    </div>
+    <div class="fg"><label>Date from</label>
+      <input type="date" class="fi2" id="mf-log-date-from" style="font-size:14px">
+    </div>
+    <div class="fg"><label>Date to</label>
+      <input type="date" class="fi2" id="mf-log-date-to" style="font-size:14px">
     </div>
 
     <div style="display:flex;gap:10px;padding:4px 18px 18px">
