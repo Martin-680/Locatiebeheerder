@@ -5720,7 +5720,7 @@ function renderLogbook(){
     const sc  = LOG_STATUS_COLORS[r.status]|| { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
     const supLabel = r.supplierName && r.supplierName !== r.supplierId ? r.supplierName : (r.supplierId ? r.supplierName : '—');
     const bldLabel = r.building || '—';
-    const dateLabel = r.date ? df(r.date) : '—';
+    const catLabel = r.categoryName || '—';
     html += `<div class="ti" style="flex-direction:column;padding:13px 14px;cursor:default" onclick="editLogEntry('${r.id}')">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 8px;width:100%;align-items:center">
         <div class="ct" style="color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">${r.subject||'—'}</div>
@@ -5730,7 +5730,7 @@ function renderLogbook(){
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 8px;width:100%;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);align-items:center">
         <div style="font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${supLabel}</div>
         <div style="font-size:11px;color:var(--sub);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bldLabel}</div>
-        <div style="font-size:11px;color:var(--sub);text-align:right;white-space:nowrap">${dateLabel}</div>
+        <div style="font-size:11px;color:var(--sub);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${catLabel}</div>
       </div>
     </div>`;
   });
@@ -6607,53 +6607,62 @@ function exportCSV(type){
       <button class="mt-close" onclick="closeMo('mo-log-filter')">&#x2715;</button>
     </div>
 
-    <div class="fg"><label>Type</label>
-      <select class="fi2" id="mf-log-type">
-        <option value="All">All Types</option>
-        <option value="onderhoud">Onderhoud</option>
-        <option value="keuring">Keuring</option>
-        <option value="her-keuring">Her-keuring</option>
-        <option value="ontvangen">Ontvangen</option>
-        <option value="bestelling">Bestelling</option>
-        <option value="bezoek">Bezoek</option>
-        <option value="evaluatie">Evaluatie</option>
-      </select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div class="fg" style="margin:0"><label>Type</label>
+        <select class="fi2" id="mf-log-type">
+          <option value="All">All Types</option>
+          <option value="onderhoud">Onderhoud</option>
+          <option value="keuring">Keuring</option>
+          <option value="her-keuring">Her-keuring</option>
+          <option value="ontvangen">Ontvangen</option>
+          <option value="bestelling">Bestelling</option>
+          <option value="bezoek">Bezoek</option>
+          <option value="evaluatie">Evaluatie</option>
+          <option value="storing">Storing</option>
+        </select>
+      </div>
+      <div class="fg" style="margin:0"><label>Status</label>
+        <select class="fi2" id="mf-log-status">
+          <option value="All">All Statuses</option>
+          <option value="open">Open</option>
+          <option value="gesloten">Gesloten</option>
+        </select>
+      </div>
     </div>
-    <div class="fg"><label>Status</label>
-      <select class="fi2" id="mf-log-status">
-        <option value="All">All Statuses</option>
-        <option value="open">Open</option>
-        <option value="gesloten">Gesloten</option>
-      </select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div class="fg" style="margin:0"><label>Building</label>
+        <select class="fi2" id="mf-log-bldg" onchange="onMfLogBldgChange()">
+          <option value="All">All Buildings</option>
+        </select>
+      </div>
+      <div class="fg" style="margin:0"><label>Floor</label>
+        <select class="fi2" id="mf-log-floor" onchange="onMfLogFloorChange()">
+          <option value="All">All Floors</option>
+        </select>
+      </div>
     </div>
-    <div class="fg"><label>Building</label>
-      <select class="fi2" id="mf-log-bldg" onchange="onMfLogBldgChange()">
-        <option value="All">All Buildings</option>
-      </select>
-    </div>
-    <div class="fg"><label>Floor</label>
-      <select class="fi2" id="mf-log-floor" onchange="onMfLogFloorChange()">
-        <option value="All">All Floors</option>
-      </select>
-    </div>
-    <div class="fg"><label>Unit</label>
-      <select class="fi2" id="mf-log-unit" onchange="onMfLogUnitChange()">
-        <option value="All">All Units</option>
-      </select>
-    </div>
-    <div class="fg"><label>Asset</label>
-      <select class="fi2" id="mf-log-asset">
-        <option value="All">All Assets</option>
-      </select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div class="fg" style="margin:0"><label>Unit</label>
+        <select class="fi2" id="mf-log-unit" onchange="onMfLogUnitChange()">
+          <option value="All">All Units</option>
+        </select>
+      </div>
+      <div class="fg" style="margin:0"><label>Asset</label>
+        <select class="fi2" id="mf-log-asset">
+          <option value="All">All Assets</option>
+        </select>
+      </div>
     </div>
     <div class="fg"><label>Supplier</label>
       <select class="fi2" id="mf-log-sup"><option value="All">All Suppliers</option></select>
     </div>
-    <div class="fg"><label>Date from</label>
-      <input type="date" class="fi2" id="mf-log-date-from" style="font-size:14px">
-    </div>
-    <div class="fg"><label>Date to</label>
-      <input type="date" class="fi2" id="mf-log-date-to" style="font-size:14px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div class="fg" style="margin:0"><label>Date from</label>
+        <input type="date" class="fi2" id="mf-log-date-from" style="font-size:14px">
+      </div>
+      <div class="fg" style="margin:0"><label>Date to</label>
+        <input type="date" class="fi2" id="mf-log-date-to" style="font-size:14px">
+      </div>
     </div>
 
     <div style="display:flex;gap:10px;padding:4px 18px 18px">
