@@ -170,7 +170,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .btn-clear-filter svg{flex-shrink:0;}
 
 /* ── CALENDAR ── */
-.cal-months{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 14px 20px}
+.cal-months{display:grid;grid-template-columns:1fr;gap:12px;padding:0 14px 20px}
 .cal-month{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);overflow:hidden}
 .cal-month-head{padding:9px 12px 7px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text)}
 .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);padding:5px 6px 2px}
@@ -926,18 +926,18 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
-    <div style="padding:12px 14px 8px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+    <div style="padding:12px 14px 8px;display:flex;flex-direction:column;gap:10px">
       <div style="display:flex;flex-direction:column;gap:4px">
         <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Start month</label>
-        <select id="cal-start" class="fi2" style="padding:8px 10px;font-size:13px;min-width:150px" onchange="renderCalendar()"></select>
+        <select id="cal-start" class="fi2" style="padding:8px 10px;font-size:13px;width:100%" onchange="renderCalendar()"></select>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px">
         <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Supplier</label>
-        <select id="cal-sup" class="fi2" style="padding:8px 10px;font-size:13px;min-width:150px" onchange="renderCalendar()"><option value="">All suppliers</option></select>
+        <select id="cal-sup" class="fi2" style="padding:8px 10px;font-size:13px;width:100%" onchange="renderCalendar()"><option value="">All suppliers</option></select>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px">
         <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Type</label>
-        <select id="cal-type" class="fi2" style="padding:8px 10px;font-size:13px;min-width:140px" onchange="renderCalendar()">
+        <select id="cal-type" class="fi2" style="padding:8px 10px;font-size:13px;width:100%" onchange="renderCalendar()">
           <option value="">All types</option>
           <option value="arbo">Arbo</option>
           <option value="bestelling">Bestelling</option>
