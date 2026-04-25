@@ -3153,23 +3153,28 @@ function renderTix(){
 }
 
 function tixItemHTML(t,clickable=true){
-  const days=t.status!=='Closed'?`${daysSince(t.dateOpened)} days`:'';
+  const days=t.status!=='Closed'?daysSince(t.dateOpened):null;
+  const daysStr=days!==null?`${days} day${days!==1?'s':''}`:null;
   const stCls={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Cancelled:'b-cancel',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
   const fn=clickable?`openTixDetail('${t.id}')`:`navTo('tickets')`;
-  const daysColor = days && daysSince(t.dateOpened)>7 ? 'color:var(--amber);' : '';
+  const daysColor = days!==null && days>7 ? 'color:var(--amber);font-weight:700;' : '';
   const floorLabel = DB.floors.find(f=>f.id===t.floor)?.label || DB.floors.find(f=>f.label===t.floor)?.label || t.floor || '—';
+  const supName = t.supplierId ? (DB.suppliers.find(s=>s.id===t.supplierId)?.name || '—') : '—';
   return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <div class="ct" style="flex:1;min-width:0">${t.subject}</div>
-        <span class="badge ${stCls}" style="flex-shrink:0;margin-left:8px">${t.status}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+          <span class="badge ${stCls}">${t.status}</span>
+          ${daysStr?`<span style="font-size:10px;font-weight:600;${daysColor}">${daysStr}</span>`:''}
+        </div>
       </div>
       <div class="cm">${t.id}${t.dateOpened ? ' · ' + df(t.dateOpened) : ''}</div>
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:10px">
         <div class="bs"><div class="bs-val">${t.building}</div><div class="bs-lbl">Building</div></div>
         <div class="bs"><div class="bs-val">${floorLabel}</div><div class="bs-lbl">Floor</div></div>
         <div class="bs"><div class="bs-val">${t.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
-        <div class="bs"><div class="bs-val" style="${daysColor}">${days||'—'}</div><div class="bs-lbl">Age</div></div>
+        <div class="bs"><div class="bs-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${supName}</div><div class="bs-lbl">Supplier</div></div>
       </div>
     </div>
   </div>`;
@@ -6196,46 +6201,59 @@ function exportCSV(type){
     <div class="mh"></div>
     <div class="mt"><span id="log-modal-title">Add Log Entry</span><div style="display:flex;align-items:center;gap:8px"><button id="log-modal-tix-btn" onclick="quickTicketFromLog(editingId.log)" style="display:none;padding:4px 10px;background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.3);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--green);line-height:1.4">+ Ticket</button><button class="mt-close" onclick="closeMo('mo-log')">✕</button></div></div>
     <div class="mb">
-      <div class="fg"><label>Date <span style="color:var(--red)">*</span></label><input class="fi2" type="date" id="lf-date"/></div>
       <div class="fg"><label>Subject <span style="color:var(--red)">*</span></label><input class="fi2" id="lf-subject" placeholder="Short description…"/></div>
-      <div class="fg"><label>Type <span style="color:var(--red)">*</span></label>
-        <select class="fi2" id="lf-type">
-          <option value="">— Select type —</option>
-          <option value="onderhoud">Onderhoud</option>
-          <option value="keuring">Keuring</option>
-          <option value="her-keuring">Her-keuring</option>
-          <option value="ontvangen">Ontvangen</option>
-          <option value="bestelling">Bestelling</option>
-          <option value="bezoek">Bezoek</option>
-          <option value="evaluatie">Evaluatie</option>
-          <option value="storing">Storing</option>
-        </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+        <div class="fg" style="margin:0"><label>Date <span style="color:var(--red)">*</span></label><input class="fi2" type="date" id="lf-date"/></div>
+        <div class="fg" style="margin:0"><label>Status</label>
+          <select class="fi2" id="lf-status">
+            <option value="open">Open</option>
+            <option value="gesloten">Gesloten</option>
+          </select>
+        </div>
       </div>
-      <div class="fg"><label>Status</label>
-        <select class="fi2" id="lf-status">
-          <option value="open">Open</option>
-          <option value="gesloten">Gesloten</option>
-        </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+        <div class="fg" style="margin:0"><label>Type <span style="color:var(--red)">*</span></label>
+          <select class="fi2" id="lf-type">
+            <option value="">— Select type —</option>
+            <option value="bestelling">Bestelling</option>
+            <option value="bezoek">Bezoek</option>
+            <option value="evaluatie">Evaluatie</option>
+            <option value="her-keuring">Her-keuring</option>
+            <option value="keuring">Keuring</option>
+            <option value="onderhoud">Onderhoud</option>
+            <option value="ontvangen">Ontvangen</option>
+            <option value="storing">Storing</option>
+          </select>
+        </div>
+        <div class="fg" style="margin:0"><label>Category</label>
+          <select class="fi2" id="lf-category">
+            <option value="">— None —</option>
+          </select>
+        </div>
       </div>
-      <div class="fg"><label>Building</label>
-        <select class="fi2" id="lf-bldg" onchange="lfOnBldgChange()">
-          <option value="">— None —</option>
-        </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+        <div class="fg" style="margin:0"><label>Building</label>
+          <select class="fi2" id="lf-bldg" onchange="lfOnBldgChange()">
+            <option value="">— None —</option>
+          </select>
+        </div>
+        <div class="fg" style="margin:0"><label>Floor</label>
+          <select class="fi2" id="lf-floor" onchange="lfOnFloorChange()">
+            <option value="">— None —</option>
+          </select>
+        </div>
       </div>
-      <div class="fg"><label>Floor</label>
-        <select class="fi2" id="lf-floor" onchange="lfOnFloorChange()">
-          <option value="">— None —</option>
-        </select>
-      </div>
-      <div class="fg"><label>Unit</label>
-        <select class="fi2" id="lf-unit" onchange="lfOnUnitChange()">
-          <option value="">— None —</option>
-        </select>
-      </div>
-      <div class="fg"><label>Asset</label>
-        <select class="fi2" id="lf-asset">
-          <option value="">— None —</option>
-        </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+        <div class="fg" style="margin:0"><label>Unit</label>
+          <select class="fi2" id="lf-unit" onchange="lfOnUnitChange()">
+            <option value="">— None —</option>
+          </select>
+        </div>
+        <div class="fg" style="margin:0"><label>Asset</label>
+          <select class="fi2" id="lf-asset">
+            <option value="">— None —</option>
+          </select>
+        </div>
       </div>
       <div class="fg"><label>Supplier</label>
         <div id="lf-supplier-wrap" style="position:relative">
@@ -6248,11 +6266,6 @@ function exportCSV(type){
           <div id="lf-supplier-list" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--card);border:1.5px solid var(--blue);border-radius:var(--rs);z-index:9999;max-height:180px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.13)"></div>
         </div>
         <input type="hidden" id="lf-supplier"/>
-      </div>
-      <div class="fg"><label>Category</label>
-        <select class="fi2" id="lf-category">
-          <option value="">— None —</option>
-        </select>
       </div>
       <div class="fg"><label>Note</label><textarea class="fi2" id="lf-note" rows="3" placeholder="Additional details…" style="resize:vertical"></textarea></div>
     </div>
@@ -6611,13 +6624,13 @@ function exportCSV(type){
       <div class="fg" style="margin:0"><label>Type</label>
         <select class="fi2" id="mf-log-type">
           <option value="All">All Types</option>
-          <option value="onderhoud">Onderhoud</option>
-          <option value="keuring">Keuring</option>
-          <option value="her-keuring">Her-keuring</option>
-          <option value="ontvangen">Ontvangen</option>
           <option value="bestelling">Bestelling</option>
           <option value="bezoek">Bezoek</option>
           <option value="evaluatie">Evaluatie</option>
+          <option value="her-keuring">Her-keuring</option>
+          <option value="keuring">Keuring</option>
+          <option value="onderhoud">Onderhoud</option>
+          <option value="ontvangen">Ontvangen</option>
           <option value="storing">Storing</option>
         </select>
       </div>
