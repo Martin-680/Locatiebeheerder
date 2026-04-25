@@ -5789,15 +5789,57 @@ function openNewLogEntry(){
     document.getElementById('lf-unit').innerHTML  = '<option value="">— None —</option>';
     document.getElementById('lf-asset').innerHTML = '<option value="">— None —</option>';
   }
-  document.getElementById('lf-supplier').innerHTML = '<option value="">— None —</option>' +
-    DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name))
-      .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-  autoSelect('lf-supplier');
+  lfSupPopulate(DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)), '');
   document.getElementById('lf-category').innerHTML = '<option value="">— None —</option>' +
     [...DB.categories].sort((a,z)=>(a.category||'').localeCompare(z.category||''))
       .map(c=>`<option value="${c.id}">${c.category}</option>`).join('');
   document.getElementById('lf-category').value = '';
   openMo('mo-log');
+}
+
+/* ── Searchable supplier dropdown for log form ── */
+let _lfSuppliers = []; // [{id, name}]
+
+function lfSupPopulate(suppliers, selectedId){
+  _lfSuppliers = [{id:'', name:'— None —'}, ...suppliers];
+  const srch = document.getElementById('lf-supplier-search');
+  const hidden = document.getElementById('lf-supplier');
+  const found = _lfSuppliers.find(s=>s.id===selectedId);
+  if(srch) srch.value = found && found.id ? found.name : '';
+  if(hidden) hidden.value = selectedId || '';
+  lfSupRender('');
+}
+
+function lfSupFilter(){
+  const q = (document.getElementById('lf-supplier-search')?.value||'').toLowerCase();
+  lfSupRender(q);
+  lfSupOpen();
+}
+
+function lfSupRender(q){
+  const list = document.getElementById('lf-supplier-list'); if(!list) return;
+  const filtered = q ? _lfSuppliers.filter(s=>s.name.toLowerCase().includes(q)) : _lfSuppliers;
+  if(!filtered.length){ list.innerHTML='<div style="padding:9px 12px;font-size:13px;color:var(--muted)">No results</div>'; return; }
+  list.innerHTML = filtered.map(s=>`
+    <div onclick="lfSupSelect('${s.id}','${s.name.replace(/'/g,"\\'")}');event.stopPropagation()"
+      style="padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);color:${s.id?'var(--text)':'var(--muted)'};"
+      onmouseenter="this.style.background='var(--surface)'" onmouseleave="this.style.background=''">
+      ${s.name}
+    </div>`).join('');
+}
+
+function lfSupOpen(){
+  const list = document.getElementById('lf-supplier-list'); if(list) list.style.display='block';
+}
+
+function lfSupClose(){
+  const list = document.getElementById('lf-supplier-list'); if(list) list.style.display='none';
+}
+
+function lfSupSelect(id, name){
+  document.getElementById('lf-supplier').value = id;
+  document.getElementById('lf-supplier-search').value = id ? name : '';
+  lfSupClose();
 }
 
 function lfOnBldgChange(){
@@ -5916,10 +5958,7 @@ function editLogEntry(id){
     assets.map(a=>`<option value="${a.id}">${a.label}</option>`).join('');
   document.getElementById('lf-asset').value = r.assetId || '';
   // Supplier
-  document.getElementById('lf-supplier').innerHTML = '<option value="">— None —</option>' +
-    DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name))
-      .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-  document.getElementById('lf-supplier').value = r.supplierId || '';
+  lfSupPopulate(DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)), r.supplierId || '');
   // Category
   document.getElementById('lf-category').innerHTML = '<option value="">— None —</option>' +
     [...DB.categories].sort((a,z)=>(a.category||'').localeCompare(z.category||''))
@@ -6169,6 +6208,7 @@ function exportCSV(type){
           <option value="bestelling">Bestelling</option>
           <option value="bezoek">Bezoek</option>
           <option value="evaluatie">Evaluatie</option>
+          <option value="storing">Storing</option>
         </select>
       </div>
       <div class="fg"><label>Status</label>
@@ -6198,9 +6238,16 @@ function exportCSV(type){
         </select>
       </div>
       <div class="fg"><label>Supplier</label>
-        <select class="fi2" id="lf-supplier">
-          <option value="">— None —</option>
-        </select>
+        <div id="lf-supplier-wrap" style="position:relative">
+          <input id="lf-supplier-search" class="fi2" placeholder="Search supplier…" autocomplete="off"
+            oninput="lfSupFilter()"
+            onfocus="lfSupOpen()"
+            onblur="setTimeout(()=>lfSupClose(),180)"
+            style="padding-right:28px"/>
+          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);font-size:11px">▾</span>
+          <div id="lf-supplier-list" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--card);border:1.5px solid var(--blue);border-radius:var(--rs);z-index:9999;max-height:180px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.13)"></div>
+        </div>
+        <input type="hidden" id="lf-supplier"/>
       </div>
       <div class="fg"><label>Category</label>
         <select class="fi2" id="lf-category">
