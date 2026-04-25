@@ -6270,7 +6270,7 @@ function exportCSV(type){
     <div class="mt"><span id="log-modal-title">Add Log Entry</span><div style="display:flex;align-items:center;gap:8px"><button id="log-modal-tix-btn" onclick="quickTicketFromLog(editingId.log)" style="display:none;padding:4px 10px;background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.3);border-radius:var(--rs);font-size:12px;font-weight:700;color:var(--green);line-height:1.4">+ Ticket</button><button class="mt-close" onclick="closeMo('mo-log')">✕</button></div></div>
     <div class="mb">
       <div class="fg"><label>Subject <span style="color:var(--red)">*</span></label><input class="fi2" id="lf-subject" placeholder="Short description…"/></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
         <div class="fg" style="margin:0"><label>Date <span style="color:var(--red)">*</span></label><input class="fi2" type="date" id="lf-date"/></div>
         <div class="fg" style="margin:0"><label>Status</label>
           <select class="fi2" id="lf-status">
@@ -6279,7 +6279,7 @@ function exportCSV(type){
           </select>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
         <div class="fg" style="margin:0"><label>Type <span style="color:var(--red)">*</span></label>
           <select class="fi2" id="lf-type">
             <option value="">— Select type —</option>
@@ -6301,7 +6301,7 @@ function exportCSV(type){
           </select>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
         <div class="fg" style="margin:0"><label>Building</label>
           <select class="fi2" id="lf-bldg" onchange="lfOnBldgChange()">
             <option value="">— None —</option>
@@ -6313,7 +6313,7 @@ function exportCSV(type){
           </select>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
         <div class="fg" style="margin:0"><label>Unit</label>
           <select class="fi2" id="lf-unit" onchange="lfOnUnitChange()">
             <option value="">— None —</option>
@@ -6444,7 +6444,7 @@ function exportCSV(type){
       </span>
       <button class="mt-close" onclick="closeMo('mo-tix-filter')">&#x2715;</button>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="margin:0"><label>Status</label>
         <select class="fi2" id="mf-tix-status">
           <option value="All">All Statuses</option>
@@ -6485,7 +6485,7 @@ function exportCSV(type){
     <div class="fg"><label>Category</label>
       <select class="fi2" id="mf-tix-cat"><option value="All">All Categories</option></select>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="margin:0"><label>Building</label>
         <select class="fi2" id="mf-tix-bldg" onchange="onMfTixBldgChange()"><option value="All">All Buildings</option></select>
       </div>
@@ -6504,7 +6504,7 @@ function exportCSV(type){
         <option value="days">&#x23f1; Most overdue</option>
       </select>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="margin:0"><label>Date from</label>
         <input type="date" class="fi2" id="mf-tix-date-from" style="font-size:14px">
       </div>
@@ -6711,7 +6711,7 @@ function exportCSV(type){
       <button class="mt-close" onclick="closeMo('mo-log-filter')">&#x2715;</button>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="margin:0"><label>Type</label>
         <select class="fi2" id="mf-log-type">
           <option value="All">All Types</option>
@@ -6735,7 +6735,7 @@ function exportCSV(type){
         </select>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="margin:0"><label>Building</label>
         <select class="fi2" id="mf-log-bldg" onchange="onMfLogBldgChange()">
           <option value="All">All Buildings</option>
@@ -6747,7 +6747,7 @@ function exportCSV(type){
         </select>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="margin:0"><label>Unit</label>
         <select class="fi2" id="mf-log-unit" onchange="onMfLogUnitChange()">
           <option value="All">All Units</option>
@@ -6762,7 +6762,7 @@ function exportCSV(type){
     <div class="fg"><label>Supplier</label>
       <select class="fi2" id="mf-log-sup"><option value="All">All Suppliers</option></select>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="margin:0"><label>Date from</label>
         <input type="date" class="fi2" id="mf-log-date-from" style="font-size:14px">
       </div>
