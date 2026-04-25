@@ -1073,6 +1073,10 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="frow2">
       <div class="fg"><label>Assign To</label><select class="fs2" id="tf-assign"><option value="">Unassigned</option></select></div>
     </div>
+    <div class="frow2">
+      <div class="fg"><label>Date Opened</label><input class="fi2" type="date" id="tf-date-opened"/></div>
+      <div class="fg"><label>Date Closed</label><input class="fi2" type="date" id="tf-date-closed"/></div>
+    </div>
     <div class="fg"><label>Supplier</label><select class="fs2" id="tf-supplier"><option value="">None</option></select></div>
     <div class="fg"><label>Reported By</label><input class="fi2" id="tf-reporter" placeholder="Name of reporter"/></div>
     <div class="fg"><label>Notes</label><textarea class="ft2" id="tf-notes" placeholder="Additional details…"></textarea></div>
@@ -3392,6 +3396,8 @@ function openNewTicket(){
   document.getElementById('tf-status').value='Open';
   document.getElementById('tf-pri').value='Medium';
   document.getElementById('tf-type').value='';
+  document.getElementById('tf-date-opened').value=today.toISOString().split('T')[0];
+  document.getElementById('tf-date-closed').value='';
   populateBldSelect('tf-bldg');
   document.getElementById('tf-bldg').value='';
   tfOnBldgChange();
@@ -3420,6 +3426,8 @@ function editTix(id){
   document.getElementById('tf-subj').value=t.subject;
   document.getElementById('tf-pri').value=t.priority;
   document.getElementById('tf-type').value=t.type||'';
+  document.getElementById('tf-date-opened').value=t.dateOpened||'';
+  document.getElementById('tf-date-closed').value=t.dateClosed||'';
   populateCatSelect('tf-cat','',t.categoryId||t.category);
   document.getElementById('tf-status').value=t.status;
   document.getElementById('tf-reporter').value=t.reportedBy||'';
@@ -3488,8 +3496,9 @@ async function saveTix(){
       t.subject=subj; t.priority=document.getElementById('tf-pri').value; t.type=document.getElementById('tf-type').value;
       t.assignedTo=document.getElementById('tf-assign').value;
       t.status=status;
-      if(status==='Closed'&&!t.dateClosed) t.dateClosed=today.toISOString().split('T')[0];
-      if(status!=='Closed') t.dateClosed='';
+      t.dateOpened=document.getElementById('tf-date-opened').value||t.dateOpened;
+      t.dateClosed=document.getElementById('tf-date-closed').value||(status==='Closed'&&!t.dateClosed?today.toISOString().split('T')[0]:'');
+      if(status!=='Closed'&&!document.getElementById('tf-date-closed').value) t.dateClosed='';
       t.assetId=document.getElementById('tf-asset').value;
       t.supplierId=document.getElementById('tf-supplier').value;
       t.reportedBy=document.getElementById('tf-reporter').value;
@@ -3508,7 +3517,7 @@ async function saveTix(){
     const _nflr=DB.floors.find(f=>f.id===_nfId);
     const _nunt=DB.units.find(u=>u.label===_nu&&(_nflr?u.floorId===_nflr.id:true));
     const _ncat=DB.categories.find(x=>x.id===_nc);
-    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nb,floorId:_nflr?_nflr.id:_nfId,unitId:_nunt?_nunt.id:_nu,subject:subj,status,priority:document.getElementById('tf-pri').value,type:document.getElementById('tf-type').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}]),building:_nb,floor:_nflr?_nflr.label:_nfId,unit:_nu,category:_ncat?_ncat.category:_nc});
+    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nb,floorId:_nflr?_nflr.id:_nfId,unitId:_nunt?_nunt.id:_nu,subject:subj,status,priority:document.getElementById('tf-pri').value,type:document.getElementById('tf-type').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:document.getElementById('tf-date-opened').value||today.toISOString().split('T')[0],dateClosed:document.getElementById('tf-date-closed').value||'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}]),building:_nb,floor:_nflr?_nflr.label:_nfId,unit:_nu,category:_ncat?_ncat.category:_nc});
   }
   closeMo('mo-tix');
   await writeSheet('tickets');
