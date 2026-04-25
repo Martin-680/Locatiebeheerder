@@ -3154,32 +3154,28 @@ function renderTix(){
 }
 
 function tixItemHTML(t,clickable=true){
-  const days=t.status!=='Closed'?daysSince(t.dateOpened):null;
-  const daysStr=days!==null?`${days} day${days!==1?'s':''}`:null;
   const stCls={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Cancelled:'b-cancel',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
   const fn=clickable?`openTixDetail('${t.id}')`:`navTo('tickets')`;
-  const daysColor = days!==null && days>7 ? 'color:var(--amber);font-weight:700;' : '';
   const floorLabel = DB.floors.find(f=>f.id===t.floor)?.label || DB.floors.find(f=>f.label===t.floor)?.label || t.floor || '—';
   const supName = t.supplierId ? (DB.suppliers.find(s=>s.id===t.supplierId)?.name || '—') : '—';
-  const bldSpan  = t.building  ? `<span onclick="quickFilterTix('sel-tix-bldg','${t.building.replace(/'/g,"\\'")}',event)"  style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${t.building}</span>`   : '—';
-  const flrSpan  = floorLabel!=='—' ? `<span onclick="quickFilterTix('sel-tix-floor','${floorLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by floor">${floorLabel}</span>`   : '—';
-  const unitSpan = t.unit || '—';
-  const supSpan  = t.supplierId ? `<span onclick="quickFilterTix('sel-tix-sup','${t.supplierId}',event)"                      style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supName}</span>`        : '—';
-  const catSpan  = t.category   ? `<span onclick="quickFilterTix('sel-tix-cat','${t.category.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by category">${t.category}</span>` : '';
+  const bldSpan  = t.building  ? `<span onclick="quickFilterTix('sel-tix-bldg','${t.building.replace(/'/g,"\\'")}','${t.building.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${t.building}</span>` : '—';
+  const flrSpan  = floorLabel!=='—' ? `<span onclick="quickFilterTix('sel-tix-floor','${floorLabel.replace(/'/g,"\\'")}','${floorLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by floor">${floorLabel}</span>` : '—';
+  const supSpan  = t.supplierId ? `<span onclick="quickFilterTix('sel-tix-sup','${t.supplierId}','${supName.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supName}</span>` : '—';
+  const catSpan  = t.category   ? `<span onclick="quickFilterTix('sel-tix-cat','${t.category.replace(/'/g,"\\'")}','${t.category.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by category">${t.category}</span>` : '';
   return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <div class="ct" style="flex:1;min-width:0">${t.subject}</div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
-          <span class="badge ${stCls}" onclick="quickFilterTix('sel-tix-status','${t.status}',event)" style="cursor:pointer" title="Filter by status">${t.status}</span>
+          <span class="badge ${stCls}" onclick="quickFilterTix('sel-tix-status','${t.status}','${t.status}',event)" style="cursor:pointer" title="Filter by status">${t.status}</span>
           ${catSpan ? `<span style="font-size:10px;color:var(--sub)">${catSpan}</span>` : ''}
         </div>
       </div>
-      <div class="cm" style="display:flex;justify-content:space-between;align-items:center">${t.id}${t.dateOpened ? ' · ' + df(t.dateOpened) : ''}${daysStr?`<span style="font-size:11px;font-weight:600;${daysColor}">${daysStr}</span>`:''}</div>
+      <div class="cm">${t.id}${t.dateOpened ? ' · ' + df(t.dateOpened) : ''}</div>
       <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:10px">
         <div class="bs"><div class="bs-val">${bldSpan}</div><div class="bs-lbl">Building</div></div>
         <div class="bs"><div class="bs-val">${flrSpan}</div><div class="bs-lbl">Floor</div></div>
-        <div class="bs"><div class="bs-val">${unitSpan}</div><div class="bs-lbl">Unit</div></div>
+        <div class="bs"><div class="bs-val">${t.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
         <div class="bs"><div class="bs-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${supSpan}</div><div class="bs-lbl">Supplier</div></div>
       </div>
     </div>
@@ -5673,21 +5669,31 @@ function removeLogFilter(id){
 }
 
 /* ── Quick-filter helpers: click a card value to filter the list ── */
-function quickFilterLog(field, value, e){
+function _ensureOption(el, value, label){
+  if(!el || value === 'All') return;
+  if(![...el.options].some(o => o.value === value)){
+    const opt = document.createElement('option');
+    opt.value = value; opt.textContent = label || value;
+    el.appendChild(opt);
+  }
+}
+
+function quickFilterLog(field, value, label, e){
   if(e) e.stopPropagation();
   const el = document.getElementById(field);
   if(!el) return;
+  _ensureOption(el, value, label);
   el.value = value;
-  // cascade: building change needs to populate floor/unit/asset dropdowns
   if(field === 'sel-log-bldg') onLogBldgChange();
   setPage('log', 1);
   renderLogbook();
 }
 
-function quickFilterTix(field, value, e){
+function quickFilterTix(field, value, label, e){
   if(e) e.stopPropagation();
   const el = document.getElementById(field);
   if(!el) return;
+  _ensureOption(el, value, label);
   el.value = value;
   setPage('tix', 1);
   renderTix();
@@ -5756,11 +5762,11 @@ function renderLogbook(){
     const supLabel = r.supplierName && r.supplierName !== r.supplierId ? r.supplierName : (r.supplierId ? r.supplierName : '—');
     const bldLabel = r.building || '—';
     const catLabel = r.categoryName || '—';
-    const typeSpan   = r.type   ? `<span onclick="quickFilterLog('sel-log-type','${r.type}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color};cursor:pointer" title="Filter by type">${r.type}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
-    const statusSpan = r.status ? `<span onclick="quickFilterLog('sel-log-status','${r.status}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${sc.bg};color:${sc.color};cursor:pointer" title="Filter by status">${r.status}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
-    const supSpan    = r.supplierId ? `<span onclick="quickFilterLog('sel-log-sup','${r.supplierId}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supLabel}</span>` : '—';
-    const bldSpan    = r.buildingId ? `<span onclick="quickFilterLog('sel-log-bldg','${r.buildingId}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
-    const catSpan    = r.categoryId ? `<span onclick="quickFilterLog('sel-log-cat','${r.categoryId}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by category">${catLabel}</span>` : catLabel;
+    const typeSpan   = r.type   ? `<span onclick="quickFilterLog('sel-log-type','${r.type}','${r.type}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color};cursor:pointer" title="Filter by type">${r.type}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
+    const statusSpan = r.status ? `<span onclick="quickFilterLog('sel-log-status','${r.status}','${r.status}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${sc.bg};color:${sc.color};cursor:pointer" title="Filter by status">${r.status}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
+    const supSpan    = r.supplierId ? `<span onclick="quickFilterLog('sel-log-sup','${r.supplierId}','${supLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supLabel}</span>` : '—';
+    const bldSpan    = r.buildingId ? `<span onclick="quickFilterLog('sel-log-bldg','${r.buildingId}','${bldLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
+    const catSpan    = r.categoryId ? `<span onclick="quickFilterLog('sel-log-cat','${r.categoryId}','${catLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by category">${catLabel}</span>` : catLabel;
     html += `<div class="ti" style="flex-direction:column;padding:13px 14px;cursor:default" onclick="editLogEntry('${r.id}')">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 8px;width:100%;align-items:center">
         <div class="ct" style="color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">${r.subject||'—'}</div>
