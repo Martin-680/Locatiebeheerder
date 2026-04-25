@@ -462,7 +462,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <option value="priority">By priority</option>
       <option value="days">⏱ Most overdue</option>
     </select>
-    <select id="sel-tix-sup" style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Suppliers</option></select>
+    <select id="sel-tix-sup"  style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Suppliers</option></select>
+    <select id="sel-tix-type" style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Types</option></select>
     <input type="hidden" id="sel-tix-date-from" value="">
     <input type="hidden" id="sel-tix-date-to" value="">
 
@@ -988,6 +989,23 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fg"><label>Status</label>
         <select class="fs2" id="tf-status"><option>Open</option><option>In Progress</option><option>Planned</option><option>Requested</option><option>Ordered</option><option>Closed</option></select>
       </div>
+      <div class="fg"><label>Type</label>
+        <select class="fs2" id="tf-type">
+          <option value="">— None —</option>
+          <option value="bestelling">Bestelling</option>
+          <option value="bezoek">Bezoek</option>
+          <option value="evaluatie">Evaluatie</option>
+          <option value="her-keuring">Her-keuring</option>
+          <option value="keuring">Keuring</option>
+          <option value="onderhoud">Onderhoud</option>
+          <option value="ontvangen">Ontvangen</option>
+          <option value="arbo">Arbo</option>
+          <option value="storing">Storing</option>
+          <option value="verhuizing">Verhuizing</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow2">
       <div class="fg"><label>Assign To</label><select class="fs2" id="tf-assign"><option value="">Unassigned</option></select></div>
     </div>
     <div class="fg"><label>Supplier</label><select class="fs2" id="tf-supplier"><option value="">None</option></select></div>
@@ -1169,7 +1187,7 @@ const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
-  tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity'],
+  tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
   inspections:      ['id','buildingId','floorId','categoryId','dateStart','dateEnd','inspector','status','notes'],
   inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note'],
@@ -2892,7 +2910,7 @@ function openTixFilterModal(){
     mSup.value = cur;
   }
   // Sync remaining
-  ['status','pri','sort'].forEach(k=>{
+  ['status','pri','sort','type'].forEach(k=>{
     const mEl=document.getElementById('mf-tix-'+k);
     const hEl=document.getElementById('sel-tix-'+k);
     if(mEl&&hEl) mEl.value=hEl.value;
@@ -2917,7 +2935,7 @@ function onMfTixBldgChange(silent){
   }
 }
 function applyTixFilterModal(){
-  ['status','pri','cat','bldg','floor','sort','sup'].forEach(k=>{
+  ['status','pri','cat','bldg','floor','sort','sup','type'].forEach(k=>{
     const mVal=document.getElementById('mf-tix-'+k)?.value||(k==='sort'?'newest':'All');
     const hSel=document.getElementById('sel-tix-'+k);
     if(hSel) hSel.value=mVal;
@@ -2932,7 +2950,7 @@ function applyTixFilterModal(){
   renderTix();
 }
 function updateTixFilterBadge(){
-  const filterIds = ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup'];
+  const filterIds = ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup','sel-tix-type'];
   const sortDefault = 'newest';
   const dateFrom = document.getElementById('sel-tix-date-from')?.value || '';
   const dateTo   = document.getElementById('sel-tix-date-to')?.value   || '';
@@ -3069,7 +3087,7 @@ function removeInspFilter(id){
 }
 
 function clearTixFilters(){
-  ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
+  ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup','sel-tix-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const sort=document.getElementById('sel-tix-sort');if(sort)sort.value='newest';
   const search=document.getElementById('tsearch');if(search)search.value='';
   const dfrom=document.getElementById('sel-tix-date-from');if(dfrom)dfrom.value='';
@@ -3123,6 +3141,7 @@ function renderTix(){
   }
   const catVal=tixCatSel?.value||'All';
   const supVal=document.getElementById('sel-tix-sup')?.value||'All';
+  const typeVal=document.getElementById('sel-tix-type')?.value||'All';
   syncSelActive('sel-tix-status'); syncSelActive('sel-tix-pri'); syncSelActive('sel-tix-cat'); syncSelActive('sel-tix-bldg'); syncSelActive('sel-tix-floor');
   updateTixFilterBadge();
   let list=DB.tickets;
@@ -3132,6 +3151,7 @@ function renderTix(){
   if(priVal!=='All') list=list.filter(t=>t.priority===priVal);
   if(catVal!=='All') list=list.filter(t=>t.category===catVal);
   if(supVal!=='All') list=list.filter(t=>t.supplierId===supVal);
+  if(typeVal!=='All') list=list.filter(t=>t.type===typeVal);
   if(bldgVal!=='All') list=list.filter(t=>t.building===bldgVal);
   if(floorVal!=='All') list=list.filter(t=>t.floor===floorVal);
   const dateFrom = document.getElementById('sel-tix-date-from')?.value || '';
@@ -3162,11 +3182,16 @@ function tixItemHTML(t,clickable=true){
   const flrSpan  = floorLabel!=='—' ? `<span onclick="quickFilterTix('sel-tix-floor','${floorLabel.replace(/'/g,"\\'")}','${floorLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by floor">${floorLabel}</span>` : '—';
   const supSpan  = t.supplierId ? `<span onclick="quickFilterTix('sel-tix-sup','${t.supplierId}','${supName.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supName}</span>` : '—';
   const catSpan  = t.category   ? `<span onclick="quickFilterTix('sel-tix-cat','${t.category.replace(/'/g,"\\'")}','${t.category.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by category">${t.category}</span>` : '';
+  const tc       = LOG_TYPE_COLORS[t.type] || null;
+  const typeSpan = t.type && tc ? `<span onclick="quickFilterTix('sel-tix-type','${t.type}','${t.type}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color};cursor:pointer" title="Filter by type">${t.type}</span>` : '';
   return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <div class="ct" style="flex:1;min-width:0">${t.subject}</div>
-        <span class="badge ${stCls}" onclick="quickFilterTix('sel-tix-status','${t.status}','${t.status}',event)" style="cursor:pointer;flex-shrink:0;margin-left:8px" title="Filter by status">${t.status}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
+          <span class="badge ${stCls}" onclick="quickFilterTix('sel-tix-status','${t.status}','${t.status}',event)" style="cursor:pointer" title="Filter by status">${t.status}</span>
+          ${typeSpan}
+        </div>
       </div>
       <div class="cm" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
         <span style="flex-shrink:0">${t.id}${t.dateOpened ? ' · ' + df(t.dateOpened) : ''}</span>
@@ -3299,6 +3324,7 @@ function openNewTicket(){
   ['tf-subj','tf-reporter','tf-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('tf-status').value='Open';
   document.getElementById('tf-pri').value='Medium';
+  document.getElementById('tf-type').value='';
   populateBldSelect('tf-bldg');
   document.getElementById('tf-bldg').value='';
   tfOnBldgChange();
@@ -3326,6 +3352,7 @@ function editTix(id){
   document.getElementById('btn-dup-tix').style.display='';
   document.getElementById('tf-subj').value=t.subject;
   document.getElementById('tf-pri').value=t.priority;
+  document.getElementById('tf-type').value=t.type||'';
   populateCatSelect('tf-cat','',t.categoryId||t.category);
   document.getElementById('tf-status').value=t.status;
   document.getElementById('tf-reporter').value=t.reportedBy||'';
@@ -3391,7 +3418,7 @@ async function saveTix(){
       t.floor=_flr?_flr.label:_flrId;
       t.unit=_untLabel;
       t.category=_cat?_cat.category:_catId;
-      t.subject=subj; t.priority=document.getElementById('tf-pri').value;
+      t.subject=subj; t.priority=document.getElementById('tf-pri').value; t.type=document.getElementById('tf-type').value;
       t.assignedTo=document.getElementById('tf-assign').value;
       t.status=status;
       if(status==='Closed'&&!t.dateClosed) t.dateClosed=today.toISOString().split('T')[0];
@@ -3414,7 +3441,7 @@ async function saveTix(){
     const _nflr=DB.floors.find(f=>f.id===_nfId);
     const _nunt=DB.units.find(u=>u.label===_nu&&(_nflr?u.floorId===_nflr.id:true));
     const _ncat=DB.categories.find(x=>x.id===_nc);
-    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nb,floorId:_nflr?_nflr.id:_nfId,unitId:_nunt?_nunt.id:_nu,subject:subj,status,priority:document.getElementById('tf-pri').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}]),building:_nb,floor:_nflr?_nflr.label:_nfId,unit:_nu,category:_ncat?_ncat.category:_nc});
+    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nb,floorId:_nflr?_nflr.id:_nfId,unitId:_nunt?_nunt.id:_nu,subject:subj,status,priority:document.getElementById('tf-pri').value,type:document.getElementById('tf-type').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:today.toISOString().split('T')[0],dateClosed:'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}]),building:_nb,floor:_nflr?_nflr.label:_nfId,unit:_nu,category:_ncat?_ncat.category:_nc});
   }
   closeMo('mo-tix');
   await writeSheet('tickets');
@@ -6263,7 +6290,9 @@ function exportCSV(type){
             <option value="keuring">Keuring</option>
             <option value="onderhoud">Onderhoud</option>
             <option value="ontvangen">Ontvangen</option>
-            <option value="storing">Storing</option>
+            <option value="arbo">Arbo</option>
+          <option value="storing">Storing</option>
+          <option value="verhuizing">Verhuizing</option>
           </select>
         </div>
         <div class="fg" style="margin:0"><label>Category</label>
@@ -6415,17 +6444,34 @@ function exportCSV(type){
       </span>
       <button class="mt-close" onclick="closeMo('mo-tix-filter')">&#x2715;</button>
     </div>
-    <div class="fg"><label>Status</label>
-      <select class="fi2" id="mf-tix-status">
-        <option value="All">All Statuses</option>
-        <option value="Open">Open</option>
-        <option value="In Progress">In Progress</option>
-        <option value="Closed">Closed</option>
-        <option value="Planned">Planned</option>
-        <option value="Requested">Requested</option>
-        <option value="Ordered">Ordered</option>
-        <option value="mine">Assigned to Me</option>
-      </select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div class="fg" style="margin:0"><label>Status</label>
+        <select class="fi2" id="mf-tix-status">
+          <option value="All">All Statuses</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Closed">Closed</option>
+          <option value="Planned">Planned</option>
+          <option value="Requested">Requested</option>
+          <option value="Ordered">Ordered</option>
+          <option value="mine">Assigned to Me</option>
+        </select>
+      </div>
+      <div class="fg" style="margin:0"><label>Type</label>
+        <select class="fi2" id="mf-tix-type">
+          <option value="All">All Types</option>
+          <option value="arbo">Arbo</option>
+          <option value="bestelling">Bestelling</option>
+          <option value="bezoek">Bezoek</option>
+          <option value="evaluatie">Evaluatie</option>
+          <option value="her-keuring">Her-keuring</option>
+          <option value="keuring">Keuring</option>
+          <option value="onderhoud">Onderhoud</option>
+          <option value="ontvangen">Ontvangen</option>
+          <option value="storing">Storing</option>
+          <option value="verhuizing">Verhuizing</option>
+        </select>
+      </div>
     </div>
     <div class="fg"><label>Priority</label>
       <select class="fi2" id="mf-tix-pri">
@@ -6439,11 +6485,13 @@ function exportCSV(type){
     <div class="fg"><label>Category</label>
       <select class="fi2" id="mf-tix-cat"><option value="All">All Categories</option></select>
     </div>
-    <div class="fg"><label>Building</label>
-      <select class="fi2" id="mf-tix-bldg" onchange="onMfTixBldgChange()"><option value="All">All Buildings</option></select>
-    </div>
-    <div class="fg"><label>Floor</label>
-      <select class="fi2" id="mf-tix-floor"><option value="All">All Floors</option></select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div class="fg" style="margin:0"><label>Building</label>
+        <select class="fi2" id="mf-tix-bldg" onchange="onMfTixBldgChange()"><option value="All">All Buildings</option></select>
+      </div>
+      <div class="fg" style="margin:0"><label>Floor</label>
+        <select class="fi2" id="mf-tix-floor"><option value="All">All Floors</option></select>
+      </div>
     </div>
     <div class="fg"><label>Supplier</label>
       <select class="fi2" id="mf-tix-sup"><option value="All">All Suppliers</option></select>
@@ -6456,11 +6504,13 @@ function exportCSV(type){
         <option value="days">&#x23f1; Most overdue</option>
       </select>
     </div>
-    <div class="fg"><label>Date from</label>
-      <input type="date" class="fi2" id="mf-tix-date-from" style="font-size:14px">
-    </div>
-    <div class="fg"><label>Date to</label>
-      <input type="date" class="fi2" id="mf-tix-date-to" style="font-size:14px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 2px">
+      <div class="fg" style="margin:0"><label>Date from</label>
+        <input type="date" class="fi2" id="mf-tix-date-from" style="font-size:14px">
+      </div>
+      <div class="fg" style="margin:0"><label>Date to</label>
+        <input type="date" class="fi2" id="mf-tix-date-to" style="font-size:14px">
+      </div>
     </div>
     <div style="display:flex;gap:10px;padding:4px 18px 18px">
       <button onclick="clearTixFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
@@ -6672,7 +6722,9 @@ function exportCSV(type){
           <option value="keuring">Keuring</option>
           <option value="onderhoud">Onderhoud</option>
           <option value="ontvangen">Ontvangen</option>
+          <option value="arbo">Arbo</option>
           <option value="storing">Storing</option>
+          <option value="verhuizing">Verhuizing</option>
         </select>
       </div>
       <div class="fg" style="margin:0"><label>Status</label>
