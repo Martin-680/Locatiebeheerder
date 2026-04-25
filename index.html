@@ -6452,8 +6452,8 @@ function calDayClick(dateStr){
     <div class="mb">
       <div class="fg"><label>Subject <span style="color:var(--red)">*</span></label><input class="fi2" id="lf-subject" placeholder="Short description…"/></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-        <div class="fg" style="margin:0"><label>Date <span style="color:var(--red)">*</span></label><input class="fi2" type="date" id="lf-date"/></div>
-        <div class="fg" style="margin:0"><label>Status</label>
+        <div class="fg" style="padding:0"><label>Date <span style="color:var(--red)">*</span></label><input class="fi2" type="date" id="lf-date"/></div>
+        <div class="fg" style="padding:0"><label>Status</label>
           <select class="fi2" id="lf-status">
             <option value="open">Open</option>
             <option value="gesloten">Gesloten</option>
@@ -6461,7 +6461,7 @@ function calDayClick(dateStr){
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-        <div class="fg" style="margin:0"><label>Type <span style="color:var(--red)">*</span></label>
+        <div class="fg" style="padding:0"><label>Type <span style="color:var(--red)">*</span></label>
           <select class="fi2" id="lf-type">
             <option value="">— Select type —</option>
             <option value="bestelling">Bestelling</option>
@@ -6476,31 +6476,31 @@ function calDayClick(dateStr){
           <option value="verhuizing">Verhuizing</option>
           </select>
         </div>
-        <div class="fg" style="margin:0"><label>Category</label>
+        <div class="fg" style="padding:0"><label>Category</label>
           <select class="fi2" id="lf-category">
             <option value="">— None —</option>
           </select>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-        <div class="fg" style="margin:0"><label>Building</label>
+        <div class="fg" style="padding:0"><label>Building</label>
           <select class="fi2" id="lf-bldg" onchange="lfOnBldgChange()">
             <option value="">— None —</option>
           </select>
         </div>
-        <div class="fg" style="margin:0"><label>Floor</label>
+        <div class="fg" style="padding:0"><label>Floor</label>
           <select class="fi2" id="lf-floor" onchange="lfOnFloorChange()">
             <option value="">— None —</option>
           </select>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-        <div class="fg" style="margin:0"><label>Unit</label>
+        <div class="fg" style="padding:0"><label>Unit</label>
           <select class="fi2" id="lf-unit" onchange="lfOnUnitChange()">
             <option value="">— None —</option>
           </select>
         </div>
-        <div class="fg" style="margin:0"><label>Asset</label>
+        <div class="fg" style="padding:0"><label>Asset</label>
           <select class="fi2" id="lf-asset">
             <option value="">— None —</option>
           </select>
@@ -6626,7 +6626,7 @@ function calDayClick(dateStr){
       <button class="mt-close" onclick="closeMo('mo-tix-filter')">&#x2715;</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="margin:0"><label>Status</label>
+      <div class="fg" style="padding:0"><label>Status</label>
         <select class="fi2" id="mf-tix-status">
           <option value="All">All Statuses</option>
           <option value="Open">Open</option>
@@ -6638,7 +6638,7 @@ function calDayClick(dateStr){
           <option value="mine">Assigned to Me</option>
         </select>
       </div>
-      <div class="fg" style="margin:0"><label>Type</label>
+      <div class="fg" style="padding:0"><label>Type</label>
         <select class="fi2" id="mf-tix-type">
           <option value="All">All Types</option>
           <option value="arbo">Arbo</option>
@@ -6667,10 +6667,10 @@ function calDayClick(dateStr){
       <select class="fi2" id="mf-tix-cat"><option value="All">All Categories</option></select>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="margin:0"><label>Building</label>
+      <div class="fg" style="padding:0"><label>Building</label>
         <select class="fi2" id="mf-tix-bldg" onchange="onMfTixBldgChange()"><option value="All">All Buildings</option></select>
       </div>
-      <div class="fg" style="margin:0"><label>Floor</label>
+      <div class="fg" style="padding:0"><label>Floor</label>
         <select class="fi2" id="mf-tix-floor"><option value="All">All Floors</option></select>
       </div>
     </div>
@@ -6686,10 +6686,10 @@ function calDayClick(dateStr){
       </select>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="margin:0"><label>Date from</label>
+      <div class="fg" style="padding:0"><label>Date from</label>
         <input type="date" class="fi2" id="mf-tix-date-from" style="font-size:14px">
       </div>
-      <div class="fg" style="margin:0"><label>Date to</label>
+      <div class="fg" style="padding:0"><label>Date to</label>
         <input type="date" class="fi2" id="mf-tix-date-to" style="font-size:14px">
       </div>
     </div>
@@ -6893,7 +6893,7 @@ function calDayClick(dateStr){
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="margin:0"><label>Type</label>
+      <div class="fg" style="padding:0"><label>Type</label>
         <select class="fi2" id="mf-log-type">
           <option value="All">All Types</option>
           <option value="bestelling">Bestelling</option>
@@ -6908,7 +6908,7 @@ function calDayClick(dateStr){
           <option value="verhuizing">Verhuizing</option>
         </select>
       </div>
-      <div class="fg" style="margin:0"><label>Status</label>
+      <div class="fg" style="padding:0"><label>Status</label>
         <select class="fi2" id="mf-log-status">
           <option value="All">All Statuses</option>
           <option value="open">Open</option>
@@ -6917,24 +6917,24 @@ function calDayClick(dateStr){
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="margin:0"><label>Building</label>
+      <div class="fg" style="padding:0"><label>Building</label>
         <select class="fi2" id="mf-log-bldg" onchange="onMfLogBldgChange()">
           <option value="All">All Buildings</option>
         </select>
       </div>
-      <div class="fg" style="margin:0"><label>Floor</label>
+      <div class="fg" style="padding:0"><label>Floor</label>
         <select class="fi2" id="mf-log-floor" onchange="onMfLogFloorChange()">
           <option value="All">All Floors</option>
         </select>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="margin:0"><label>Unit</label>
+      <div class="fg" style="padding:0"><label>Unit</label>
         <select class="fi2" id="mf-log-unit" onchange="onMfLogUnitChange()">
           <option value="All">All Units</option>
         </select>
       </div>
-      <div class="fg" style="margin:0"><label>Asset</label>
+      <div class="fg" style="padding:0"><label>Asset</label>
         <select class="fi2" id="mf-log-asset">
           <option value="All">All Assets</option>
         </select>
@@ -6944,10 +6944,10 @@ function calDayClick(dateStr){
       <select class="fi2" id="mf-log-sup"><option value="All">All Suppliers</option></select>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="margin:0"><label>Date from</label>
+      <div class="fg" style="padding:0"><label>Date from</label>
         <input type="date" class="fi2" id="mf-log-date-from" style="font-size:14px">
       </div>
-      <div class="fg" style="margin:0"><label>Date to</label>
+      <div class="fg" style="padding:0"><label>Date to</label>
         <input type="date" class="fi2" id="mf-log-date-to" style="font-size:14px">
       </div>
     </div>
