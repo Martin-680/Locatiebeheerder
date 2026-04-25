@@ -775,6 +775,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <select id="sel-log-unit"  style="display:none" onchange="onLogUnitChange()"><option value="All">All Units</option></select>
     <select id="sel-log-asset" style="display:none" onchange="setPage('log',1);renderLogbook()"><option value="All">All Assets</option></select>
     <select id="sel-log-sup"   style="display:none" onchange="setPage('log',1);renderLogbook()"><option value="All">All Suppliers</option></select>
+    <select id="sel-log-cat"   style="display:none" onchange="setPage('log',1);renderLogbook()"><option value="All">All Categories</option></select>
     <input type="hidden" id="sel-log-date-from" value="">
     <input type="hidden" id="sel-log-date-to" value="">
 
@@ -3164,12 +3165,14 @@ function tixItemHTML(t,clickable=true){
   const flrSpan  = floorLabel!=='—' ? `<span onclick="quickFilterTix('sel-tix-floor','${floorLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by floor">${floorLabel}</span>`   : '—';
   const unitSpan = t.unit || '—';
   const supSpan  = t.supplierId ? `<span onclick="quickFilterTix('sel-tix-sup','${t.supplierId}',event)"                      style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supName}</span>`        : '—';
+  const catSpan  = t.category   ? `<span onclick="quickFilterTix('sel-tix-cat','${t.category.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by category">${t.category}</span>` : '';
   return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
     <div style="flex:1;min-width:0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
         <div class="ct" style="flex:1;min-width:0">${t.subject}</div>
-        <div style="flex-shrink:0;margin-left:8px">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
           <span class="badge ${stCls}" onclick="quickFilterTix('sel-tix-status','${t.status}',event)" style="cursor:pointer" title="Filter by status">${t.status}</span>
+          ${catSpan ? `<span style="font-size:10px;color:var(--sub)">${catSpan}</span>` : ''}
         </div>
       </div>
       <div class="cm" style="display:flex;justify-content:space-between;align-items:center">${t.id}${t.dateOpened ? ' · ' + df(t.dateOpened) : ''}${daysStr?`<span style="font-size:11px;font-weight:600;${daysColor}">${daysStr}</span>`:''}</div>
@@ -5606,7 +5609,7 @@ function onLogUnitChange(){
 }
 
 function updateLogFilterBadge(){
-  const filters = ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset','sel-log-sup'];
+  const filters = ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset','sel-log-sup','sel-log-cat'];
   const logDateFrom = document.getElementById('sel-log-date-from')?.value || '';
   const logDateTo   = document.getElementById('sel-log-date-to')?.value   || '';
   const activeCount = filters.filter(id => (document.getElementById(id)?.value||'All') !== 'All').length
@@ -5642,6 +5645,7 @@ function updateLogFilterBadge(){
     'sel-log-unit'  : v => DB.units.find(u=>u.id===v)?.label   || v,
     'sel-log-asset' : v => DB.assets.find(a=>a.id===v)?.label  || v,
     'sel-log-sup'   : v => DB.suppliers.find(s=>s.id===v)?.name || v,
+    'sel-log-cat'   : v => DB.categories.find(c=>c.id===v)?.category || v,
   };
   let chips = filters
     .filter(id => (document.getElementById(id)?.value||'All') !== 'All')
@@ -5699,6 +5703,7 @@ function renderLogbook(){
   const unitF   = (document.getElementById('sel-log-unit')?.value   || 'All');
   const assetF  = (document.getElementById('sel-log-asset')?.value  || 'All');
   const supF    = (document.getElementById('sel-log-sup')?.value    || 'All');
+  const catF    = (document.getElementById('sel-log-cat')?.value    || 'All');
   const searchF = (document.getElementById('log-search')?.value     || '').toLowerCase().trim();
 
   // Update filter badge + chips
@@ -5712,6 +5717,7 @@ function renderLogbook(){
   if(unitF   !== 'All') rows = rows.filter(r=>r.unitId===unitF);
   if(assetF  !== 'All') rows = rows.filter(r=>r.assetId===assetF);
   if(supF    !== 'All') rows = rows.filter(r=>r.supplierId===supF);
+  if(catF    !== 'All') rows = rows.filter(r=>r.categoryId===catF);
   const logDateFrom = (document.getElementById('sel-log-date-from')?.value || '');
   const logDateTo   = (document.getElementById('sel-log-date-to')?.value   || '');
   if(logDateFrom) rows = rows.filter(r=>(r.date||'')>=logDateFrom);
@@ -5776,7 +5782,7 @@ function renderLogbook(){
 function goLogPage(p){ setPage('log',p); renderLogbook(); }
 
 function clearLogFilters(){
-  ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset','sel-log-sup'].forEach(id=>{
+  ['sel-log-type','sel-log-status','sel-log-bldg','sel-log-floor','sel-log-unit','sel-log-asset','sel-log-sup','sel-log-cat'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='All';
   });
   const s=document.getElementById('log-search'); if(s) s.value='';
