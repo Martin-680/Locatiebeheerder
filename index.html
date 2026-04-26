@@ -3573,6 +3573,25 @@ function duplicateTix(){
   });
 }
 
+function duplicateLog(){
+  if(!editingId.log) return;
+  const src=DB.logs.find(x=>x.id===editingId.log); if(!src) return;
+  const newId=nextId(DB.logs,'LOG');
+  const dup={
+    ...src,
+    id: newId,
+    date: today.toISOString().split('T')[0],
+    createdBy: currentUser.name
+  };
+  DB.logs.unshift(dup);
+  closeMo('mo-log');
+  writeSheet('logs').then(()=>{
+    toast(`Duplicated as ${newId}`);
+    if(currentScreen==='logbook') renderLogbook();
+    setTimeout(()=>editLogEntry(newId), 150);
+  });
+}
+
 /* Quick Ticket */
 /* ══════════════════════════════════════════════════════════
    ASSETS
@@ -5936,6 +5955,11 @@ function clearLogFilters(){
 function openNewLogEntry(){
   editingId.log = null;
   document.getElementById('log-modal-title').textContent = 'Add Log Entry';
+  const tixBtn = document.getElementById('log-modal-tix-btn');
+  if(tixBtn) tixBtn.style.display = 'none';
+  const dupBtn = document.getElementById('btn-dup-log');
+  if(dupBtn) dupBtn.style.display = 'none';
+  document.getElementById('log-modal-title').textContent = 'Add Log Entry';
   const tixBtn = document.getElementById('log-modal-tix-btn'); if(tixBtn) tixBtn.style.display='none';
   // Default date = today
   document.getElementById('lf-date').value = new Date().toISOString().split('T')[0];
@@ -5965,7 +5989,7 @@ function openNewLogEntry(){
     document.getElementById('lf-asset').innerHTML = '<option value="">— None —</option>';
   }
   lfSupPopulate(DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)), '');
-  document.getElementById('lf-category').innerHTML = '<option value="">— None —</option>' +
+  document.getElementById('lf-category').innerHTML = '<option value="">— Select —</option>' +
     [...DB.categories].sort((a,z)=>(a.category||'').localeCompare(z.category||''))
       .map(c=>`<option value="${c.id}">${c.category}</option>`).join('');
   document.getElementById('lf-category').value = '';
@@ -6164,6 +6188,8 @@ function editLogEntry(id){
   document.getElementById('log-modal-title').textContent = 'Edit Log Entry';
   const tixBtn = document.getElementById('log-modal-tix-btn');
   if(tixBtn) tixBtn.style.display = can('canCreateTickets') ? 'inline-block' : 'none';
+  const dupBtn = document.getElementById('btn-dup-log');
+  if(dupBtn) dupBtn.style.display = '';
   document.getElementById('lf-date').value    = r.date    || '';
   document.getElementById('lf-subject').value = r.subject || '';
   document.getElementById('lf-type').value    = r.type    || '';
@@ -6198,7 +6224,7 @@ function editLogEntry(id){
   // Supplier
   lfSupPopulate(DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)), r.supplierId || '');
   // Category
-  document.getElementById('lf-category').innerHTML = '<option value="">— None —</option>' +
+  document.getElementById('lf-category').innerHTML = '<option value="">— Select —</option>' +
     [...DB.categories].sort((a,z)=>(a.category||'').localeCompare(z.category||''))
       .map(c=>`<option value="${c.id}">${c.category}</option>`).join('');
   document.getElementById('lf-category').value = r.categoryId || '';
@@ -6615,6 +6641,7 @@ function calDayClick(dateStr){
     </div>
     <div style="display:flex;gap:10px;padding:4px 18px 18px">
       <button onclick="closeMo('mo-log')" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Cancel</button>
+      <button id="btn-dup-log" onclick="duplicateLog()" style="display:none;flex:1;padding:13px;background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:var(--rs);font-size:14px;font-weight:700;color:var(--indigo)">Duplicate Entry</button>
       <button onclick="saveLogEntry()" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff">Save Entry</button>
     </div>
   </div>
