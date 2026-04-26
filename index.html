@@ -1042,28 +1042,17 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="mt"><span id="tix-modal-title">New Ticket</span><button class="mt-close" onclick="closeMo('mo-tix')">✕</button></div>
     <div class="fg"><label>Subject *</label><input class="fi2" id="tf-subj" placeholder="Describe the issue…"/></div>
     <div class="frow2">
-      <div class="fg"><label>Building *</label><select class="fs2" id="tf-bldg" onchange="tfOnBldgChange()"><option value="">— Select building —</option></select></div>
-      <div class="fg"><label>Floor</label><select class="fs2" id="tf-sub" onchange="tfOnFloorChange()"><option value="">— Select floor —</option></select></div>
+      <div class="fg"><label>Building *</label><select class="fs2" id="tf-bldg" onchange="tfOnBldgChange()"><option value="">— Select —</option></select></div>
+      <div class="fg"><label>Floor</label><select class="fs2" id="tf-sub" onchange="tfOnFloorChange()"><option value="">— None —</option></select></div>
     </div>
     <div class="frow2">
-      <div class="fg"><label>Unit / Area</label><select class="fs2" id="tf-unit" onchange="tfOnUnitChange()"><option value="">— Select unit —</option></select></div>
-      <div class="fg"><label>Asset</label><select class="fs2" id="tf-asset" onchange="tfOnAssetChange()"><option value="">None</option></select></div>
+      <div class="fg"><label>Unit</label><select class="fs2" id="tf-unit" onchange="tfOnUnitChange()"><option value="">— None —</option></select></div>
+      <div class="fg"><label>Asset</label><select class="fs2" id="tf-asset" onchange="tfOnAssetChange()"><option value="">— None —</option></select></div>
     </div>
     <div class="frow2">
-      <div class="fg"><label>Priority</label>
-        <select class="fs2" id="tf-pri"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
-      </div>
-      <div class="fg"><label>Category</label>
-        <select class="fs2" id="tf-cat"><option value="">— Select category —</option></select>
-      </div>
-    </div>
-    <div class="frow2">
-      <div class="fg"><label>Status</label>
-        <select class="fs2" id="tf-status"><option>Open</option><option>In Progress</option><option>Planned</option><option>Requested</option><option>Ordered</option><option>Closed</option></select>
-      </div>
       <div class="fg"><label>Type</label>
         <select class="fs2" id="tf-type">
-          <option value="">— None —</option>
+          <option value="">— Select —</option>
           <option value="bestelling">Bestelling</option>
           <option value="bezoek">Bezoek</option>
           <option value="evaluatie">Evaluatie</option>
@@ -1075,6 +1064,17 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="storing">Storing</option>
           <option value="verhuizing">Verhuizing</option>
         </select>
+      </div>
+      <div class="fg"><label>Category</label>
+        <select class="fs2" id="tf-cat"><option value="">— Select —</option></select>
+      </div>
+    </div>
+    <div class="frow2">
+      <div class="fg"><label>Priority</label>
+        <select class="fs2" id="tf-pri"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
+      </div>
+      <div class="fg"><label>Status</label>
+        <select class="fs2" id="tf-status"><option>Open</option><option>In Progress</option><option>Planned</option><option>Requested</option><option>Ordered</option><option>Closed</option></select>
       </div>
     </div>
     <div class="frow2">
@@ -6545,40 +6545,9 @@ function calDayClick(dateStr){
     <div class="mb">
       <div class="fg"><label>Subject <span style="color:var(--red)">*</span></label><input class="fi2" id="lf-subject" placeholder="Short description…"/></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-        <div class="fg" style="padding:0"><label>Date <span style="color:var(--red)">*</span></label><input class="fi2" type="date" id="lf-date"/></div>
-        <div class="fg" style="padding:0"><label>Status</label>
-          <select class="fi2" id="lf-status">
-            <option value="open">Open</option>
-            <option value="gesloten">Gesloten</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-        <div class="fg" style="padding:0"><label>Type <span style="color:var(--red)">*</span></label>
-          <select class="fi2" id="lf-type">
-            <option value="">— Select type —</option>
-            <option value="bestelling">Bestelling</option>
-            <option value="bezoek">Bezoek</option>
-            <option value="evaluatie">Evaluatie</option>
-            <option value="her-keuring">Her-keuring</option>
-            <option value="keuring">Keuring</option>
-            <option value="onderhoud">Onderhoud</option>
-            <option value="ontvangen">Ontvangen</option>
-            <option value="arbo">Arbo</option>
-          <option value="storing">Storing</option>
-          <option value="verhuizing">Verhuizing</option>
-          </select>
-        </div>
-        <div class="fg" style="padding:0"><label>Category</label>
-          <select class="fi2" id="lf-category">
-            <option value="">— None —</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
         <div class="fg" style="padding:0"><label>Building</label>
           <select class="fi2" id="lf-bldg" onchange="lfOnBldgChange()">
-            <option value="">— None —</option>
+            <option value="">— Select —</option>
           </select>
         </div>
         <div class="fg" style="padding:0"><label>Floor</label>
@@ -6596,6 +6565,37 @@ function calDayClick(dateStr){
         <div class="fg" style="padding:0"><label>Asset</label>
           <select class="fi2" id="lf-asset">
             <option value="">— None —</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
+        <div class="fg" style="padding:0"><label>Type <span style="color:var(--red)">*</span></label>
+          <select class="fi2" id="lf-type">
+            <option value="">— Select —</option>
+            <option value="bestelling">Bestelling</option>
+            <option value="bezoek">Bezoek</option>
+            <option value="evaluatie">Evaluatie</option>
+            <option value="her-keuring">Her-keuring</option>
+            <option value="keuring">Keuring</option>
+            <option value="onderhoud">Onderhoud</option>
+            <option value="ontvangen">Ontvangen</option>
+            <option value="arbo">Arbo</option>
+            <option value="storing">Storing</option>
+            <option value="verhuizing">Verhuizing</option>
+          </select>
+        </div>
+        <div class="fg" style="padding:0"><label>Category</label>
+          <select class="fi2" id="lf-category">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
+        <div class="fg" style="padding:0"><label>Date <span style="color:var(--red)">*</span></label><input class="fi2" type="date" id="lf-date"/></div>
+        <div class="fg" style="padding:0"><label>Status</label>
+          <select class="fi2" id="lf-status">
+            <option value="open">Open</option>
+            <option value="gesloten">Gesloten</option>
           </select>
         </div>
       </div>
