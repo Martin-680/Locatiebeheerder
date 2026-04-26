@@ -6506,6 +6506,18 @@ function renderCalendar(){
   document.getElementById('cal-months').innerHTML = html;
 }
 
+function calOpenEntry(type, id){
+  closeMo('mo-cal-day');
+  setTimeout(()=>{
+    if(type==='log'){
+      const r = DB.logs.find(x=>x.id===id); if(!r) return;
+      editLogEntry(id);
+    } else {
+      const t = DB.tickets.find(x=>x.id===id); if(!t) return;
+      editTix(id);
+    }
+  }, 250);
+}
 function calDayClick(dateStr){
   // Update selected styling
   document.querySelectorAll('.cal-day.cal-selected').forEach(el=>{ el.classList.remove('cal-selected'); el.classList.add('cal-match'); });
@@ -6523,10 +6535,11 @@ function calDayClick(dateStr){
       ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(99,153,34,.15);color:#3B6D11">Log</span>`
       : `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(37,99,235,.12);color:var(--blue)">Ticket</span>`;
     const typBadge = e.type ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(100,116,139,.12);color:var(--sub)">${e.type}</span>` : '';
-    html += `<div style="padding:11px 18px;border-bottom:1px solid var(--border)">
+    const editFn = e.source==='log' ? `calOpenEntry('log','${e.id}')` : `calOpenEntry('tix','${e.id}')`;
+    html += `<div onclick="${editFn}" style="padding:11px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">
         <div style="font-size:14px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.subject}</div>
-        <div style="display:flex;gap:4px;flex-shrink:0">${srcBadge}${typBadge}</div>
+        <div style="display:flex;gap:4px;flex-shrink:0">${srcBadge}${typBadge}<span style="font-size:16px;color:var(--muted);line-height:1">›</span></div>
       </div>
       <div style="font-size:12px;color:var(--sub)">${supName} · ${e.id}</div>
     </div>`;
