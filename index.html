@@ -2407,6 +2407,8 @@ function renderDash(){
             const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));
             return`rgb(${r},${g},${b})`;
           })(pct);
+          const goB     = `navTo('buildings');setTimeout(()=>openBldDetail('${s.b.id.replace(/'/g,"\\'")}'),150)`;
+          const failColor=s.failedAssets>0?'var(--red)':'var(--text)';
           const bldId   = s.b.id.replace(/'/g,"\\'");
           const bldName = s.b.name.replace(/'/g,"\\'");
           const goTix   = `navTo('tickets');setTimeout(()=>{const e=document.getElementById('sel-tix-bldg');if(e){e.value='${bldName}';setPage('tix',1);renderTix();}},150)`;
