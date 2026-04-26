@@ -2194,39 +2194,45 @@ function renderDash(){
       bldgContainer.innerHTML='';
     } else {
       const maxTixScore=top3Tix[0].score||1;
-      const hdrRow=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Tickets</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Units</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Score</div>
-      </div>`;
       const rows=top3Tix.map((m,i)=>{
         const safeId=m.b2?m.b2.id.replace(/'/g,"\\'"):'';
         const safeName=m.name.replace(/'/g,"\\'");
         const border=i<top3Tix.length-1?'border-bottom:1px solid var(--border);':'';
         const bc=(p=>{const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
-          <div style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${safeId?`dashGoBuilding('${safeId}')`:''}">${m.name}</div>
-          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)">
-            <div style="font-size:14px;font-weight:800;color:var(--amber)">${m.tix}</div>
-            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pTix}%</div>
+        return`<div style="${border}padding:12px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${safeId?`dashGoBuilding('${safeId}')`:''}">${m.name}</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Overall score</span>
+              <span style="font-size:12px;font-weight:800;color:${bc}">${m.score}%</span>
+            </div>
           </div>
-          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="navTo('units');setTimeout(()=>{const s=document.getElementById('sel-unit-bldg');if(s){s.value='${safeId}';renderUnits();}},150)">
-            <div style="font-size:14px;font-weight:800;color:var(--indigo)">${m.units.size||'—'}</div>
-            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pUnit}%</div>
+          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px">
+            <div style="height:100%;width:${Math.round(m.score/maxTixScore*100)}%;background:${bc};border-radius:3px;transition:width .4s ease"></div>
           </div>
-          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeId}';onAstBldgChange();}},150)">
-            <div style="font-size:14px;font-weight:800;color:var(--teal)">${m.assets.size||'—'}</div>
-            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pAst}%</div>
-          </div>
-          <div style="text-align:center;padding:8px 4px">
-            <div style="font-size:14px;font-weight:800;color:${bc}">${m.score}%</div>
-            <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px"><div style="height:100%;width:${Math.round(m.score/maxTixScore*100)}%;background:${bc};border-radius:2px"></div></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
+            <div style="text-align:center;cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)">
+              <div style="font-size:13px;font-weight:800;color:var(--amber)">${m.tix}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pTix}%</div>
+              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Tickets</div>
+            </div>
+            <div style="text-align:center;cursor:pointer" onclick="navTo('units');setTimeout(()=>{const s=document.getElementById('sel-unit-bldg');if(s){s.value='${safeId}';renderUnits();}},150)">
+              <div style="font-size:13px;font-weight:800;color:var(--indigo)">${m.units.size||'—'}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pUnit}%</div>
+              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Units</div>
+            </div>
+            <div style="text-align:center;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeId}';onAstBldgChange();}},150)">
+              <div style="font-size:13px;font-weight:800;color:var(--teal)">${m.assets.size||'—'}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pAst}%</div>
+              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Assets</div>
+            </div>
           </div>
         </div>`;
       }).join('');
-      bldgContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdrRow}${rows}</div>`;
+      bldgContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}</div>`;
     }
   }
   const ob=document.getElementById('open-badge');
@@ -2307,39 +2313,45 @@ function renderDash(){
       inspContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No inspection data</div>';
     } else {
       const maxInspScore=top3Insp[0].score||1;
-      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Approved</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Failed</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Pending</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Score</div>
-      </div>`;
       const rows=top3Insp.map((m,i)=>{
         const safeId=(m.id||'').replace(/'/g,"\\'");
         const border=i<top3Insp.length-1?'border-bottom:1px solid var(--border);':'';
         const goInsp=safeId?`navTo('inspections');setTimeout(()=>{const s=document.getElementById('sel-insp-bldg');if(s){s.value='${safeId}';setPage('insp',1);renderInspections();}},150)`:`navTo('inspections')`;
         const bc=(p=>{const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
-          <div style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goInsp}">${m.name}</div>
-          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goInsp}">
-            <div style="font-size:14px;font-weight:800;color:var(--green)">${m.approved||'—'}</div>
-            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pAppr}%</div>
+        return`<div style="${border}padding:12px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${goInsp}">${m.name}</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Overall score</span>
+              <span style="font-size:12px;font-weight:800;color:${bc}">${m.score}%</span>
+            </div>
           </div>
-          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goInsp}">
-            <div style="font-size:14px;font-weight:800;color:${m.failed?'var(--red)':'var(--muted)'}">${m.failed||'—'}</div>
-            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pFail}%</div>
+          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px">
+            <div style="height:100%;width:${Math.round(m.score/maxInspScore*100)}%;background:${bc};border-radius:3px;transition:width .4s ease"></div>
           </div>
-          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goInsp}">
-            <div style="font-size:14px;font-weight:800;color:${m.pending?'var(--amber)':'var(--muted)'}">${m.pending||'—'}</div>
-            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pPend}%</div>
-          </div>
-          <div style="text-align:center;padding:8px 4px">
-            <div style="font-size:14px;font-weight:800;color:${bc}">${m.score}%</div>
-            <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px"><div style="height:100%;width:${Math.round(m.score/maxInspScore*100)}%;background:${bc};border-radius:2px"></div></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
+            <div style="text-align:center;cursor:pointer" onclick="${goInsp}">
+              <div style="font-size:13px;font-weight:800;color:var(--green)">${m.approved||'—'}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pAppr}%</div>
+              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Approved</div>
+            </div>
+            <div style="text-align:center;cursor:pointer" onclick="${goInsp}">
+              <div style="font-size:13px;font-weight:800;color:${m.failed?'var(--red)':'var(--muted)'}">${m.failed||'—'}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pFail}%</div>
+              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Failed</div>
+            </div>
+            <div style="text-align:center;cursor:pointer" onclick="${goInsp}">
+              <div style="font-size:13px;font-weight:800;color:${m.pending?'var(--amber)':'var(--muted)'}">${m.pending||'—'}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pPend}%</div>
+              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Pending</div>
+            </div>
           </div>
         </div>`;
       }).join('');
-      inspContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
+      inspContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}</div>`;
     }
   }
   // Logbook dashboard grid with percentage scoring
@@ -2371,39 +2383,45 @@ function renderDash(){
       logContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No logbook data</div>';
     } else {
       const maxLogScore=top3Log[0].score||1;
-      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Entries</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Suppliers</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Score</div>
-      </div>`;
       const rows=top3Log.map((m,i)=>{
         const safeId=(m.id||'').replace(/'/g,"\\'");
         const border=i<top3Log.length-1?'border-bottom:1px solid var(--border);':'';
         const goLog=`navTo('logbook');setTimeout(()=>{const s=document.getElementById('sel-log-bldg');if(s){s.value='${safeId}';setPage('log',1);renderLogbook();}},150)`;
         const bc=(p=>{const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
-          <div style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goLog}">${m.name}</div>
-          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goLog}">
-            <div style="font-size:14px;font-weight:800;color:var(--blue)">${m.total}</div>
-            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pEnt}%</div>
+        return`<div style="${border}padding:12px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${goLog}">${m.name}</span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Overall score</span>
+              <span style="font-size:12px;font-weight:800;color:${bc}">${m.score}%</span>
+            </div>
           </div>
-          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goLog}">
-            <div style="font-size:14px;font-weight:800;color:${m.assetCount?'var(--teal)':'var(--muted)'}">${m.assetCount||'—'}</div>
-            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pAst}%</div>
+          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px">
+            <div style="height:100%;width:${Math.round(m.score/maxLogScore*100)}%;background:${bc};border-radius:3px;transition:width .4s ease"></div>
           </div>
-          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goLog}">
-            <div style="font-size:14px;font-weight:800;color:${m.supCount?'var(--indigo)':'var(--muted)'}">${m.supCount||'—'}</div>
-            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pSup}%</div>
-          </div>
-          <div style="text-align:center;padding:8px 4px">
-            <div style="font-size:14px;font-weight:800;color:${bc}">${m.score}%</div>
-            <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px"><div style="height:100%;width:${Math.round(m.score/maxLogScore*100)}%;background:${bc};border-radius:2px"></div></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
+            <div style="text-align:center;cursor:pointer" onclick="${goLog}">
+              <div style="font-size:13px;font-weight:800;color:var(--blue)">${m.total}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pEnt}%</div>
+              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Entries</div>
+            </div>
+            <div style="text-align:center;cursor:pointer" onclick="${goLog}">
+              <div style="font-size:13px;font-weight:800;color:${m.assetCount?'var(--teal)':'var(--muted)'}">${m.assetCount||'—'}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pAst}%</div>
+              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Assets</div>
+            </div>
+            <div style="text-align:center;cursor:pointer" onclick="${goLog}">
+              <div style="font-size:13px;font-weight:800;color:${m.supCount?'var(--indigo)':'var(--muted)'}">${m.supCount||'—'}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pSup}%</div>
+              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Suppliers</div>
+            </div>
           </div>
         </div>`;
       }).join('');
-      logContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
+      logContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}</div>`;
     }
   }
   // Building Stats — size-normalised workload score (top 5)
