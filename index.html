@@ -604,9 +604,14 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <input type="hidden" id="sel-insp-date-from" value="">
     <input type="hidden" id="sel-insp-date-to" value="">
 
-    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
+    <div style="padding:4px 14px 8px;font-size:12px;color:var(--sub);line-height:1.5">For structured rounds where you check items and mark them as approved or flagged for attention.</div>
+    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center">
+      <div style="flex:1;position:relative">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="insp-search" placeholder="Search inspections…" oninput="setPage('insp',1);renderInspections()" style="width:100%;padding:8px 10px 8px 32px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;background:var(--surface);color:var(--text)"/>
+      </div>
       <button class="btn-clear-filter" id="insp-clear-btn" onclick="clearInspFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
-      <button id="insp-filter-btn" onclick="openInspFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
+      <button id="insp-filter-btn" onclick="openInspFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s;flex-shrink:0">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
         Filters<span id="insp-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
       </button>
@@ -4699,6 +4704,7 @@ function clearInspFilters(){
   const dto=document.getElementById('sel-insp-date-to');if(dto)dto.value='';
   const mfFrom=document.getElementById('mf-insp-date-from');if(mfFrom)mfFrom.value='';
   const mfTo=document.getElementById('mf-insp-date-to');if(mfTo)mfTo.value='';
+  const is=document.getElementById('insp-search');if(is)is.value='';
   closeMo('mo-insp-filter');
   setPage('insp',1); renderInspections();
 }
@@ -4747,6 +4753,7 @@ function renderInspections(){
   syncSelActive('sel-insp-floor');  syncSelActive('sel-insp-cat');
   updateInspFilterBadge();
 
+  const inspQ = (document.getElementById('insp-search')?.value || '').toLowerCase().trim();
   let list = [...DB.inspections].sort((a,b)=> (b.dateStart||'') > (a.dateStart||'') ? 1 : -1);
   if(statusVal !== 'All') list = list.filter(r => r.status === statusVal);
   if(bldgVal   !== 'All') list = list.filter(r => r.buildingId === bldgVal);
@@ -4756,6 +4763,13 @@ function renderInspections(){
   const inspDateTo   = document.getElementById('sel-insp-date-to')?.value   || '';
   if(inspDateFrom) list = list.filter(r => (r.dateStart||'') >= inspDateFrom);
   if(inspDateTo)   list = list.filter(r => (r.dateStart||'') <= inspDateTo);
+  if(inspQ) list = list.filter(r =>
+    (r.title||'').toLowerCase().includes(inspQ) ||
+    (r.category||'').toLowerCase().includes(inspQ) ||
+    (r.floor||'').toLowerCase().includes(inspQ) ||
+    (r.status||'').toLowerCase().includes(inspQ) ||
+    (DB.buildings.find(b=>b.id===r.buildingId)?.name||'').toLowerCase().includes(inspQ)
+  );
 
   const lbl = document.getElementById('insp-lbl');
   if(lbl) lbl.textContent = `${list.length} round${list.length!==1?'s':''}`;
