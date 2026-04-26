@@ -441,7 +441,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div id="dash-stats" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
     <div class="sh fu"><span class="sh-title">By Priority</span></div>
-    <div class="card fu" id="pri-chart"></div>
+    <div class="fu" id="pri-chart"></div>
     <div class="sh fu"><span class="sh-title">Last 8 Weeks</span></div>
     <div class="card fu" id="trend-chart"></div>
 
@@ -2599,7 +2599,6 @@ function renderDash(){
       pc.innerHTML='<div style="font-size:13px;color:var(--muted);padding:4px 0">All assets and units are healthy \u2714</div>';
       return;
     }
-    pc.style.padding='4px 0';
     pc.innerHTML=BANDS.filter(b=>grouped[b.n].length>0).map(b=>{
       const items=grouped[b.n];
       const pct=Math.round(items.length/maxCount*100);
