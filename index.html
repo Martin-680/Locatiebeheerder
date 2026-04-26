@@ -178,6 +178,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:2px 6px 7px}
 .cal-day{height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:12px;color:var(--text);cursor:default}
 .cal-day.cal-match{background:#EAF3DE;color:#27500A;font-weight:700;cursor:pointer}
+.cal-day.cal-selected{background:#3B6D11;color:#fff;font-weight:700;cursor:pointer}
 .cal-day.cal-today{outline:1.5px solid var(--blue);outline-offset:-1px}
 .cal-day.cal-empty{pointer-events:none}
 /* ── TICKET LIST ── */
@@ -933,6 +934,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
+    <div style="padding:4px 14px 8px;font-size:12px;color:var(--sub);line-height:1.5">For an overview of scheduled entries and tickets by date — tap a highlighted day to see what's planned.</div>
     <div style="padding:12px 14px 8px;display:flex;flex-direction:column;gap:10px">
       <div style="display:flex;flex-direction:column;gap:4px">
         <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Start month</label>
@@ -6478,7 +6480,7 @@ function renderCalendar(){
       const isToday = ds===todayStr;
       const cls=['cal-day',isMatch?'cal-match':'',isToday?'cal-today':'',!isMatch?'cal-empty':''].filter(Boolean).join(' ');
       const click = isMatch ? `calDayClick('${ds}')` : '';
-      html+=`<div class="${cls}" ${click?`onclick="${click}"`:''}>${day}</div>`;
+      html+=`<div class="${cls}" data-date="${ds}" ${click?`onclick="${click}"`:''}>${day}</div>`;
     }
     html+=`</div></div>`;
   }
@@ -6486,6 +6488,10 @@ function renderCalendar(){
 }
 
 function calDayClick(dateStr){
+  // Update selected styling
+  document.querySelectorAll('.cal-day.cal-selected').forEach(el=>{ el.classList.remove('cal-selected'); el.classList.add('cal-match'); });
+  const sel = document.querySelector(`.cal-day[data-date="${dateStr}"]`);
+  if(sel){ sel.classList.remove('cal-match'); sel.classList.add('cal-selected'); }
   const matched = calGetMatched();
   const entries = matched[dateStr] || [];
   const d = new Date(dateStr+'T00:00:00');
@@ -6635,11 +6641,9 @@ function calDayClick(dateStr){
       </div>
       <div class="fg"><label>Note</label><textarea class="fi2" id="lf-note" rows="3" placeholder="Additional details…" style="resize:vertical"></textarea></div>
     </div>
-    <div style="display:flex;gap:10px;padding:4px 18px 18px">
-      <button onclick="closeMo('mo-log')" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Cancel</button>
-      <button id="btn-dup-log" onclick="duplicateLog()" style="display:none;flex:1;padding:13px;background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:var(--rs);font-size:14px;font-weight:700;color:var(--indigo)">Duplicate Entry</button>
-      <button onclick="saveLogEntry()" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff">Save Entry</button>
-    </div>
+    <button class="btn-p" onclick="saveLogEntry()">Save Log Entry</button>
+    <button class="btn-s" id="btn-dup-log" onclick="duplicateLog()" style="display:none;background:#EEF2FF;border-color:#C7D2FE;color:var(--indigo);font-weight:700">Duplicate Entry</button>
+    <button class="btn-s" onclick="closeMo('mo-log')">Cancel</button>
   </div>
 </div>
 
