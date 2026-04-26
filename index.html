@@ -412,16 +412,15 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div id="dash-guest-banner"></div>
-    <div class="sh fu"><span class="sh-title">Tickets</span></div>
-
-
-    <div id="dash-bldg-tix" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
     <div class="sh fu" style="display:flex;align-items:center;justify-content:space-between">
       <span class="sh-title">Problem Assets</span>
       <span id="dash-prob-ast-link" style="font-size:12px;color:var(--blue);font-weight:600;padding-right:14px;cursor:pointer;display:none" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-tix-status');if(s){s.value='Active';setPage('ast',1);renderAst();}},150)">View all →</span>
     </div>
     <div id="dash-prob-ast" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:6px"></div>
+
+    <div class="sh fu"><span class="sh-title">Tickets</span></div>
+    <div id="dash-bldg-tix" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
     <div class="sh fu">
       <span class="sh-title">Inspections</span>
@@ -2160,7 +2159,9 @@ function renderDash(){
   animCount('kpi-closed',closed);
   animCount('kpi-unassigned',unassigned);
   const openTix=DB.tickets.filter(t=>t.status!=='Closed'&&(t.building||'').trim());
-  const bldgNames=[...new Set(openTix.map(t=>(t.building||'').trim()))];
+  const bldgNames=[...new Set(openTix.map(t=>(t.building||'').trim()))]
+    .map(name=>({ name, count: openTix.filter(t=>(t.building||'').trim()===name).length }))
+    .sort((a,b)=>b.count-a.count).slice(0,3).map(x=>x.name);
   const bldgContainer=document.getElementById('dash-bldg-tix');
   if(bldgContainer){
     if(!bldgNames.length){
@@ -2172,7 +2173,7 @@ function renderDash(){
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Tickets</div>
       </div>`;
-      const rows=bldgNames.sort().map((name,i)=>{
+      const rows=bldgNames.map((name,i)=>{
         const bTix=openTix.filter(t=>(t.building||'').trim()===name);
         const b2=DB.buildings.find(x=>(x.name||'').trim()===name);
         const unitQty=b2?DB.units.filter(u=>u.buildingId===b2.id).length:0;
@@ -2265,7 +2266,10 @@ function renderDash(){
         }
       });
     });
-    const inspEntries=Object.entries(bldgInspMap).filter(([,m])=>m.failedUnits.size||m.pendingUnits.size||m.failedAssets.size||m.pendingAssets.size).sort((a,b)=>a[0].localeCompare(b[0]));
+    const inspEntries=Object.entries(bldgInspMap)
+      .filter(([,m])=>m.failedUnits.size||m.pendingUnits.size||m.failedAssets.size||m.pendingAssets.size)
+      .sort((a,b)=>(b[1].failedUnits.size+b[1].failedAssets.size+b[1].pendingUnits.size+b[1].pendingAssets.size)-(a[1].failedUnits.size+a[1].failedAssets.size+a[1].pendingUnits.size+a[1].pendingAssets.size))
+      .slice(0,3);
     if(!inspEntries.length){
       inspContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No inspection data</div>';
     } else {
@@ -2308,7 +2312,7 @@ function renderDash(){
       if(r.assetId) m.assets.add(r.assetId);
       if(r.supplierId) m.suppliers.add(r.supplierId);
     });
-    const logEntries=Object.entries(bldgLogMap).sort((a,b)=>a[0].localeCompare(b[0]));
+    const logEntries=Object.entries(bldgLogMap).sort((a,b)=>b[1].total-a[1].total).slice(0,3);
     if(!logEntries.length){
       logContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No logbook data</div>';
     } else {
@@ -2372,7 +2376,7 @@ function renderDash(){
       const sizeFactor  = Math.max(rawSizes[bi]/avgSize, 0.5); // min 0.5 to avoid division extremes
       const score       = activityScore/sizeFactor;
       return{b,floors,units,assets,openTix,activeInsp,recentLogs,failedAssets,score};
-    }).filter(s=>s.score>0).sort((a,z)=>z.score-a.score).slice(0,5);
+    }).filter(s=>s.score>0).sort((a,z)=>z.score-a.score).slice(0,3);
 
     if(!bldgStats.length){
       statsEl.innerHTML='<div style="font-size:13px;color:var(--muted);padding:0 0 8px">No data yet</div>';
