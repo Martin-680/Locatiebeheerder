@@ -5634,6 +5634,15 @@ function openLogFilterModal(){
   const mStatus = document.getElementById('mf-log-status');
   if(mType)   mType.value   = document.getElementById('sel-log-type')?.value   || 'All';
   if(mStatus) mStatus.value = document.getElementById('sel-log-status')?.value || 'All';
+  // Populate and sync category
+  const mCat = document.getElementById('mf-log-cat');
+  if(mCat){
+    const curCat = document.getElementById('sel-log-cat')?.value || 'All';
+    mCat.innerHTML = '<option value="All">All Categories</option>' +
+      [...DB.categories].sort((a,z)=>a.category.localeCompare(z.category))
+        .map(c=>`<option value="${c.id}">${c.category}</option>`).join('');
+    mCat.value = curCat;
+  }
   // Sync date range
   const dtFrom = document.getElementById('mf-log-date-from');
   const dtTo   = document.getElementById('mf-log-date-to');
@@ -5686,7 +5695,7 @@ function onMfLogUnitChange(silent){
 
 function applyLogFilterModal(){
   // Push modal values into the hidden selects
-  ['type','status','bldg','floor','unit','asset','sup'].forEach(k=>{
+  ['type','status','bldg','floor','unit','asset','sup','cat'].forEach(k=>{
     const mVal = document.getElementById('mf-log-'+k)?.value || 'All';
     const hSel = document.getElementById('sel-log-'+k);
     if(hSel) hSel.value = mVal;
@@ -5947,6 +5956,7 @@ function clearLogFilters(){
   const aSel=document.getElementById('sel-log-asset'); if(aSel) aSel.innerHTML='<option value="All">All Assets</option>';
   const dfrom=document.getElementById('sel-log-date-from');if(dfrom)dfrom.value='';
   const dto=document.getElementById('sel-log-date-to');if(dto)dto.value='';
+  const mfCat=document.getElementById('mf-log-cat');if(mfCat)mfCat.value='All';
   const mfFrom=document.getElementById('mf-log-date-from');if(mfFrom)mfFrom.value='';
   const mfTo=document.getElementById('mf-log-date-to');if(mfTo)mfTo.value='';
   closeMo('mo-log-filter');
@@ -7013,30 +7023,6 @@ function calDayClick(dateStr){
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="padding:0"><label>Type</label>
-        <select class="fi2" id="mf-log-type">
-          <option value="All">All Types</option>
-          <option value="bestelling">Bestelling</option>
-          <option value="bezoek">Bezoek</option>
-          <option value="evaluatie">Evaluatie</option>
-          <option value="her-keuring">Her-keuring</option>
-          <option value="keuring">Keuring</option>
-          <option value="onderhoud">Onderhoud</option>
-          <option value="ontvangen">Ontvangen</option>
-          <option value="arbo">Arbo</option>
-          <option value="storing">Storing</option>
-          <option value="verhuizing">Verhuizing</option>
-        </select>
-      </div>
-      <div class="fg" style="padding:0"><label>Status</label>
-        <select class="fi2" id="mf-log-status">
-          <option value="All">All Statuses</option>
-          <option value="open">Open</option>
-          <option value="gesloten">Gesloten</option>
-        </select>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="padding:0"><label>Building</label>
         <select class="fi2" id="mf-log-bldg" onchange="onMfLogBldgChange()">
           <option value="All">All Buildings</option>
@@ -7060,8 +7046,39 @@ function calDayClick(dateStr){
         </select>
       </div>
     </div>
-    <div class="fg"><label>Supplier</label>
-      <select class="fi2" id="mf-log-sup"><option value="All">All Suppliers</option></select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
+      <div class="fg" style="padding:0"><label>Type</label>
+        <select class="fi2" id="mf-log-type">
+          <option value="All">All Types</option>
+          <option value="bestelling">Bestelling</option>
+          <option value="bezoek">Bezoek</option>
+          <option value="evaluatie">Evaluatie</option>
+          <option value="her-keuring">Her-keuring</option>
+          <option value="keuring">Keuring</option>
+          <option value="onderhoud">Onderhoud</option>
+          <option value="ontvangen">Ontvangen</option>
+          <option value="arbo">Arbo</option>
+          <option value="storing">Storing</option>
+          <option value="verhuizing">Verhuizing</option>
+        </select>
+      </div>
+      <div class="fg" style="padding:0"><label>Category</label>
+        <select class="fi2" id="mf-log-cat">
+          <option value="All">All Categories</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
+      <div class="fg" style="padding:0"><label>Status</label>
+        <select class="fi2" id="mf-log-status">
+          <option value="All">All Statuses</option>
+          <option value="open">Open</option>
+          <option value="gesloten">Gesloten</option>
+        </select>
+      </div>
+      <div class="fg" style="padding:0"><label>Supplier</label>
+        <select class="fi2" id="mf-log-sup"><option value="All">All Suppliers</option></select>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="padding:0"><label>Date from</label>
