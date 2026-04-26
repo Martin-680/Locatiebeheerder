@@ -421,19 +421,19 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
     <div class="sh fu" style="flex-direction:column;align-items:flex-start;padding-bottom:6px">
       <span class="sh-title">Tickets</span>
-      <span style="font-size:11px;color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">Scored by ticket count + affected assets (×2) — fewer units involved ranks higher on a tie.</span>
+      <span style="font-size:11px;color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">Score = avg % of tickets + units + assets across all buildings.</span>
     </div>
     <div id="dash-bldg-tix" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
     <div class="sh fu" style="flex-direction:column;align-items:flex-start;padding-bottom:6px">
       <span class="sh-title">Inspections</span>
-      <span style="font-size:11px;color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">Scored by Failed (×3) + Pending (×2) + Approved (×1) — most problems first.</span>
+      <span style="font-size:11px;color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">Score = avg % of approved + failed + pending across all buildings.</span>
     </div>
     <div id="dash-bldg-insp" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
     <div class="sh fu" style="flex-direction:column;align-items:flex-start;padding-bottom:6px">
       <span class="sh-title">Logbook</span>
-      <span style="font-size:11px;color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">Sorted by total entries — most active first.</span>
+      <span style="font-size:11px;color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">Score = avg % of entries + assets + suppliers across all buildings.</span>
     </div>
     <div id="dash-bldg-log" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
@@ -2166,45 +2166,63 @@ function renderDash(){
   animCount('kpi-closed',closed);
   animCount('kpi-unassigned',unassigned);
   const openTix=DB.tickets.filter(t=>t.status!=='Closed'&&(t.building||'').trim());
-  const bldgNames=[...new Set(openTix.map(t=>(t.building||'').trim()))]
-    .map(name=>{
-      const bTix=openTix.filter(t=>(t.building||'').trim()===name);
-      const assets=new Set(bTix.map(t=>(t.assetId||'').trim()).filter(a=>a)).size;
-      const units =new Set(bTix.map(t=>(t.unit||'').trim()).filter(u=>u)).size||1;
-      const score =bTix.length + (assets*2) + (1/units);
-      return{ name, score };
-    })
-    .sort((a,b)=>b.score-a.score).slice(0,3).map(x=>x.name);
+  // Build per-building ticket data with percentage scoring
+  const tixBldgMap={};
+  openTix.forEach(t=>{
+    const name=(t.building||'').trim(); if(!name) return;
+    const b2=DB.buildings.find(x=>(x.name||'').trim()===name);
+    if(!tixBldgMap[name]) tixBldgMap[name]={name,b2,tix:0,assets:new Set(),units:new Set()};
+    tixBldgMap[name].tix++;
+    if(t.assetId) tixBldgMap[name].assets.add(t.assetId);
+    if(t.unit) tixBldgMap[name].units.add(t.unit);
+  });
+  const tixAll=Object.values(tixBldgMap);
+  const totTix=tixAll.reduce((a,m)=>a+m.tix,0)||1;
+  const totTixAst=tixAll.reduce((a,m)=>a+m.assets.size,0)||1;
+  const totTixUnit=tixAll.reduce((a,m)=>a+m.units.size,0)||1;
+  tixAll.forEach(m=>{
+    m.pTix=Math.round(m.tix/totTix*100);
+    m.pAst=Math.round(m.assets.size/totTixAst*100);
+    m.pUnit=Math.round(m.units.size/totTixUnit*100);
+    m.score=Math.round((m.pTix+m.pAst+m.pUnit)/3);
+  });
+  const top3Tix=tixAll.sort((a,b)=>b.score-a.score).slice(0,3);
+  const bldgNames=top3Tix.map(x=>x.name);
   const bldgContainer=document.getElementById('dash-bldg-tix');
   if(bldgContainer){
-    if(!bldgNames.length){
+    if(!top3Tix.length){
       bldgContainer.innerHTML='';
     } else {
-      const hdrRow=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
+      const maxTixScore=top3Tix[0].score||1;
+      const hdrRow=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Tickets</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Units</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
-        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Tickets</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Score</div>
       </div>`;
-      const rows=bldgNames.map((name,i)=>{
-        const bTix=openTix.filter(t=>(t.building||'').trim()===name);
-        const b2=DB.buildings.find(x=>(x.name||'').trim()===name);
-        const unitQty=b2?DB.units.filter(u=>u.buildingId===b2.id).length:0;
-        const assetQty=new Set(bTix.map(t=>(t.assetId||'').trim()).filter(a=>a)).size;
-        const tixQty=bTix.length;
-        const safeId=b2?b2.id.replace(/'/g,"\\'"):'';
-        const safeName=name.replace(/'/g,"\\'");
-        const border=i<bldgNames.length-1?'border-bottom:1px solid var(--border);':'';
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
-          <div style="padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${safeId?`dashGoBuilding('${safeId}')`:''}">${name}</div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('units');setTimeout(()=>{const s=document.getElementById('sel-unit-bldg');if(s){s.value='${safeId}';renderUnits();}},150)">
-            <span style="font-size:15px;font-weight:800;color:var(--indigo)">${unitQty||'—'}</span>
+      const rows=top3Tix.map((m,i)=>{
+        const safeId=m.b2?m.b2.id.replace(/'/g,"\\'"):'';
+        const safeName=m.name.replace(/'/g,"\\'");
+        const border=i<top3Tix.length-1?'border-bottom:1px solid var(--border);':'';
+        const bc=(p=>{const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
+          <div style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${safeId?`dashGoBuilding('${safeId}')`:''}">${m.name}</div>
+          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)">
+            <div style="font-size:14px;font-weight:800;color:var(--amber)">${m.tix}</div>
+            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pTix}%</div>
           </div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeId}';onAstBldgChange();}},150)">
-            <span style="font-size:15px;font-weight:800;color:var(--teal)">${assetQty||'—'}</span>
+          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="navTo('units');setTimeout(()=>{const s=document.getElementById('sel-unit-bldg');if(s){s.value='${safeId}';renderUnits();}},150)">
+            <div style="font-size:14px;font-weight:800;color:var(--indigo)">${m.units.size||'—'}</div>
+            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pUnit}%</div>
           </div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)">
-            <span style="font-size:15px;font-weight:800;color:var(--amber)">${tixQty}</span>
+          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeId}';onAstBldgChange();}},150)">
+            <div style="font-size:14px;font-weight:800;color:var(--teal)">${m.assets.size||'—'}</div>
+            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pAst}%</div>
+          </div>
+          <div style="text-align:center;padding:8px 4px">
+            <div style="font-size:14px;font-weight:800;color:${bc}">${m.score}%</div>
+            <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px"><div style="height:100%;width:${Math.round(m.score/maxTixScore*100)}%;background:${bc};border-radius:2px"></div></div>
           </div>
         </div>`;
       }).join('');
@@ -2263,63 +2281,70 @@ function renderDash(){
   // Inspections building grid
   const inspContainer=document.getElementById('dash-bldg-insp');
   if(inspContainer){
-    // Collect all inspection items across all inspections, grouped by building
     const bldgInspMap={};
     DB.inspections.forEach(insp=>{
       const bName=(insp.building||'').trim(); if(!bName) return;
-      if(!bldgInspMap[bName]) bldgInspMap[bName]={id:insp.buildingId,failedUnits:new Set(),pendingUnits:new Set(),failedAssets:new Set(),pendingAssets:new Set(),approved:0};
+      if(!bldgInspMap[bName]) bldgInspMap[bName]={id:insp.buildingId,failed:0,pending:0,approved:0};
       const m=bldgInspMap[bName];
       (insp.items||[]).forEach(item=>{
-        if(item.type==='unit'){
-          if(item.result==='Failed') m.failedUnits.add(item.unitId||item.unit||item.label);
-          else if(item.result==='Open') m.pendingUnits.add(item.unitId||item.unit||item.label);
-          else if(item.result==='Approved') m.approved++;
-        } else {
-          if(item.result==='Failed') m.failedAssets.add(item.assetId||item.label);
-          else if(item.result==='Open') m.pendingAssets.add(item.assetId||item.label);
-          else if(item.result==='Approved') m.approved++;
-        }
+        if(item.result==='Failed') m.failed++;
+        else if(item.result==='Open') m.pending++;
+        else if(item.result==='Approved') m.approved++;
       });
     });
-    const inspEntries=Object.entries(bldgInspMap)
-      .filter(([,m])=>m.failedUnits.size||m.pendingUnits.size||m.failedAssets.size||m.pendingAssets.size)
-      .sort((a,b)=>{
-        const failed=m=>m.failedUnits.size+m.failedAssets.size;
-        const pending=m=>m.pendingUnits.size+m.pendingAssets.size;
-        const score=m=>(failed(m)*3)+(pending(m)*2)+(m.approved*1);
-        return score(b[1])-score(a[1]);
-      })
-      .slice(0,3);
-    if(!inspEntries.length){
+    const inspAll=Object.entries(bldgInspMap).map(([name,m])=>({name,...m}));
+    const totFail=inspAll.reduce((a,m)=>a+m.failed,0)||1;
+    const totPend=inspAll.reduce((a,m)=>a+m.pending,0)||1;
+    const totAppr=inspAll.reduce((a,m)=>a+m.approved,0)||1;
+    inspAll.forEach(m=>{
+      m.pFail=Math.round(m.failed/totFail*100);
+      m.pPend=Math.round(m.pending/totPend*100);
+      m.pAppr=Math.round(m.approved/totAppr*100);
+      m.score=Math.round((m.pFail+m.pPend+m.pAppr)/3);
+    });
+    const top3Insp=inspAll.filter(m=>m.failed||m.pending||m.approved).sort((a,b)=>b.score-a.score).slice(0,3);
+    if(!top3Insp.length){
       inspContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No inspection data</div>';
     } else {
-      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
+      const maxInspScore=top3Insp[0].score||1;
+      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Approved</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Failed</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Pending</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Score</div>
       </div>`;
-      const rows=inspEntries.map(([name,m],i)=>{
+      const rows=top3Insp.map((m,i)=>{
         const safeId=(m.id||'').replace(/'/g,"\\'");
-        const border=i<inspEntries.length-1?'border-bottom:1px solid var(--border);':'';
+        const border=i<top3Insp.length-1?'border-bottom:1px solid var(--border);':'';
         const goInsp=safeId?`navTo('inspections');setTimeout(()=>{const s=document.getElementById('sel-insp-bldg');if(s){s.value='${safeId}';setPage('insp',1);renderInspections();}},150)`:`navTo('inspections')`;
-        const failed=m.failedUnits.size+m.failedAssets.size;
-        const pending=m.pendingUnits.size+m.pendingAssets.size;
-        const approvedQty=m.approved||0;
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
-          <div style="padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goInsp}">${name}</div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:var(--green)">${approvedQty||'—'}</span></div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${failed?'var(--red)':'var(--muted)'}">${failed||'—'}</span></div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:${pending?'var(--amber)':'var(--muted)'}">${pending||'—'}</span></div>
+        const bc=(p=>{const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
+          <div style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goInsp}">${m.name}</div>
+          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goInsp}">
+            <div style="font-size:14px;font-weight:800;color:var(--green)">${m.approved||'—'}</div>
+            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pAppr}%</div>
+          </div>
+          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goInsp}">
+            <div style="font-size:14px;font-weight:800;color:${m.failed?'var(--red)':'var(--muted)'}">${m.failed||'—'}</div>
+            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pFail}%</div>
+          </div>
+          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goInsp}">
+            <div style="font-size:14px;font-weight:800;color:${m.pending?'var(--amber)':'var(--muted)'}">${m.pending||'—'}</div>
+            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pPend}%</div>
+          </div>
+          <div style="text-align:center;padding:8px 4px">
+            <div style="font-size:14px;font-weight:800;color:${bc}">${m.score}%</div>
+            <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px"><div style="height:100%;width:${Math.round(m.score/maxInspScore*100)}%;background:${bc};border-radius:2px"></div></div>
+          </div>
         </div>`;
       }).join('');
       inspContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
     }
   }
-  // Logbook dashboard grid: Building | Assets (total) | Suppliers (total)
+  // Logbook dashboard grid with percentage scoring
   const logContainer=document.getElementById('dash-bldg-log');
   if(logContainer){
-    // Group logs by building — exclude closed (Gesloten) entries
     const bldgLogMap={};
     DB.logs.filter(r=>r.status!=='gesloten').forEach(r=>{
       const bld=DB.buildings.find(b=>b.id===r.buildingId);
@@ -2331,27 +2356,51 @@ function renderDash(){
       if(r.assetId) m.assets.add(r.assetId);
       if(r.supplierId) m.suppliers.add(r.supplierId);
     });
-    const logEntries=Object.entries(bldgLogMap).sort((a,b)=>b[1].total-a[1].total).slice(0,3);
-    if(!logEntries.length){
+    const logAll=Object.entries(bldgLogMap).map(([name,m])=>({name,...m,assetCount:m.assets.size,supCount:m.suppliers.size}));
+    const totLogEnt=logAll.reduce((a,m)=>a+m.total,0)||1;
+    const totLogAst=logAll.reduce((a,m)=>a+m.assetCount,0)||1;
+    const totLogSup=logAll.reduce((a,m)=>a+m.supCount,0)||1;
+    logAll.forEach(m=>{
+      m.pEnt=Math.round(m.total/totLogEnt*100);
+      m.pAst=Math.round(m.assetCount/totLogAst*100);
+      m.pSup=Math.round(m.supCount/totLogSup*100);
+      m.score=Math.round((m.pEnt+m.pAst+m.pSup)/3);
+    });
+    const top3Log=logAll.sort((a,b)=>b.score-a.score).slice(0,3);
+    if(!top3Log.length){
       logContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No logbook data</div>';
     } else {
-      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
+      const maxLogScore=top3Log[0].score||1;
+      const hdr=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:6px 14px 4px;gap:4px">
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Building</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Entries</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Assets</div>
         <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Suppliers</div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center">Score</div>
       </div>`;
-      const rows=logEntries.map(([name,m],i)=>{
+      const rows=top3Log.map((m,i)=>{
         const safeId=(m.id||'').replace(/'/g,"\\'");
-        const border=i<logEntries.length-1?'border-bottom:1px solid var(--border);':'';
+        const border=i<top3Log.length-1?'border-bottom:1px solid var(--border);':'';
         const goLog=`navTo('logbook');setTimeout(()=>{const s=document.getElementById('sel-log-bldg');if(s){s.value='${safeId}';setPage('log',1);renderLogbook();}},150)`;
-        const assetCount=m.assets.size;
-        const supCount=m.suppliers.size;
-        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
-          <div style="padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goLog}">${name}</div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goLog}"><span style="font-size:15px;font-weight:800;color:${m.total?'var(--blue)':'var(--muted)'}">${m.total||'—'}</span></div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goLog}"><span style="font-size:15px;font-weight:800;color:${assetCount?'var(--teal)':'var(--muted)'}">${assetCount||'—'}</span></div>
-          <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goLog}"><span style="font-size:15px;font-weight:800;color:${supCount?'var(--indigo)':'var(--muted)'}">${supCount||'—'}</span></div>
+        const bc=(p=>{const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
+        return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
+          <div style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goLog}">${m.name}</div>
+          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goLog}">
+            <div style="font-size:14px;font-weight:800;color:var(--blue)">${m.total}</div>
+            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pEnt}%</div>
+          </div>
+          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goLog}">
+            <div style="font-size:14px;font-weight:800;color:${m.assetCount?'var(--teal)':'var(--muted)'}">${m.assetCount||'—'}</div>
+            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pAst}%</div>
+          </div>
+          <div style="text-align:center;padding:8px 4px;cursor:pointer" onclick="${goLog}">
+            <div style="font-size:14px;font-weight:800;color:${m.supCount?'var(--indigo)':'var(--muted)'}">${m.supCount||'—'}</div>
+            <div style="font-size:10px;color:var(--muted);font-style:italic">${m.pSup}%</div>
+          </div>
+          <div style="text-align:center;padding:8px 4px">
+            <div style="font-size:14px;font-weight:800;color:${bc}">${m.score}%</div>
+            <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px"><div style="height:100%;width:${Math.round(m.score/maxLogScore*100)}%;background:${bc};border-radius:2px"></div></div>
+          </div>
         </div>`;
       }).join('');
       logContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${hdr}${rows}</div>`;
