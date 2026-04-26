@@ -2378,12 +2378,19 @@ function renderDash(){
       statsEl.innerHTML='<div style="font-size:13px;color:var(--muted);padding:0 0 8px">No data yet</div>';
     } else {
       const maxScore=bldgStats[0].score;
+      const totalTix    = bldgStats.reduce((a,s)=>a+s.openTix,0)    || 1;
+      const totalInsp   = bldgStats.reduce((a,s)=>a+s.activeInsp,0) || 1;
+      const totalLogs   = bldgStats.reduce((a,s)=>a+s.recentLogs,0) || 1;
+      const totalFailed = bldgStats.reduce((a,s)=>a+s.failedAssets,0) || 1;
       statsEl.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
         ${bldgStats.map((s,i)=>{
-          const pct=Math.round(s.score/maxScore*100);
-          const border=i<bldgStats.length-1?'border-bottom:1px solid var(--border);':'';
+          const pTix    = Math.round(s.openTix/totalTix*100);
+          const pInsp   = Math.round(s.activeInsp/totalInsp*100);
+          const pLogs   = Math.round(s.recentLogs/totalLogs*100);
+          const pFailed = Math.round(s.failedAssets/totalFailed*100);
+          const pct     = Math.round((pTix+pInsp+pLogs+pFailed)/4);
+          const border  = i<bldgStats.length-1?'border-bottom:1px solid var(--border);':'';
           const barColor=(p=>{
-            // 0% = green (#10B981), 50% = amber (#F59E0B), 100% = red (#EF4444)
             const r=p<50?Math.round(16+(239-16)*(p/50)):239;
             const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));
             const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));
@@ -2392,9 +2399,12 @@ function renderDash(){
           const goB=`navTo('buildings');setTimeout(()=>openBldDetail('${s.b.id.replace(/'/g,"\\'")}'),150)`;
           const failColor=s.failedAssets>0?'var(--red)':'var(--text)';
           return`<div style="${border}padding:12px 14px;cursor:pointer" onclick="${goB}">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
               <span style="font-size:13px;font-weight:700;color:var(--blue)">${s.b.name}</span>
-              <span style="font-size:12px;font-weight:800;color:${barColor}">${pct}%</span>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+                <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Overall score</span>
+                <span style="font-size:12px;font-weight:800;color:${barColor}">${pct}%</span>
+              </div>
             </div>
             <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:7px">
               <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .4s ease"></div>
@@ -2402,18 +2412,26 @@ function renderDash(){
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
               <div style="text-align:center">
                 <div style="font-size:13px;font-weight:800;color:var(--text)">${s.openTix}</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:1px">${pTix}%</div>
+                <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Tickets</div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:13px;font-weight:800;color:var(--text)">${s.activeInsp}</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:1px">${pInsp}%</div>
+                <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Inspections</div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:13px;font-weight:800;color:var(--text)">${s.recentLogs}</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:1px">${pLogs}%</div>
+                <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Logbook</div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:13px;font-weight:800;color:${failColor}">${s.failedAssets}</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:1px">${pFailed}%</div>
+                <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Failed</div>
               </div>
             </div>
