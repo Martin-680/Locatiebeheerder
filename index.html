@@ -427,7 +427,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
     <div class="sh fu" style="flex-direction:column;align-items:flex-start;padding-bottom:6px">
       <span class="sh-title">Inspections</span>
-      <span style="font-size:11px;color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">Sorted by failed + pending items — most problems first.</span>
+      <span style="font-size:11px;color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">Scored by Failed (×3) + Pending (×2) + Approved (×1) — most problems first.</span>
     </div>
     <div id="dash-bldg-insp" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
@@ -2267,21 +2267,28 @@ function renderDash(){
     const bldgInspMap={};
     DB.inspections.forEach(insp=>{
       const bName=(insp.building||'').trim(); if(!bName) return;
-      if(!bldgInspMap[bName]) bldgInspMap[bName]={id:insp.buildingId,failedUnits:new Set(),pendingUnits:new Set(),failedAssets:new Set(),pendingAssets:new Set()};
+      if(!bldgInspMap[bName]) bldgInspMap[bName]={id:insp.buildingId,failedUnits:new Set(),pendingUnits:new Set(),failedAssets:new Set(),pendingAssets:new Set(),approved:0};
       const m=bldgInspMap[bName];
       (insp.items||[]).forEach(item=>{
         if(item.type==='unit'){
           if(item.result==='Failed') m.failedUnits.add(item.unitId||item.unit||item.label);
           else if(item.result==='Open') m.pendingUnits.add(item.unitId||item.unit||item.label);
+          else if(item.result==='Approved') m.approved++;
         } else {
           if(item.result==='Failed') m.failedAssets.add(item.assetId||item.label);
           else if(item.result==='Open') m.pendingAssets.add(item.assetId||item.label);
+          else if(item.result==='Approved') m.approved++;
         }
       });
     });
     const inspEntries=Object.entries(bldgInspMap)
       .filter(([,m])=>m.failedUnits.size||m.pendingUnits.size||m.failedAssets.size||m.pendingAssets.size)
-      .sort((a,b)=>(b[1].failedUnits.size+b[1].failedAssets.size+b[1].pendingUnits.size+b[1].pendingAssets.size)-(a[1].failedUnits.size+a[1].failedAssets.size+a[1].pendingUnits.size+a[1].pendingAssets.size))
+      .sort((a,b)=>{
+        const failed=m=>m.failedUnits.size+m.failedAssets.size;
+        const pending=m=>m.pendingUnits.size+m.pendingAssets.size;
+        const score=m=>(failed(m)*3)+(pending(m)*2)+(m.approved*1);
+        return score(b[1])-score(a[1]);
+      })
       .slice(0,3);
     if(!inspEntries.length){
       inspContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No inspection data</div>';
@@ -2298,8 +2305,7 @@ function renderDash(){
         const goInsp=safeId?`navTo('inspections');setTimeout(()=>{const s=document.getElementById('sel-insp-bldg');if(s){s.value='${safeId}';setPage('insp',1);renderInspections();}},150)`:`navTo('inspections')`;
         const failed=m.failedUnits.size+m.failedAssets.size;
         const pending=m.pendingUnits.size+m.pendingAssets.size;
-        const approvedQty=DB.inspections.filter(r=>(r.building||'').trim()===name)
-          .reduce((sum,r)=>sum+(Array.isArray(r.items)?r.items.filter(it=>it.result==='Approved').length:0),0);
+        const approvedQty=m.approved||0;
         return`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4px;${border}align-items:center">
           <div style="padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue)" onclick="${goInsp}">${name}</div>
           <div style="text-align:center;padding:11px 4px;cursor:pointer" onclick="${goInsp}"><span style="font-size:15px;font-weight:800;color:var(--green)">${approvedQty||'—'}</span></div>
