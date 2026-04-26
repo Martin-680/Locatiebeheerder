@@ -5959,8 +5959,6 @@ function openNewLogEntry(){
   if(tixBtn) tixBtn.style.display = 'none';
   const dupBtn = document.getElementById('btn-dup-log');
   if(dupBtn) dupBtn.style.display = 'none';
-  document.getElementById('log-modal-title').textContent = 'Add Log Entry';
-  const tixBtn = document.getElementById('log-modal-tix-btn'); if(tixBtn) tixBtn.style.display='none';
   // Default date = today
   document.getElementById('lf-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('lf-subject').value = '';
@@ -5995,9 +5993,6 @@ function openNewLogEntry(){
   document.getElementById('lf-category').value = '';
   openMo('mo-log');
 }
-
-/* ── Searchable supplier dropdown for log form ── */
-let _lfSuppliers = []; // [{id, name}]
 
 /* ── Generic form supplier search (tf = ticket form, af = asset form) ── */
 const _fSupData = {}; // keyed by prefix
@@ -6062,6 +6057,7 @@ function fSupClear(prefix){
   fSupSetValue(prefix, '');
 }
 
+let _lfSuppliers = [];
 function lfSupPopulate(suppliers, selectedId){
   _lfSuppliers = [{id:'', name:'— None —'}, ...suppliers];
   const srch = document.getElementById('lf-supplier-search');
