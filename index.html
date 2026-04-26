@@ -421,7 +421,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
     <div class="sh fu" style="flex-direction:column;align-items:flex-start;padding-bottom:6px">
       <span class="sh-title">Tickets</span>
-      <span style="font-size:11px;color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">Sorted by open ticket count — most tickets first.</span>
+      <span style="font-size:11px;color:var(--sub);font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px">Scored by ticket count + affected assets (×2) — fewer units involved ranks higher on a tie.</span>
     </div>
     <div id="dash-bldg-tix" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
@@ -2167,8 +2167,14 @@ function renderDash(){
   animCount('kpi-unassigned',unassigned);
   const openTix=DB.tickets.filter(t=>t.status!=='Closed'&&(t.building||'').trim());
   const bldgNames=[...new Set(openTix.map(t=>(t.building||'').trim()))]
-    .map(name=>({ name, count: openTix.filter(t=>(t.building||'').trim()===name).length }))
-    .sort((a,b)=>b.count-a.count).slice(0,3).map(x=>x.name);
+    .map(name=>{
+      const bTix=openTix.filter(t=>(t.building||'').trim()===name);
+      const assets=new Set(bTix.map(t=>(t.assetId||'').trim()).filter(a=>a)).size;
+      const units =new Set(bTix.map(t=>(t.unit||'').trim()).filter(u=>u)).size||1;
+      const score =bTix.length + (assets*2) + (1/units);
+      return{ name, score };
+    })
+    .sort((a,b)=>b.score-a.score).slice(0,3).map(x=>x.name);
   const bldgContainer=document.getElementById('dash-bldg-tix');
   if(bldgContainer){
     if(!bldgNames.length){
