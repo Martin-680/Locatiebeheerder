@@ -1829,10 +1829,11 @@ function applyPermUI(){
 /* ══════════════════════════════════════════════════════════
    POPULATE HELPERS
 ══════════════════════════════════════════════════════════ */
-function populateBldSelect(id){
+function populateBldSelect(id, placeholder){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
-  el.innerHTML='<option value="">— Select building —</option>'+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+  const label = placeholder || '— Select building —';
+  el.innerHTML=`<option value="">${label}</option>`+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
   if(DB.buildings.find(b=>b.name===cur)) el.value=cur;
 }
 /* ── getFloorsForBuilding: returns sorted floors from DB for a given building id or name ── */
@@ -1853,13 +1854,13 @@ function populateSubs(subId, bldId){
 function tfOnBldgChange(){
   const bldg=document.getElementById('tf-bldg').value;
   // Reset downstream
-  document.getElementById('tf-unit').innerHTML='<option value="">— Select unit —</option>';
+  document.getElementById('tf-unit').innerHTML='<option value="">— None —</option>';
   document.getElementById('tf-asset').innerHTML='<option value="">None</option>';
   fSupClear('tf');
   // Populate floor from DB.floors
   const floors=getFloorsForBuilding(bldg);
   const floorSel=document.getElementById('tf-sub');
-  floorSel.innerHTML='<option value="">— Select floor —</option>'+floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+  floorSel.innerHTML='<option value="">— None —</option>'+floors.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
 }
 function tfOnFloorChange(){
   const floorId=document.getElementById('tf-sub').value;
@@ -1870,7 +1871,7 @@ function tfOnFloorChange(){
   const unitList=floorId ? DB.units.filter(u=>u.floorId===floorId) : [];
   const unitSel=document.getElementById('tf-unit');
   if(unitList.length){
-    unitSel.innerHTML='<option value="">— Select unit —</option>'+unitList.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
+    unitSel.innerHTML='<option value="">— None —</option>'+unitList.map(u=>`<option value="${u.label}">${u.label}</option>`).join('');
   } else {
     unitSel.innerHTML='<option value="">— None —</option>';
   }
@@ -3424,7 +3425,7 @@ function openNewTicket(){
   document.getElementById('tf-type').value='';
   document.getElementById('tf-date-opened').value=today.toISOString().split('T')[0];
   document.getElementById('tf-date-closed').value='';
-  populateBldSelect('tf-bldg');
+  populateBldSelect('tf-bldg','— Select —');
   document.getElementById('tf-bldg').value='';
   tfOnBldgChange();
   autoSelect('tf-bldg', ()=>{
@@ -3459,7 +3460,7 @@ function editTix(id){
   document.getElementById('tf-reporter').value=t.reportedBy||'';
   document.getElementById('tf-notes').value=t.notes||'';
   // Cascade: building → floor → unit → asset → supplier
-  populateBldSelect('tf-bldg');
+  populateBldSelect('tf-bldg','— Select —');
   document.getElementById('tf-bldg').value=t.building;
   tfOnBldgChange();
   document.getElementById('tf-sub').value = DB.floors.find(f=>f.id===t.floorId)?.id || DB.floors.find(f=>f.label===t.floor)?.id || '';
@@ -5441,7 +5442,7 @@ function _prefillTicketFromFailure(item){
     else if(DB.categories.length) tfCat.value = DB.categories[0].id;
   }
 
-  populateBldSelect('tf-bldg');
+  populateBldSelect('tf-bldg','— Select —');
   document.getElementById('tf-bldg').value = activeRound.building;
   tfOnBldgChange();
 
@@ -6220,7 +6221,7 @@ function quickTicketFromLog(logId){
   populateCatSelect('tf-cat');
   populateAssignSelect('tf-assign');
   // Cascade building → floor → unit → asset
-  populateBldSelect('tf-bldg');
+  populateBldSelect('tf-bldg','— Select —');
   const bld = DB.buildings.find(b=>b.id===r.buildingId);
   document.getElementById('tf-bldg').value = bld ? bld.name : '';
   tfOnBldgChange();
