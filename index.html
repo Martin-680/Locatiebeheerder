@@ -1855,8 +1855,7 @@ function tfOnBldgChange(){
   const bldg=document.getElementById('tf-bldg').value;
   // Reset downstream
   document.getElementById('tf-unit').innerHTML='<option value="">— None —</option>';
-  document.getElementById('tf-asset').innerHTML='<option value="">None</option>';
-  fSupClear('tf');
+  document.getElementById('tf-asset').innerHTML='<option value="">— None —</option>';
   // Populate floor from DB.floors
   const floors=getFloorsForBuilding(bldg);
   const floorSel=document.getElementById('tf-sub');
@@ -1894,7 +1893,7 @@ function tfOnUnitChange(){
     return true;
   });
   const astSel=document.getElementById('tf-asset');
-  astSel.innerHTML='<option value="">None</option>'+assets.map(a=>`<option value="${a.id}">${a.name}${a.unit?' · '+a.unit:''}</option>`).join('');
+  astSel.innerHTML='<option value="">— None —</option>'+assets.map(a=>`<option value="${a.id}">${a.name}${a.unit?' · '+a.unit:''}</option>`).join('');
 }
 function tfOnAssetChange(){
   const assetId=document.getElementById('tf-asset').value;
@@ -1943,7 +1942,7 @@ function getCategoryList(){
 }
 function populateCatSelect(id, allowAll=false, currentVal=''){
   const el=document.getElementById(id); if(!el) return;
-  const allOpt=allowAll?'<option value="All">All Categories</option>':'<option value="">— Select category —</option>';
+  const allOpt=allowAll?'<option value="All">All Categories</option>':'<option value="">— Select —</option>';
   el.innerHTML=allOpt+[...DB.categories].sort((a,z)=>a.category.localeCompare(z.category))
     .map(x=>`<option value="${x.id}">${x.category}</option>`).join('');
   if(currentVal){
@@ -5946,7 +5945,7 @@ function openNewLogEntry(){
   document.getElementById('lf-note').value = '';
   // Populate building
   const bSel = document.getElementById('lf-bldg');
-  bSel.innerHTML = '<option value="">— None —</option>' +
+  bSel.innerHTML = '<option value="">— Select —</option>' +
     [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
       .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
   autoSelect('lf-bldg', ()=>{
@@ -6172,7 +6171,7 @@ function editLogEntry(id){
   document.getElementById('lf-note').value    = r.note    || '';
   // Building
   const bSel = document.getElementById('lf-bldg');
-  bSel.innerHTML = '<option value="">— None —</option>' +
+  bSel.innerHTML = '<option value="">— Select —</option>' +
     [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
       .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
   bSel.value = r.buildingId || '';
