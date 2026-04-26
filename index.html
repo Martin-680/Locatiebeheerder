@@ -1291,7 +1291,7 @@ const COLS = {
   inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note'],
   floors:    ['id','buildingId','label','sortOrder'],
   units:     ['id','floorId','buildingId','label','sortOrder'],
-  categories:['id','category'],
+  categories:['id','category','notes'],
   logs:      ['id','date','subject','supplierId','buildingId','floorId','unitId','assetId','note','type','status','categoryId'],
 };
 
@@ -6306,12 +6306,17 @@ function renderCategoryList(){
   }
   el.innerHTML = list.map(c=>`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
         <div style="width:8px;height:8px;border-radius:50%;background:var(--indigo);flex-shrink:0"></div>
-        <span style="font-size:14px;font-weight:600">${c.category}</span>
-        <span style="font-size:10px;color:var(--muted);font-weight:500">${c.id}</span>
+        <div style="min-width:0">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:14px;font-weight:600">${c.category}</span>
+            <span style="font-size:10px;color:var(--muted);font-weight:500">${c.id}</span>
+          </div>
+          ${c.notes ? `<div style="font-size:11px;color:var(--sub);margin-top:1px">${c.notes}</div>` : ''}
+        </div>
       </div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;flex-shrink:0">
         <button onclick="openEditCategory('${c.id}')" style="padding:6px 12px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:8px;font-size:12px;font-weight:700;color:var(--indigo)">Edit</button>
         <button onclick="deleteCategory('${c.id}')" style="padding:6px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:8px;font-size:12px;font-weight:700;color:var(--red)">Delete</button>
       </div>
@@ -6322,6 +6327,7 @@ function openAddCategory(){
   editingCatId = null;
   document.getElementById('cat-form-title').textContent = 'Add Category';
   document.getElementById('cat-inp').value = '';
+  document.getElementById('cat-notes').value = '';
   document.getElementById('cat-form-section').style.display = 'block';
   document.getElementById('cat-inp').focus();
 }
@@ -6331,6 +6337,7 @@ function openEditCategory(id){
   editingCatId = id;
   document.getElementById('cat-form-title').textContent = 'Edit Category';
   document.getElementById('cat-inp').value = c.category;
+  document.getElementById('cat-notes').value = c.notes || '';
   document.getElementById('cat-form-section').style.display = 'block';
   document.getElementById('cat-inp').focus();
 }
@@ -6338,6 +6345,7 @@ function openEditCategory(id){
 function cancelCategoryForm(){
   document.getElementById('cat-form-section').style.display = 'none';
   document.getElementById('cat-inp').value = '';
+  document.getElementById('cat-notes').value = '';
   editingCatId = null;
 }
 
@@ -6347,13 +6355,14 @@ async function saveCategory(){
   // Check for duplicate
   const duplicate = DB.categories.find(c=>c.category.toLowerCase()===val.toLowerCase() && c.id!==editingCatId);
   if(duplicate){ toast('Category already exists','err'); return; }
+  const notes = (document.getElementById('cat-notes').value||'').trim();
   if(editingCatId){
     const c = DB.categories.find(x=>x.id===editingCatId);
-    if(c) c.category = val;
+    if(c){ c.category = val; c.notes = notes; }
   } else {
     const nums = DB.categories.map(c=>parseInt((c.id||'').split('-')[1]||0)).filter(n=>!isNaN(n));
     const newId = 'CAT-' + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3,'0');
-    DB.categories.push({ id: newId, category: val });
+    DB.categories.push({ id: newId, category: val, notes });
   }
   cancelCategoryForm();
   await writeSheet('categories');
@@ -6734,6 +6743,7 @@ function calDayClick(dateStr){
     <div id="cat-form-section" style="display:none;padding:0 18px 4px;border-top:1px solid var(--border);margin-top:8px">
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:14px 0 8px" id="cat-form-title">Add Category</div>
       <input class="fi2" id="cat-inp" placeholder="e.g. Fire Safety" onkeydown="if(event.key==='Enter'){event.preventDefault();saveCategory();}" style="margin-bottom:10px"/>
+      <input class="fi2" id="cat-notes" placeholder="Helper text (optional)…" style="margin-bottom:10px;font-size:12px"/>
       <div style="display:flex;gap:9px">
         <button onclick="saveCategory()" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:14px;font-weight:700;color:#fff">Save</button>
         <button onclick="cancelCategoryForm()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Cancel</button>
