@@ -4704,8 +4704,8 @@ function renderBlds(){
     const sqm=b.size?Number(b.size).toLocaleString('nl-NL')+' m²':'—';
     return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
       <div style="padding:14px 16px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px">
-        <div style="font-size:15px;font-weight:700;color:var(--text)">${b.name}</div>
-        <div style="text-align:right;font-size:15px;font-weight:700;color:${displayColor}">${displayScore}%<span style="font-size:11px;font-weight:400;color:var(--muted)"> health</span></div>
+        <div style="font-size:15px;font-weight:500;color:var(--text)">${b.name}</div>
+        <div style="text-align:right;font-size:15px;font-weight:400;color:${displayColor}">${displayScore}%<span style="font-size:11px;color:var(--muted)"> health</span></div>
         <div style="font-size:12px;color:var(--sub)">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')||'—'}</div>
         <div style="text-align:right;font-size:12px;color:var(--sub)">${sqm}</div>
         <div style="font-size:12px;color:var(--sub)">${b.phone||'—'}</div>
