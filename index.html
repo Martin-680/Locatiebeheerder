@@ -583,6 +583,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         Filters<span id="bld-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
       </button>
     </div>
+    <div style="padding:0 14px 8px;display:flex;background:var(--surface);border-bottom:1px solid var(--border)">
+      <div style="display:flex;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);padding:2px;gap:2px;width:100%">
+        <button id="bld-seg-week"   onclick="setBldPeriod('week')"    style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Week</button>
+        <button id="bld-seg-month"  onclick="setBldPeriod('month')"   style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Month</button>
+        <button id="bld-seg-quarter" onclick="setBldPeriod('quarter')" style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)">Quarter</button>
+      </div>
+    </div>
     <div id="bld-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="bld-list"></div>
   </div>
@@ -1323,6 +1330,7 @@ function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
 let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], inspectionItems:[], floors:[], units:[], categories:[], logs:[] };
+let bldPeriod = 'quarter';
 let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null, floor:null, log:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
@@ -4632,6 +4640,16 @@ function openBldDetail(id){
   navTo('floor');
 }
 
+function setBldPeriod(p){
+  bldPeriod=p;
+  ['week','month','quarter'].forEach(k=>{
+    const btn=document.getElementById('bld-seg-'+k);
+    if(!btn) return;
+    if(k===p){btn.style.background='var(--card)';btn.style.color='var(--text)';btn.style.boxShadow='0 1px 3px rgba(0,0,0,.08)';}
+    else{btn.style.background='none';btn.style.color='var(--sub)';btn.style.boxShadow='none';}
+  });
+  renderBlds();
+}
 function calcBldData(b){
   const units     = DB.units.filter(u=>u.buildingId===b.id).length;
   const workspace = b.units||0;
@@ -4650,16 +4668,20 @@ function calcBldData(b){
     sizeIndex=floors*3+units*2+workspace*1+assets*0.5;
     formulaStr=`floors×3 (${floors*3}) + units×2 (${units*2}) + workspace (${workspace}) + assets×0.5 (${(assets*0.5).toFixed(1)})`;
   }
-  const openTix=DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed').length;
-  const activeInsp=DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed').length;
+  const now=new Date();
+  const days=bldPeriod==='week'?7:bldPeriod==='month'?30:90;
+  const cutoff=new Date(now.getTime()-days*24*60*60*1000);
+  const inPeriod=d=>d&&new Date(d)>=cutoff;
+  const openTix=DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&inPeriod(t.dateCreated||t.date)).length;
+  const activeInsp=DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed'&&inPeriod(i.dateStart)).length;
   const fI=new Set(),fT=new Set();
-  DB.inspections.filter(i=>i.buildingId===b.id).forEach(insp=>{(insp.items||[]).forEach(it=>{if(it.result==='Failed'&&it.assetId)fI.add(it.assetId);});});
-  DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&t.assetId).forEach(t=>{const ast=DB.assets.find(a=>a.id===t.assetId);if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned'))fT.add(t.assetId);});
+  DB.inspections.filter(i=>i.buildingId===b.id&&inPeriod(i.dateStart)).forEach(insp=>{(insp.items||[]).forEach(it=>{if(it.result==='Failed'&&it.assetId)fI.add(it.assetId);});});
+  DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&t.assetId&&inPeriod(t.dateCreated||t.date)).forEach(t=>{const ast=DB.assets.find(a=>a.id===t.assetId);if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned'))fT.add(t.assetId);});
   const failedAssets=new Set([...fI,...fT]).size;
   const issueLoad=(openTix*4)+(failedAssets*5)+(activeInsp*3);
   const roundedIdx=Math.round(sizeIndex);
   const score=roundedIdx>0?Math.max(0,Math.min(100,Math.round(100-issueLoad/sizeIndex*50))):100;
-  return{score,sizeIndex:roundedIdx,issueLoad,formulaStr};
+  return{score,sizeIndex:roundedIdx,issueLoad,formulaStr,periodTix:openTix,periodFailed:failedAssets,periodInsp:activeInsp};
 }
 function calcBldScore(b){ return calcBldData(b).score; }
 function renderBlds(){
@@ -4688,15 +4710,15 @@ function renderBlds(){
         <div style="font-size:12px;color:var(--sub)">${sqm}</div>
         <div style="text-align:right;font-size:12px;color:var(--sub)">Index: ${bldData.sizeIndex}</div>
         ${metaLeft.slice(1).map(m=>`<div style="font-size:12px;color:var(--sub)">${m}</div><div></div>`).join('')}
-        <div style="text-align:left;font-size:12px;color:var(--sub)"></div>
+        <div style="font-size:12px;color:var(--sub)">${bldPeriod==='week'?'This week':bldPeriod==='month'?'This month':'This quarter'}</div>
         <div style="text-align:right;font-size:12px;color:var(--sub)">Workload: ${bldData.issueLoad}</div>
         <div style="grid-column:1/-1;border-top:1px solid var(--border);margin-top:6px;padding-top:8px;font-size:11px;color:var(--muted);font-family:monospace">${bldData.formulaStr}</div>
       </div>
       <div class="bc-body">
-        <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
-        <div class="bs"><div class="bs-val">${unitCount}</div><div class="bs-lbl">Units</div></div>
-        <div class="bs"><div class="bs-val">${b.units||0}</div><div class="bs-lbl">Workspace</div></div>
-        <div class="bs"><div class="bs-val">${DB.assets.filter(a=>a.building===b.name).length}</div><div class="bs-lbl">Assets</div></div>
+        <div class="bs"><div class="bs-val">${bldData.periodTix}</div><div class="bs-lbl">Tickets</div></div>
+        <div class="bs"><div class="bs-val">${bldData.periodFailed}</div><div class="bs-lbl">Failed assets</div></div>
+        <div class="bs"><div class="bs-val">${bldData.periodInsp}</div><div class="bs-lbl">Inspections</div></div>
+        <div class="bs"><div class="bs-val">${bldData.issueLoad}</div><div class="bs-lbl">Workload</div></div>
       </div>
     </div>`;
   }).join('');
