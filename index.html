@@ -1200,6 +1200,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="mt"><span id="bld-modal-title">Add Building</span><button class="mt-close" onclick="closeMo('mo-bld')">✕</button></div>
     <div class="fg"><label>Building Name *</label><input class="fi2" id="bf-name" placeholder="e.g. Maple Tower"/></div>
     <div class="fg"><label>Address</label><input class="fi2" id="bf-addr" placeholder="Full address"/></div>
+    <div class="fg"><label>Size (m²)</label><input class="fi2" type="number" id="bf-size" placeholder="e.g. 1250"/></div>
     <div class="fg"><label>Days Open</label><input class="fi2" id="bf-daysopen" placeholder="e.g. Mon–Fri 8:00–18:00"/></div>
     <div class="fg"><label>Time Open</label><input class="fi2" id="bf-timeopen" placeholder="e.g. 08:00–18:00"/></div>
     <div class="frow2">
@@ -1290,7 +1291,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
-  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone'],
+  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone','size'],
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
@@ -4670,13 +4671,30 @@ function renderBlds(){
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
     const score=calcBldScore(b);
     const scoreColor=score===null?'var(--muted)':score>=70?'var(--green)':score>=40?'var(--amber)':'var(--red)';
-    const scoreBadge=score!==null?`<span style="font-size:12px;color:var(--muted)">Healthscore </span><span style="font-size:12px;font-weight:700;color:${scoreColor}">${score}%</span>`:`<span style="font-size:12px;color:var(--muted)">Healthscore </span><span style="font-size:12px;font-weight:700;color:var(--green)">100%</span>`;
+    const displayScore=score!==null?score:100;
+    const displayColor=score!==null?scoreColor:'var(--green)';
+    const sizeIndex=Math.round(floorCount*3+unitCount*2+(b.units||0)*1+DB.assets.filter(a=>a.building===b.name).length*0.5);
+    const openTixCount=DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed').length;
+    const activeInspCount=DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed').length;
+    const fI=new Set(),fT=new Set();
+    DB.inspections.filter(i=>i.buildingId===b.id).forEach(insp=>{(insp.items||[]).forEach(it=>{if(it.result==='Failed'&&it.assetId)fI.add(it.assetId);});});
+    DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&t.assetId).forEach(t=>{const ast=DB.assets.find(a=>a.id===t.assetId);if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned'))fT.add(t.assetId);});
+    const failedCount=new Set([...fI,...fT]).size;
+    const issueLoad=openTixCount*4+failedCount*5+activeInspCount*3;
+    const sqm=b.size?Number(b.size).toLocaleString('nl-NL')+' m²':'—';
     return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
-      <div class="bc-hdr">
-        <div style="min-width:0;flex:1"><div class="bc-name">${b.name}</div></div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${scoreBadge}</div>
+      <div class="bc-hdr" style="align-items:flex-start">
+        <div style="min-width:0;flex:1">
+          <div class="bc-name">${b.name}</div>
+          <div class="cm" style="padding:0;margin-top:2px">${sqm}</div>
+          ${b.address?`<div class="cm" style="padding:0;margin-top:1px">${b.address}</div>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:12px">
+          <div style="font-size:12px;color:var(--muted)">Healthscore <span style="font-weight:700;color:${displayColor}">${displayScore}%</span></div>
+          <div class="cm" style="padding:0;margin-top:2px">Size index: ${sizeIndex}</div>
+          <div class="cm" style="padding:0;margin-top:1px">Issue load: ${issueLoad}</div>
+        </div>
       </div>
-      <div class="cm" style="padding:0 4px">${b.id}${b.address ? ' · ' + b.address : ''}${b.daysOpen||b.timeOpen ? ' · ' + [b.daysOpen,b.timeOpen].filter(Boolean).join(' ') : ''}${b.phone ? ' · ' + b.phone : ''}</div>
       <div class="bc-body">
         <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
         <div class="bs"><div class="bs-val">${unitCount}</div><div class="bs-lbl">Units</div></div>
@@ -4690,7 +4708,7 @@ function openNewBuilding(){
   if(!can('canManageBuildings')) return;
   editingId.bld=null;
   document.getElementById('bld-modal-title').textContent='Add Building';
-  ['bf-name','bf-addr','bf-daysopen','bf-timeopen','bf-units','bf-year','bf-phone'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['bf-name','bf-addr','bf-size','bf-daysopen','bf-timeopen','bf-units','bf-year','bf-phone'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   populateMgrSelect('bf-mgr');
   openMo('mo-bld');
 }
@@ -4701,6 +4719,7 @@ function editBld(id){
   document.getElementById('bld-modal-title').textContent='Edit Building';
   document.getElementById('bf-name').value=b.name;
   document.getElementById('bf-addr').value=b.address||'';
+  document.getElementById('bf-size').value=b.size||'';
   document.getElementById('bf-daysopen').value=b.daysOpen||'';
   document.getElementById('bf-timeopen').value=b.timeOpen||'';
   document.getElementById('bf-units').value=b.units||'';
@@ -4712,7 +4731,7 @@ function editBld(id){
 async function saveBld(){
   const name=document.getElementById('bf-name').value.trim();
   if(!name){toast('Building name required','err');return;}
-  const data={name,address:document.getElementById('bf-addr').value,daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,yearBuilt:parseInt(document.getElementById('bf-year').value)||'',manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value};
+  const data={name,address:document.getElementById('bf-addr').value,size:parseInt(document.getElementById('bf-size').value)||'',daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,yearBuilt:parseInt(document.getElementById('bf-year').value)||'',manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value};
   if(editingId.bld){ Object.assign(DB.buildings.find(x=>x.id===editingId.bld),data); }
   else { DB.buildings.push({id:nextId(DB.buildings,'BLD'),...data}); }
   closeMo('mo-bld');
