@@ -1313,6 +1313,7 @@ const ROLES = {
 };
 const ROLE_COLORS = {'Property Manager':'#8B5CF6','Supervisor':'#06B6D4','Maintenance Tech':'#3B82F6','Admin':'#F59E0B','Contractor':'#64748B'};
 const ROLE_CLASS  = {'Property Manager':'rb-manager','Supervisor':'rb-supervisor','Maintenance Tech':'rb-tech','Admin':'rb-admin','Contractor':'rb-contractor'};
+const ROLE_DESC   = {'Property Manager':'Full access — manages buildings, users, and all operations.','Supervisor':'Can create/close tickets and run inspections. Also manages assets, suppliers, and categories.','Maintenance Tech':'Can create/close tickets and run inspections.','Admin':'Manages users and buildings; no access to tickets or inspections.','Contractor':'Read-only access; assigned to specific jobs externally.'};
 function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
 
 /* ══════════════════════════════════════════════════════════
@@ -4042,6 +4043,7 @@ function renderUsers(){
       <div style="flex:1;min-width:0">
         <div class="uc-name">${u.name}</div>
         <div class="uc-sub">${u.email}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4">${ROLE_DESC[u.role]||''}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
         <span class="role-badge ${ROLE_CLASS[u.role]}">${u.role}</span>
