@@ -4707,11 +4707,13 @@ function renderBlds(){
       <div style="padding:14px 16px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px">
         <div style="font-size:15px;font-weight:700;color:var(--text)">${b.name}</div>
         <div style="text-align:right;font-size:15px;font-weight:700;color:${displayColor}">${displayScore}%<span style="font-size:11px;font-weight:400;color:var(--muted)"> health</span></div>
-        <div style="font-size:12px;color:var(--sub)">${sqm}</div>
-        <div style="text-align:right;font-size:12px;color:var(--sub)">Index: ${bldData.sizeIndex}</div>
-        ${metaLeft.slice(1).map(m=>`<div style="font-size:12px;color:var(--sub)">${m}</div><div></div>`).join('')}
+        <div style="font-size:12px;color:var(--sub)">${metaLeft[1]||''}</div>
+        <div style="text-align:right;font-size:12px;color:var(--sub)">Size Index: ${bldData.sizeIndex}</div>
         <div style="font-size:12px;color:var(--sub)">${bldPeriod==='week'?'This week':bldPeriod==='month'?'This month':'This quarter'}</div>
+        <div style="text-align:right;font-size:12px;color:var(--sub)">${sqm}</div>
+        <div style="font-size:12px;color:var(--sub)"></div>
         <div style="text-align:right;font-size:12px;color:var(--sub)">Workload: ${bldData.issueLoad}</div>
+        ${metaLeft.slice(2).map(m=>`<div style="font-size:12px;color:var(--sub)">${m}</div><div></div>`).join('')}
         <div style="grid-column:1/-1;border-top:1px solid var(--border);margin-top:6px;padding-top:8px;font-size:11px;color:var(--muted);font-family:monospace">${bldData.formulaStr}</div>
       </div>
       <div class="bc-body">
