@@ -553,6 +553,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
+    <div id="role-legend" style="padding:12px 16px 0"></div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="usearch" placeholder="Search team…" oninput="setPage('usr',1);renderUsers()"/></div>
     <div id="usr-list"></div>
   </div>
@@ -1804,7 +1805,7 @@ function navTo(s){
   if(s==='dashboard')   renderDash();
   if(s==='tickets')     renderTix();
   if(s==='assets')      renderAst();
-  if(s==='users')       renderUsers();
+  if(s==='users')       {renderRoleLegend();renderUsers();}
   if(s==='buildings')   renderBlds();
   if(s==='suppliers')   renderSuppliers();
   if(s==='inspections') renderInspections();
@@ -4027,6 +4028,18 @@ async function saveAst(){
    USERS
 ══════════════════════════════════════════════════════════ */
 function goUsrPage(p){setPage('usr',p);renderUsers();}
+function renderRoleLegend(){
+  const el=document.getElementById('role-legend');
+  if(!el) return;
+  el.innerHTML=Object.entries(ROLE_DESC).map(([role,desc])=>{
+    const col=ROLE_COLORS[role]||'#3B82F6';
+    const cls=ROLE_CLASS[role]||'';
+    return`<div style="display:flex;gap:8px;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--border)">
+      <span class="role-badge ${cls}" style="flex-shrink:0">${role}</span>
+      <span style="font-size:11px;color:var(--muted);line-height:1.4">${desc}</span>
+    </div>`;
+  }).join('');
+}
 function renderUsers(){
   const q=(document.getElementById('usearch')?.value||'').toLowerCase();
   let list=DB.users;
@@ -4043,7 +4056,6 @@ function renderUsers(){
       <div style="flex:1;min-width:0">
         <div class="uc-name">${u.name}</div>
         <div class="uc-sub">${u.email}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4">${ROLE_DESC[u.role]||''}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
         <span class="role-badge ${ROLE_CLASS[u.role]}">${u.role}</span>
