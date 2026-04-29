@@ -4632,15 +4632,14 @@ function openBldDetail(id){
 }
 
 function calcBldScore(b){
-  // Uses same logic as the dashboard pressure widget
-  const now=new Date();
-  const cutoff=new Date(now.getTime()-90*24*60*60*1000);
   const floors  = DB.floors.filter(f=>f.buildingId===b.id).length;
   const units   = DB.units.filter(u=>u.buildingId===b.id).length;
+  const workspace = b.units||0;
   const assets  = DB.assets.filter(a=>a.buildingId===b.id).length;
+  const sizeIndex = floors*3 + units*2 + workspace*1 + assets*0.5;
+  if(!sizeIndex) return null;
   const openTix = DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed').length;
   const activeInsp = DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed').length;
-  const recentLogs = DB.logs.filter(r=>r.buildingId===b.id&&r.date&&new Date(r.date)>=cutoff).length;
   const failedFromInsp=new Set();
   DB.inspections.filter(i=>i.buildingId===b.id).forEach(insp=>{
     (insp.items||[]).forEach(item=>{if(item.result==='Failed'&&item.assetId)failedFromInsp.add(item.assetId);});
@@ -4651,31 +4650,9 @@ function calcBldScore(b){
     if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned'))failedFromTix.add(t.assetId);
   });
   const failedAssets=new Set([...failedFromInsp,...failedFromTix]).size;
-  const activityScore=(openTix*4)+(activeInsp*3)+(recentLogs*1)+(failedAssets*5);
-  if(!activityScore) return null;
-  // Size-adjusted: normalise per building relative to all buildings
-  const allSizes=DB.buildings.map(x=>DB.floors.filter(f=>f.buildingId===x.id).length+DB.units.filter(u=>u.buildingId===x.id).length+(DB.assets.filter(a=>a.buildingId===x.id).length*0.5));
-  const avgSize=allSizes.length?allSizes.reduce((a,v)=>a+v,0)/allSizes.length:1;
-  const mySize=floors+units+(assets*0.5);
-  const sizeFactor=Math.max(mySize/avgSize,0.5);
-  const rawScore=activityScore/sizeFactor;
-  // Express as % relative to max across all buildings
-  const allScores=DB.buildings.map(x=>{
-    const f=DB.floors.filter(f=>f.buildingId===x.id).length,u=DB.units.filter(u=>u.buildingId===x.id).length,a=DB.assets.filter(a=>a.buildingId===x.id).length;
-    const oT=DB.tickets.filter(t=>t.buildingId===x.id&&t.status!=='Closed').length;
-    const aI=DB.inspections.filter(i=>i.buildingId===x.id&&i.status!=='Closed').length;
-    const rL=DB.logs.filter(r=>r.buildingId===x.id&&r.date&&new Date(r.date)>=cutoff).length;
-    const fI=new Set(),fT=new Set();
-    DB.inspections.filter(i=>i.buildingId===x.id).forEach(insp=>{(insp.items||[]).forEach(it=>{if(it.result==='Failed'&&it.assetId)fI.add(it.assetId);});});
-    DB.tickets.filter(t=>t.buildingId===x.id&&t.status!=='Closed'&&t.assetId).forEach(t=>{const ast=DB.assets.find(a=>a.id===t.assetId);if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned'))fT.add(t.assetId);});
-    const fA=new Set([...fI,...fT]).size;
-    const act=(oT*4)+(aI*3)+(rL*1)+(fA*5);
-    if(!act) return 0;
-    const sz=Math.max((f+u+(a*0.5))/avgSize,0.5);
-    return act/sz;
-  });
-  const maxScore=Math.max(...allScores,1);
-  return Math.round((1-(rawScore/maxScore))*100);
+  const issueLoad=(openTix*4)+(failedAssets*5)+(activeInsp*3);
+  const raw=issueLoad/sizeIndex*50;
+  return Math.max(0,Math.min(100,Math.round(100-raw)));
 }
 function renderBlds(){
   const q=(document.getElementById('bld-search')?.value||'').toLowerCase();
@@ -4693,7 +4670,7 @@ function renderBlds(){
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
     const score=calcBldScore(b);
     const scoreColor=score===null?'var(--muted)':score>=70?'var(--green)':score>=40?'var(--amber)':'var(--red)';
-    const scoreBadge=score!==null?`<span style="font-size:12px;color:var(--muted)">Healthscore </span><span style="font-size:12px;font-weight:700;color:${scoreColor}">${score}%</span>`:'';
+    const scoreBadge=score!==null?`<span style="font-size:12px;color:var(--muted)">Healthscore </span><span style="font-size:12px;font-weight:700;color:${scoreColor}">${score}%</span>`:`<span style="font-size:12px;color:var(--muted)">Healthscore </span><span style="font-size:12px;font-weight:700;color:var(--green)">100%</span>`;
     return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
       <div class="bc-hdr">
         <div style="min-width:0;flex:1"><div class="bc-name">${b.name}</div></div>
