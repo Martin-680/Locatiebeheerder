@@ -4675,7 +4675,7 @@ function calcBldScore(b){
     return act/sz;
   });
   const maxScore=Math.max(...allScores,1);
-  return Math.round((rawScore/maxScore)*100);
+  return Math.round((1-(rawScore/maxScore))*100);
 }
 function renderBlds(){
   const q=(document.getElementById('bld-search')?.value||'').toLowerCase();
@@ -4692,7 +4692,7 @@ function renderBlds(){
     const unitCount=DB.units.filter(u=>u.buildingId===b.id).length;
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
     const score=calcBldScore(b);
-    const scoreColor=score===null?'var(--muted)':score>=70?'var(--red)':score>=40?'var(--amber)':'var(--green)';
+    const scoreColor=score===null?'var(--muted)':score>=70?'var(--green)':score>=40?'var(--amber)':'var(--red)';
     const scoreBadge=score!==null?`<span style="font-size:12px;color:var(--muted)">Healthscore </span><span style="font-size:12px;font-weight:700;color:${scoreColor}">${score}%</span>`:'';
     return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
       <div class="bc-hdr">
