@@ -4632,29 +4632,36 @@ function openBldDetail(id){
   navTo('floor');
 }
 
-function calcBldScore(b){
-  const floors  = DB.floors.filter(f=>f.buildingId===b.id).length;
-  const units   = DB.units.filter(u=>u.buildingId===b.id).length;
+function calcBldData(b){
+  const units     = DB.units.filter(u=>u.buildingId===b.id).length;
   const workspace = b.units||0;
-  const assets  = DB.assets.filter(a=>a.buildingId===b.id).length;
-  const sizeIndex = floors*3 + units*2 + workspace*1 + assets*0.5;
-  if(!sizeIndex) return null;
-  const openTix = DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed').length;
-  const activeInsp = DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed').length;
-  const failedFromInsp=new Set();
-  DB.inspections.filter(i=>i.buildingId===b.id).forEach(insp=>{
-    (insp.items||[]).forEach(item=>{if(item.result==='Failed'&&item.assetId)failedFromInsp.add(item.assetId);});
-  });
-  const failedFromTix=new Set();
-  DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&t.assetId).forEach(t=>{
-    const ast=DB.assets.find(a=>a.id===t.assetId);
-    if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned'))failedFromTix.add(t.assetId);
-  });
-  const failedAssets=new Set([...failedFromInsp,...failedFromTix]).size;
+  const assets    = DB.assets.filter(a=>a.buildingId===b.id).length;
+  const sqm       = parseFloat(b.size)||0;
+  let sizeIndex, baseVal, unitD, workD, assetD, formulaStr;
+  if(sqm>0){
+    baseVal  = sqm/100;
+    unitD    = (units/sqm)*1000;
+    workD    = (workspace/sqm)*1000;
+    assetD   = (assets/sqm)*1000;
+    sizeIndex= baseVal+unitD+workD+assetD;
+    formulaStr=`m²/100 (${baseVal.toFixed(1)}) + units/1000m² (${unitD.toFixed(1)}) + workspace/1000m² (${workD.toFixed(1)}) + assets/1000m² (${assetD.toFixed(1)})`;
+  } else {
+    const floors=DB.floors.filter(f=>f.buildingId===b.id).length;
+    sizeIndex=floors*3+units*2+workspace*1+assets*0.5;
+    formulaStr=`floors×3 (${floors*3}) + units×2 (${units*2}) + workspace (${workspace}) + assets×0.5 (${(assets*0.5).toFixed(1)})`;
+  }
+  const openTix=DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed').length;
+  const activeInsp=DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed').length;
+  const fI=new Set(),fT=new Set();
+  DB.inspections.filter(i=>i.buildingId===b.id).forEach(insp=>{(insp.items||[]).forEach(it=>{if(it.result==='Failed'&&it.assetId)fI.add(it.assetId);});});
+  DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&t.assetId).forEach(t=>{const ast=DB.assets.find(a=>a.id===t.assetId);if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned'))fT.add(t.assetId);});
+  const failedAssets=new Set([...fI,...fT]).size;
   const issueLoad=(openTix*4)+(failedAssets*5)+(activeInsp*3);
-  const raw=issueLoad/sizeIndex*50;
-  return Math.max(0,Math.min(100,Math.round(100-raw)));
+  const roundedIdx=Math.round(sizeIndex);
+  const score=roundedIdx>0?Math.max(0,Math.min(100,Math.round(100-issueLoad/sizeIndex*50))):100;
+  return{score,sizeIndex:roundedIdx,issueLoad,formulaStr};
 }
+function calcBldScore(b){ return calcBldData(b).score; }
 function renderBlds(){
   const q=(document.getElementById('bld-search')?.value||'').toLowerCase();
   const statusVal=document.getElementById('sel-bld-status')?.value||'All';
@@ -4669,18 +4676,9 @@ function renderBlds(){
     const floorCount=DB.floors.filter(f=>f.buildingId===b.id).length;
     const unitCount=DB.units.filter(u=>u.buildingId===b.id).length;
     const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
-    const score=calcBldScore(b);
-    const scoreColor=score===null?'var(--muted)':score>=70?'var(--green)':score>=40?'var(--amber)':'var(--red)';
-    const displayScore=score!==null?score:100;
-    const displayColor=score!==null?scoreColor:'var(--green)';
-    const sizeIndex=Math.round(floorCount*3+unitCount*2+(b.units||0)*1+DB.assets.filter(a=>a.building===b.name).length*0.5);
-    const openTixCount=DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed').length;
-    const activeInspCount=DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed').length;
-    const fI=new Set(),fT=new Set();
-    DB.inspections.filter(i=>i.buildingId===b.id).forEach(insp=>{(insp.items||[]).forEach(it=>{if(it.result==='Failed'&&it.assetId)fI.add(it.assetId);});});
-    DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&t.assetId).forEach(t=>{const ast=DB.assets.find(a=>a.id===t.assetId);if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned'))fT.add(t.assetId);});
-    const failedCount=new Set([...fI,...fT]).size;
-    const issueLoad=openTixCount*4+failedCount*5+activeInspCount*3;
+    const bldData=calcBldData(b);
+    const displayScore=bldData.score;
+    const displayColor=displayScore>=70?'var(--green)':displayScore>=40?'var(--amber)':'var(--red)';
     const sqm=b.size?Number(b.size).toLocaleString('nl-NL')+' m²':'—';
     return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
       <div class="bc-hdr" style="align-items:flex-start">
@@ -4691,10 +4689,11 @@ function renderBlds(){
         </div>
         <div style="text-align:right;flex-shrink:0;margin-left:12px">
           <div style="font-size:12px;color:var(--muted)">Healthscore <span style="font-weight:700;color:${displayColor}">${displayScore}%</span></div>
-          <div class="cm" style="padding:0;margin-top:2px">Size index: ${sizeIndex}</div>
-          <div class="cm" style="padding:0;margin-top:1px">Issue load: ${issueLoad}</div>
+          <div class="cm" style="padding:0;margin-top:2px">Size index: ${bldData.sizeIndex}</div>
+          <div class="cm" style="padding:0;margin-top:1px">Issue load: ${bldData.issueLoad}</div>
         </div>
       </div>
+      <div class="cm" style="padding:0;margin-top:6px;font-family:monospace">${bldData.formulaStr}</div>
       <div class="bc-body">
         <div class="bs"><div class="bs-val">${floorCount}</div><div class="bs-lbl">Floors</div></div>
         <div class="bs"><div class="bs-val">${unitCount}</div><div class="bs-lbl">Units</div></div>
