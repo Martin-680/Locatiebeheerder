@@ -3126,18 +3126,6 @@ function clearUnitFilters(){
 }
 /* ── Tickets filter modal ── */
 function openTixFilterModal(){
-  // Populate building
-  const mBldg = document.getElementById('mf-tix-bldg');
-  if(mBldg){
-    const cur = document.getElementById('sel-tix-bldg')?.value || 'All';
-    mBldg.innerHTML = '<option value="All">All Buildings</option>' +
-      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
-        .map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
-    mBldg.value = cur;
-    onMfTixBldgChange(true);
-    const mFloor = document.getElementById('mf-tix-floor');
-    if(mFloor) mFloor.value = document.getElementById('sel-tix-floor')?.value || 'All';
-  }
   // Populate category
   const mCat = document.getElementById('mf-tix-cat');
   if(mCat){
@@ -3155,8 +3143,8 @@ function openTixFilterModal(){
         .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
     mSup.value = cur;
   }
-  // Sync remaining
-  ['status','pri','sort','type'].forEach(k=>{
+  // Sync status and type
+  ['status','type'].forEach(k=>{
     const mEl=document.getElementById('mf-tix-'+k);
     const hEl=document.getElementById('sel-tix-'+k);
     if(mEl&&hEl) mEl.value=hEl.value;
@@ -3168,23 +3156,18 @@ function openTixFilterModal(){
   if(dtTo)   dtTo.value   = document.getElementById('sel-tix-date-to')?.value   || '';
   openMo('mo-tix-filter');
 }
-function onMfTixBldgChange(silent){
-  const bldg = document.getElementById('mf-tix-bldg')?.value || 'All';
-  const mFloor = document.getElementById('mf-tix-floor');
-  if(!mFloor) return;
-  if(bldg === 'All'){
-    mFloor.innerHTML = '<option value="All">All Floors</option>';
-  } else {
-    const floors = getFloorsForBuilding(bldg);
-    mFloor.innerHTML = '<option value="All">All Floors</option>' +
-      floors.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
-  }
-}
 function applyTixFilterModal(){
-  ['status','pri','cat','bldg','floor','sort','sup','type'].forEach(k=>{
-    const mVal=document.getElementById('mf-tix-'+k)?.value||(k==='sort'?'newest':'All');
+  ['status','cat','sup','type'].forEach(k=>{
+    const mVal=document.getElementById('mf-tix-'+k)?.value||'All';
     const hSel=document.getElementById('sel-tix-'+k);
-    if(hSel) hSel.value=mVal;
+    if(!hSel) return;
+    if(mVal!=='All' && !hSel.querySelector(`option[value="${mVal}"]`)){
+      const mEl=document.getElementById('mf-tix-'+k);
+      const label=mEl?.querySelector(`option[value="${mVal}"]`)?.textContent||mVal;
+      const opt=document.createElement('option'); opt.value=mVal; opt.textContent=label;
+      hSel.appendChild(opt);
+    }
+    hSel.value=mVal;
   });
   // Apply date range
   const hFrom = document.getElementById('sel-tix-date-from');
@@ -3196,7 +3179,7 @@ function applyTixFilterModal(){
   renderTix();
 }
 function updateTixFilterBadge(){
-  const filterIds = ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup','sel-tix-type'];
+  const filterIds = ['sel-tix-status','sel-tix-cat','sel-tix-sup','sel-tix-type'];
   const sortDefault = 'newest';
   const dateFrom = document.getElementById('sel-tix-date-from')?.value || '';
   const dateTo   = document.getElementById('sel-tix-date-to')?.value   || '';
@@ -7155,36 +7138,11 @@ function calDayClick(dateStr){
         </select>
       </div>
     </div>
-    <div class="fg"><label>Priority</label>
-      <select class="fi2" id="mf-tix-pri">
-        <option value="All">All Priorities</option>
-        <option value="Critical">Critical</option>
-        <option value="High">High</option>
-        <option value="Medium">Medium</option>
-        <option value="Low">Low</option>
-      </select>
-    </div>
     <div class="fg"><label>Category</label>
       <select class="fi2" id="mf-tix-cat"><option value="All">All Categories</option></select>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="padding:0"><label>Building</label>
-        <select class="fi2" id="mf-tix-bldg" onchange="onMfTixBldgChange()"><option value="All">All Buildings</option></select>
-      </div>
-      <div class="fg" style="padding:0"><label>Floor</label>
-        <select class="fi2" id="mf-tix-floor"><option value="All">All Floors</option></select>
-      </div>
-    </div>
     <div class="fg"><label>Supplier</label>
       <select class="fi2" id="mf-tix-sup"><option value="All">All Suppliers</option></select>
-    </div>
-    <div class="fg"><label>Sort</label>
-      <select class="fi2" id="mf-tix-sort">
-        <option value="newest">&#x2193; Newest first</option>
-        <option value="oldest">&#x2191; Oldest first</option>
-        <option value="priority">By priority</option>
-        <option value="days">&#x23f1; Most overdue</option>
-      </select>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="padding:0"><label>Date from</label>
