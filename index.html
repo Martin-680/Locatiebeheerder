@@ -7110,18 +7110,6 @@ function calDayClick(dateStr){
       <button class="mt-close" onclick="closeMo('mo-tix-filter')">&#x2715;</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="padding:0"><label>Status</label>
-        <select class="fi2" id="mf-tix-status">
-          <option value="All">All Statuses</option>
-          <option value="Open">Open</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Closed">Closed</option>
-          <option value="Planned">Planned</option>
-          <option value="Requested">Requested</option>
-          <option value="Ordered">Ordered</option>
-          <option value="mine">Assigned to Me</option>
-        </select>
-      </div>
       <div class="fg" style="padding:0"><label>Type</label>
         <select class="fi2" id="mf-tix-type">
           <option value="All">All Types</option>
@@ -7137,12 +7125,26 @@ function calDayClick(dateStr){
           <option value="verhuizing">Verhuizing</option>
         </select>
       </div>
+      <div class="fg" style="padding:0"><label>Category</label>
+        <select class="fi2" id="mf-tix-cat"><option value="All">All Categories</option></select>
+      </div>
     </div>
-    <div class="fg"><label>Category</label>
-      <select class="fi2" id="mf-tix-cat"><option value="All">All Categories</option></select>
-    </div>
-    <div class="fg"><label>Supplier</label>
-      <select class="fi2" id="mf-tix-sup"><option value="All">All Suppliers</option></select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
+      <div class="fg" style="padding:0"><label>Status</label>
+        <select class="fi2" id="mf-tix-status">
+          <option value="All">All Statuses</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Closed">Closed</option>
+          <option value="Planned">Planned</option>
+          <option value="Requested">Requested</option>
+          <option value="Ordered">Ordered</option>
+          <option value="mine">Assigned to Me</option>
+        </select>
+      </div>
+      <div class="fg" style="padding:0"><label>Supplier</label>
+        <select class="fi2" id="mf-tix-sup"><option value="All">All Suppliers</option></select>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
       <div class="fg" style="padding:0"><label>Date from</label>
