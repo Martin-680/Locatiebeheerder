@@ -830,6 +830,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
     <div id="log-filter-chips" style="padding:6px 14px 0;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="log-bldg-btns" style="display:none;padding:6px 14px 0;gap:8px"></div>
+    <div id="log-debug-panel" style="display:none;margin:8px 14px;padding:12px 14px;background:#F8FAFF;border:1.5px solid #B5D4F4;border-radius:10px;font-size:11px;font-family:monospace;color:#0C447C;line-height:1.7;white-space:pre-wrap;word-break:break-all"></div>
     <div id="log-list"></div>
   </div>
 
@@ -1632,9 +1633,10 @@ async function loadAllData(){
     const unt = DB.units.find(u=>u.id===r.unitId);
     const ast = DB.assets.find(a=>a.id===r.assetId);
     const sup = DB.suppliers.find(s=>s.id===r.supplierId);
-    const cat = DB.categories.find(c=>c.id===r.categoryId);
+    const cat = DB.categories.find(c=>c.id===r.categoryId) || DB.categories.find(c=>c.category.toLowerCase()===(r.categoryId||'').toLowerCase());
     return {
       ...r,
+      categoryId  : cat ? cat.id : r.categoryId,
       building    : bld ? bld.name  : r.buildingId,
       floor       : flr ? flr.label : r.floorId,
       unit        : unt ? unt.label : r.unitId,
@@ -6172,6 +6174,14 @@ function renderLogbook(){
   // Update filter badge + chips
   updateLogFilterBadge();
 
+  // ── In-app debug panel ──
+  const _dbgEl = document.getElementById('log-debug-panel');
+  if(_dbgEl){
+    const _catRows = DB.categories.map(c=>`  ${c.id} → "${c.category}"`).join('\n') || '  (no categories loaded)';
+    const _logRows = DB.logs.slice(0,8).map(r=>`  ${r.id}: categoryId="${r.categoryId}" categoryName="${r.categoryName}"`).join('\n') || '  (no log entries)';
+    _dbgEl.style.display = 'block';
+    _dbgEl.textContent = `Categories in DB (${DB.categories.length}):\n${_catRows}\n\nFirst log entries (${DB.logs.length} total):\n${_logRows}`;
+  }
   let rows = DB.logs.slice().sort((a,z)=>
     logSort === 'alpha'
       ? (a.subject||'').localeCompare(z.subject||'')
