@@ -6232,13 +6232,13 @@ function renderLogbook(){
   let html = '<div class="tlist">';
   slice.forEach(r=>{
     const tc  = LOG_TYPE_COLORS[r.type] || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
-    const typeSpan = r.type ? `<span onclick="quickFilterLog('sel-log-type','${r.type}','${r.type}',event)" style="font-size:11px;font-weight:600;color:${tc.color};cursor:pointer;white-space:nowrap" title="Filter by type">${r.type}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
+    const typeSpan = r.type ? `<span onclick="quickFilterLog('sel-log-type','${r.type}','${r.type}',event)" style="font-size:11px;font-weight:600;color:${tc.color};cursor:pointer;white-space:nowrap" title="Filter by type">${r.type}</span>` : `<span style="font-size:11px;color:var(--muted)">—</span>`;
     const bldLabel = r.building || '—';
-    const bldSpan  = r.buildingId ? `<span onclick="quickFilterLog('sel-log-bldg','${r.buildingId}','${bldLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
+    const bldSpan  = r.buildingId ? `<span onclick="quickFilterLog('sel-log-bldg','${r.buildingId}','${bldLabel.replace(/'/g,"\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
     const supLabel = r.supplierName || '—';
-    const supSpan  = r.supplierId ? `<span onclick="quickFilterLog('sel-log-sup','${r.supplierId}','${supLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supLabel}</span>` : '—';
+    const supSpan  = r.supplierId ? `<span onclick="quickFilterLog('sel-log-sup','${r.supplierId}','${supLabel.replace(/'/g,"\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supLabel}</span>` : '—';
     html += `<div class="ti" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:11px 14px" onclick="editLogEntry('${r.id}')">
-        <div class="ct" style="color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.subject||'\u2014'}</div>
+      <div>
         <div class="ct" style="color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.subject||'—'}</div>
         <div style="font-size:11px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bldSpan}</div>
       </div>
