@@ -5859,33 +5859,14 @@ const LOG_STATUS_COLORS = {
 /* ── Logbook filter modal helpers ── */
 
 function openLogFilterModal(){
-  // Populate building list
-  const mBldg = document.getElementById('mf-log-bldg');
-  if(mBldg){
-    const cur = document.getElementById('sel-log-bldg')?.value || 'All';
-    mBldg.innerHTML = '<option value="All">All Buildings</option>' +
-      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
-        .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
-    mBldg.value = cur;
-    // Sync cascading selects into modal
-    onMfLogBldgChange(true);
-    const mFloor = document.getElementById('mf-log-floor');
-    if(mFloor) mFloor.value = document.getElementById('sel-log-floor')?.value || 'All';
-    onMfLogFloorChange(true);
-    const mUnit = document.getElementById('mf-log-unit');
-    if(mUnit) mUnit.value = document.getElementById('sel-log-unit')?.value || 'All';
-    onMfLogUnitChange(true);
-    const mAsset = document.getElementById('mf-log-asset');
-    if(mAsset) mAsset.value = document.getElementById('sel-log-asset')?.value || 'All';
-    // Populate supplier
-    const mSup = document.getElementById('mf-log-sup');
-    if(mSup){
-      const cur = document.getElementById('sel-log-sup')?.value || 'All';
-      mSup.innerHTML = '<option value="All">All Suppliers</option>' +
-        [...DB.suppliers].sort((a,z)=>a.name.localeCompare(z.name))
-          .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-      mSup.value = cur;
-    }
+  // Populate supplier
+  const mSup = document.getElementById('mf-log-sup');
+  if(mSup){
+    const curSup = document.getElementById('sel-log-sup')?.value || 'All';
+    mSup.innerHTML = '<option value="All">All Suppliers</option>' +
+      [...DB.suppliers].sort((a,z)=>a.name.localeCompare(z.name))
+        .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    mSup.value = curSup;
   }
   // Sync type & status
   const mType   = document.getElementById('mf-log-type');
