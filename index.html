@@ -5207,7 +5207,7 @@ function renderInspections(){
   updateInspFilterBadge();
 
   const inspQ = (document.getElementById('insp-search')?.value || '').toLowerCase().trim();
-  let list = [...DB.inspections].sort((a,b)=> inspSort==='alpha' ? (a.title||a.id||'').localeCompare(b.title||b.id||'') : (b.dateStart||'') > (a.dateStart||'') ? 1 : -1);
+  let list = [...DB.inspections].sort((a,b)=> inspSort==='alpha' ? (a.building||'').localeCompare(b.building||'') : (b.dateStart||'') > (a.dateStart||'') ? 1 : -1);
   const _inspBldIds=getUserBuildingIds(); if(_inspBldIds.size) list=list.filter(r=>_inspBldIds.has(r.buildingId));
   if(statusVal !== 'All') list = list.filter(r => r.status === statusVal);
   if(bldgVal   !== 'All') list = list.filter(r => r.buildingId === bldgVal);
