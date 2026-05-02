@@ -4160,9 +4160,13 @@ async function saveUser(){
   const name=document.getElementById('uf-name').value.trim();
   const email=document.getElementById('uf-email').value.trim().toLowerCase();
   if(!name||!email){toast('Name and email required','err');return;}
-  const data={name,role:document.getElementById('uf-role').value,email,phone:document.getElementById('uf-phone').value,buildings:document.getElementById('uf-bldgs').value,active:document.getElementById('uf-active').value==='true'};
+  const data={name,role:document.getElementById('uf-role').value,email,phone:document.getElementById('uf-phone').value,buildings:document.getElementById('uf-bldgs').value.split(',').map(s=>s.trim()).filter(Boolean).join(', '),active:document.getElementById('uf-active').value==='true'};
   if(editingId.usr){ Object.assign(DB.users.find(x=>x.id===editingId.usr),data); }
   else { DB.users.push({id:nextId(DB.users,'USR'),...data}); }
+  // Keep currentUser in sync if the signed-in user edited their own record
+  if(currentUser && (editingId.usr===currentUser.id || email===currentUser.email)){
+    currentUser = DB.users.find(x=>x.email===email) || currentUser;
+  }
   closeMo('mo-usr');
   await writeSheet('users');
   toast(editingId.usr?'User updated':'User added');
@@ -6137,10 +6141,7 @@ function setLogSeg(v){
 function renderLogBldgBtns(){
   const wrap = document.getElementById('log-bldg-btns');
   if(!wrap) return;
-  const unrestrictedRoles = ['Property Manager','Admin'];
-  if(!currentUser || unrestrictedRoles.includes(currentUser.role)){
-    wrap.style.display = 'none'; return;
-  }
+  if(!currentUser){ wrap.style.display = 'none'; return; }
   const raw = (currentUser.buildings||'').trim();
   if(!raw){ wrap.style.display = 'none'; return; }
   const names = raw.split(',').map(s=>s.trim()).filter(Boolean);
