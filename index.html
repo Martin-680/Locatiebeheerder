@@ -1972,7 +1972,7 @@ function navTo(s){
   if(s==='users')       {renderRoleLegend();renderUsers();}
   if(s==='buildings')   renderBlds();
   if(s==='suppliers')   renderSuppliers();
-  if(s==='inspections') renderInspections();
+  if(s==='inspections') { inspSort='date'; const _sb=document.getElementById('insp-sort-btn');if(_sb){_sb.textContent='A–Z';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';} renderInspections(); }
   if(s==='units')       renderUnits();
   if(s==='floors')      renderFloors();
   if(s==='logbook')     { logActiveBldg=null; logSort='date'; renderLogbook(); }
@@ -3449,9 +3449,21 @@ function removeInspFilter(id){
   setPage('insp',1); renderInspections();
 }
 
+let inspSort = 'date'; // 'date' | 'alpha'
 let tixSort = 'date'; // 'date' | 'alpha'
 let tixActiveBldg = null;
 
+function toggleInspSort(){
+  inspSort = inspSort === 'date' ? 'alpha' : 'date';
+  const btn = document.getElementById('insp-sort-btn');
+  if(btn){
+    btn.textContent = inspSort === 'alpha' ? 'A–Z' : '0–9';
+    btn.style.color = inspSort === 'alpha' ? 'var(--blue)' : 'var(--sub)';
+    btn.style.borderColor = inspSort === 'alpha' ? 'rgba(37,99,235,.4)' : '';
+    btn.style.background  = inspSort === 'alpha' ? 'rgba(37,99,235,.08)' : '';
+  }
+  setPage('insp',1); renderInspections();
+}
 function toggleTixSort(){
   tixSort = tixSort === 'date' ? 'alpha' : 'date';
   const btn = document.getElementById('tix-sort-btn');
@@ -5136,6 +5148,8 @@ let activeRound = null; // { inspId, building, floor, category, items:[{assetId,
 
 /* ── List view ── */
 function clearInspFilters(){
+  inspSort='date';
+  const _sbi=document.getElementById('insp-sort-btn');if(_sbi){_sbi.textContent='A–Z';_sbi.style.color='';_sbi.style.borderColor='';_sbi.style.background='';}
   ['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='All';
   });
@@ -5192,7 +5206,7 @@ function renderInspections(){
   updateInspFilterBadge();
 
   const inspQ = (document.getElementById('insp-search')?.value || '').toLowerCase().trim();
-  let list = [...DB.inspections].sort((a,b)=> (b.dateStart||'') > (a.dateStart||'') ? 1 : -1);
+  let list = [...DB.inspections].sort((a,b)=> inspSort==='alpha' ? (a.title||a.id||'').localeCompare(b.title||b.id||'') : (b.dateStart||'') > (a.dateStart||'') ? 1 : -1);
   const _inspBldIds=getUserBuildingIds(); if(_inspBldIds.size) list=list.filter(r=>_inspBldIds.has(r.buildingId));
   if(statusVal !== 'All') list = list.filter(r => r.status === statusVal);
   if(bldgVal   !== 'All') list = list.filter(r => r.buildingId === bldgVal);
