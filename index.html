@@ -814,25 +814,19 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <input type="hidden" id="sel-log-date-from" value="">
     <input type="hidden" id="sel-log-date-to" value="">
 
-    <div style="padding:8px 14px 0;display:flex;align-items:center;gap:8px">
+    <div style="padding:4px 14px 8px;font-size:12px;color:var(--sub);line-height:1.5">For recording events or observations that don't require action, such as a tenant visit, a meter reading, or a routine check.</div>
+    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center">
       <div style="flex:1;position:relative">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="log-search" placeholder="Search entries…" oninput="setPage('log',1);renderLogbook()" style="width:100%;padding:8px 10px 8px 32px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;background:var(--surface);color:var(--text)"/>
       </div>
       <button class="btn-clear-filter" id="log-clear-btn" onclick="clearLogFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
-    </div>
-    <div style="padding:8px 14px 0;display:flex;align-items:center;gap:8px">
-      <button id="log-filter-btn" onclick="openLogFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
+      <button id="log-filter-btn" onclick="openLogFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);flex-shrink:0;transition:all .15s">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
         Filters<span id="log-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
       </button>
     </div>
-    <div id="log-filter-chips" style="padding:6px 14px 0;display:none;flex-wrap:wrap;gap:6px"></div>
-    <div style="padding:10px 14px 4px;display:flex;gap:8px">
-      <button id="log-seg-all"     onclick="setLogSeg('All')"     style="flex:1;padding:7px 0;border-radius:var(--rs);font-size:12px;font-weight:600;border:1.5px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;transition:all .15s">All</button>
-      <button id="log-seg-open"    onclick="setLogSeg('open')"    style="flex:1;padding:7px 0;border-radius:var(--rs);font-size:12px;font-weight:600;border:1.5px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;transition:all .15s">Open</button>
-      <button id="log-seg-gesloten" onclick="setLogSeg('gesloten')" style="flex:1;padding:7px 0;border-radius:var(--rs);font-size:12px;font-weight:600;border:1.5px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;transition:all .15s">Gesloten</button>
-    </div>
+    <div id="log-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="log-list"></div>
   </div>
 
@@ -1199,7 +1193,11 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
     <div class="fg"><label>Google Email * <span style="color:var(--muted);font-weight:400;text-transform:none">(they sign in with this)</span></label><input class="fi2" type="email" id="uf-email" placeholder="user@gmail.com"/></div>
     <div class="fg"><label>Phone</label><input class="fi2" id="uf-phone" placeholder="555-XXXX"/></div>
-    <div class="fg"><label>Buildings Assigned</label><input class="fi2" id="uf-bldgs" placeholder="e.g. Maple Tower, All Buildings"/></div>
+    <div class="fg"><label>Buildings Assigned <span style="color:var(--muted);font-weight:400;text-transform:none">(leave empty = access all)</span></label>
+      <div id="uf-bldgs-wrap" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface);min-height:38px;cursor:pointer" onclick="toggleUfBldgDropdown()"></div>
+      <input type="hidden" id="uf-bldgs"/>
+      <div id="uf-bldgs-dd" style="display:none;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface);margin-top:4px;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
+    </div>
     <div class="fg"><label>Active</label><select class="fs2" id="uf-active"><option value="true">Yes</option><option value="false">No</option></select></div>
     <button class="btn-p" onclick="saveUser()">Save User</button>
     <button class="btn-s" onclick="closeMo('mo-usr')">Cancel</button>
@@ -1330,6 +1328,19 @@ const ROLE_COLORS = {'Property Manager':'#8B5CF6','Supervisor':'#06B6D4','Mainte
 const ROLE_CLASS  = {'Property Manager':'rb-manager','Supervisor':'rb-supervisor','Maintenance Tech':'rb-tech','Admin':'rb-admin','Contractor':'rb-contractor'};
 const ROLE_DESC   = {'Property Manager':'Full access — manages buildings, users, and all operations.','Supervisor':'Can create/close tickets and run inspections. Also manages assets, suppliers, and categories.','Maintenance Tech':'Can create/close tickets and run inspections.','Admin':'Manages users and buildings; no access to tickets or inspections.','Contractor':'Read-only access; assigned to specific jobs externally.'};
 function can(perm){ return currentUser && ROLES[currentUser.role]?.[perm]; }
+// Returns a Set of building IDs the current user may see.
+// Empty set = unrestricted (Property Manager / Admin, or no buildings assigned).
+function getUserBuildingIds(){
+  if(!currentUser) return new Set();
+  const unrestrictedRoles = ['Property Manager','Admin'];
+  if(unrestrictedRoles.includes(currentUser.role)) return new Set();
+  const raw = (currentUser.buildings||'').trim();
+  if(!raw) return new Set(); // no restriction if field is blank
+  const names = raw.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  const ids = new Set();
+  DB.buildings.forEach(b=>{ if(names.includes((b.name||'').trim().toLowerCase())) ids.add(b.id); });
+  return ids;
+}
 
 /* ══════════════════════════════════════════════════════════
    STATE
@@ -1746,7 +1757,7 @@ async function writeSheet(key){
    MODAL HELPERS
 ══════════════════════════════════════════════════════════ */
 function openMo(id){ document.getElementById(id)?.classList.add('open'); document.body.style.overflow='hidden'; }
-function closeMo(id){ document.getElementById(id)?.classList.remove('open'); document.body.style.overflow=''; }
+function closeMo(id){ document.getElementById(id)?.classList.remove('open'); document.body.style.overflow=''; if(id==='mo-usr'){const dd=document.getElementById('uf-bldgs-dd');if(dd)dd.style.display='none';} }
 function mcClick(e,id){ if(e.target.id===id) closeMo(id); }
 
 /* ══════════════════════════════════════════════════════════
@@ -1826,7 +1837,7 @@ function navTo(s){
   if(s==='inspections') renderInspections();
   if(s==='units')       renderUnits();
   if(s==='floors')      renderFloors();
-  if(s==='logbook')     { setLogSeg(document.getElementById('sel-log-status')?.value||'All'); }
+  if(s==='logbook')     renderLogbook();
   if(s==='stats')       {renderDash();renderStats();}
   if(s==='priorities')  {renderDash();renderPriorities();}
   if(s==='calendar')    renderCalendar();
@@ -3375,6 +3386,7 @@ function renderTix(){
   syncSelActive('sel-tix-status'); syncSelActive('sel-tix-pri'); syncSelActive('sel-tix-cat'); syncSelActive('sel-tix-bldg'); syncSelActive('sel-tix-floor');
   updateTixFilterBadge();
   let list=DB.tickets;
+  const _tixBldIds=getUserBuildingIds(); if(_tixBldIds.size) list=list.filter(t=>_tixBldIds.has(DB.buildings.find(b=>b.name===t.building)?.id));
   if(statusVal==='mine') list=list.filter(t=>t.assignedTo===currentUser?.name||t.createdBy===currentUser?.name);
   else if(statusVal==='notclosed') list=list.filter(t=>t.status!=='Closed');
   else if(statusVal!=='All') list=list.filter(t=>t.status===statusVal);
@@ -3872,6 +3884,7 @@ function renderAst(){
   syncSelActive('sel-ast-bldg'); syncSelActive('sel-ast-floor'); syncSelActive('sel-ast-unit'); syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat'); syncSelActive('sel-ast-tix-status');
   updateAstFilterBadge();
   let list=DB.assets;
+  const _astBldIds=getUserBuildingIds(); if(_astBldIds.size) list=list.filter(a=>_astBldIds.has(a.buildingId));
   if(bldVal!=='All')    list=list.filter(a=>a.buildingId===bldVal);
   if(floorVal!=='All')  list=list.filter(a=>a.floorId===floorVal);
   if(unitVal!=='All')   list=list.filter(a=>a.unitId===unitVal);
@@ -4085,6 +4098,7 @@ function openNewUser(){
   ['uf-name','uf-email','uf-phone','uf-bldgs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('uf-role').value='Maintenance Tech';
   document.getElementById('uf-active').value='true';
+  populateUfBldgDropdown();
   openMo('mo-usr');
 }
 function editUser(id){
@@ -4097,8 +4111,43 @@ function editUser(id){
   document.getElementById('uf-role').value=u.role;
   document.getElementById('uf-phone').value=u.phone||'';
   document.getElementById('uf-bldgs').value=u.buildings||'';
+  populateUfBldgDropdown();
   document.getElementById('uf-active').value=u.active?'true':'false';
   openMo('mo-usr');
+}
+function populateUfBldgDropdown(){
+  const wrap=document.getElementById('uf-bldgs-wrap');
+  const dd=document.getElementById('uf-bldgs-dd');
+  const hidden=document.getElementById('uf-bldgs');
+  if(!wrap||!dd||!hidden) return;
+  const selected=new Set((hidden.value||'').split(',').map(s=>s.trim()).filter(Boolean));
+  // Render pill wrap
+  wrap.innerHTML = selected.size
+    ? [...selected].map(n=>`<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(37,99,235,.1);color:var(--blue);border:1px solid rgba(37,99,235,.2);border-radius:20px;font-size:11px;font-weight:600;padding:2px 8px">${n}<span onclick="ufBldgRemove('${n.replace(/'/g,"\\'")}',event)" style="cursor:pointer;font-size:13px;line-height:1;margin-left:1px">×</span></span>`).join('')
+    : `<span style="font-size:13px;color:var(--muted)">All buildings</span>`;
+  // Render dropdown checkboxes
+  dd.innerHTML = [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>{
+    const chk=selected.has(b.name)?'checked':'';
+    return `<label style="display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)"><input type="checkbox" ${chk} onchange="ufBldgToggle('${b.name.replace(/'/g,"\\'")}',this.checked)" style="accent-color:var(--blue);width:15px;height:15px">${b.name}</label>`;
+  }).join('');
+}
+function toggleUfBldgDropdown(){
+  const dd=document.getElementById('uf-bldgs-dd');
+  if(!dd) return;
+  if(dd.style.display==='none'){ populateUfBldgDropdown(); dd.style.display='block'; }
+  else dd.style.display='none';
+}
+function ufBldgToggle(name, checked){
+  const hidden=document.getElementById('uf-bldgs');
+  if(!hidden) return;
+  const selected=new Set((hidden.value||'').split(',').map(s=>s.trim()).filter(Boolean));
+  checked ? selected.add(name) : selected.delete(name);
+  hidden.value=[...selected].join(', ');
+  populateUfBldgDropdown();
+}
+function ufBldgRemove(name,e){
+  e.stopPropagation();
+  ufBldgToggle(name,false);
 }
 async function saveUser(){
   const name=document.getElementById('uf-name').value.trim();
@@ -4209,7 +4258,9 @@ function renderUnits(){
   updateUnitFilterBadge();
 
   // Filter units
+  const _unitBldIds=getUserBuildingIds();
   let list = DB.units.filter(u => {
+    if(_unitBldIds.size && !_unitBldIds.has(u.buildingId)) return false;
     if(bldgVal !== 'All' && u.buildingId !== bldgVal) return false;
     if(floorVal !== 'All' && u.floorId !== floorVal) return false;
     if(q && !u.label.toLowerCase().includes(q)) return false;
@@ -4403,7 +4454,9 @@ function renderFloors(){
   const bldgVal = bldSel?.value || 'All';
   syncSelActive('sel-floor-bldg');
 
+  const _flrBldIds=getUserBuildingIds();
   let list = DB.floors.filter(f => {
+    if(_flrBldIds.size && !_flrBldIds.has(f.buildingId)) return false;
     if(bldgVal !== 'All' && f.buildingId !== bldgVal) return false;
     if(q && !f.label.toLowerCase().includes(q)) return false;
     return true;
@@ -4695,6 +4748,7 @@ function renderBlds(){
   const statusVal=document.getElementById('sel-bld-status')?.value||'All';
   updateBldFilterBadge();
   let list=DB.buildings.filter(b=>!q||b.name.toLowerCase().includes(q)||(b.address||'').toLowerCase().includes(q));
+  const _bldBldIds=getUserBuildingIds(); if(_bldBldIds.size) list=list.filter(b=>_bldBldIds.has(b.id));
   if(statusVal==='Active')  list=list.filter(b=>!DB.tickets.some(t=>t.building===b.name&&t.status!=='Closed'));
   if(statusVal==='Issues')  list=list.filter(b=> DB.tickets.some(t=>t.building===b.name&&t.status!=='Closed'));
   document.getElementById('bld-lbl').textContent=`${list.length} building${list.length!==1?'s':''}`;
@@ -4982,6 +5036,7 @@ function renderInspections(){
 
   const inspQ = (document.getElementById('insp-search')?.value || '').toLowerCase().trim();
   let list = [...DB.inspections].sort((a,b)=> (b.dateStart||'') > (a.dateStart||'') ? 1 : -1);
+  const _inspBldIds=getUserBuildingIds(); if(_inspBldIds.size) list=list.filter(r=>_inspBldIds.has(r.buildingId));
   if(statusVal !== 'All') list = list.filter(r => r.status === statusVal);
   if(bldgVal   !== 'All') list = list.filter(r => r.buildingId === bldgVal);
   if(floorVal  !== 'All') list = list.filter(r => r.floor === floorVal);
@@ -6054,23 +6109,6 @@ function quickFilterTix(field, value, label, e){
   renderTix();
 }
 
-function setLogSeg(v){
-  const sel = document.getElementById('sel-log-status');
-  if(sel){ sel.value = v; }
-  const styles = {
-    'All':      { border:'1.5px solid var(--border)',              background:'var(--card)',             color:'var(--sub)' },
-    'open':     { border:'1.5px solid rgba(239,68,68,.35)',        background:'rgba(239,68,68,.1)',       color:'var(--red)' },
-    'gesloten': { border:'1.5px solid rgba(16,185,129,.35)',       background:'rgba(16,185,129,.1)',      color:'var(--green)' }
-  };
-  ['All','open','gesloten'].forEach(k=>{
-    const btn = document.getElementById('log-seg-'+k);
-    if(!btn) return;
-    const s = (k===v) ? styles[k] : { border:'1.5px solid var(--border)', background:'var(--card)', color:'var(--sub)' };
-    Object.assign(btn.style, s);
-  });
-  setPage('log',1); renderLogbook();
-}
-
 function renderLogbook(){
   populateLogBldgFilter();
 
@@ -6088,6 +6126,7 @@ function renderLogbook(){
   updateLogFilterBadge();
 
   let rows = DB.logs.slice().sort((a,z)=>(z.date||'').localeCompare(a.date||''));
+  const _logBldIds=getUserBuildingIds(); if(_logBldIds.size) rows=rows.filter(r=>_logBldIds.has(r.buildingId));
   if(typeF   !== 'All') rows = rows.filter(r=>r.type===typeF);
   if(statusF !== 'All') rows = rows.filter(r=>r.status===statusF);
   if(bldgF   !== 'All') rows = rows.filter(r=>r.buildingId===bldgF);
@@ -6130,15 +6169,26 @@ function renderLogbook(){
   let html = '<div class="tlist">';
   slice.forEach(r=>{
     const tc  = LOG_TYPE_COLORS[r.type]    || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
-    const typeSpan = r.type ? `<span onclick="quickFilterLog('sel-log-type','${r.type}','${r.type}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color};cursor:pointer;white-space:nowrap" title="Filter by type">${r.type}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
+    const sc  = LOG_STATUS_COLORS[r.status]|| { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
+    const supLabel = r.supplierName && r.supplierName !== r.supplierId ? r.supplierName : (r.supplierId ? r.supplierName : '—');
     const bldLabel = r.building || '—';
-    const bldSpan  = r.buildingId ? `<span onclick="quickFilterLog('sel-log-bldg','${r.buildingId}','${bldLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
-    html += `<div class="ti" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;padding:11px 14px" onclick="editLogEntry('${r.id}')">
-      <div>
-        <div class="ct" style="color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.subject||'—'}</div>
-        <div style="font-size:11px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bldSpan}${r.floor?' · '+r.floor:''}${r.unit?' · '+r.unit:''}</div>
+    const catLabel = r.categoryName || '—';
+    const typeSpan   = r.type   ? `<span onclick="quickFilterLog('sel-log-type','${r.type}','${r.type}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color};cursor:pointer" title="Filter by type">${r.type}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
+    const statusSpan = r.status ? `<span onclick="quickFilterLog('sel-log-status','${r.status}','${r.status}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${sc.bg};color:${sc.color};cursor:pointer" title="Filter by status">${r.status}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
+    const supSpan    = r.supplierId ? `<span onclick="quickFilterLog('sel-log-sup','${r.supplierId}','${supLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supLabel}</span>` : '—';
+    const bldSpan    = r.buildingId ? `<span onclick="quickFilterLog('sel-log-bldg','${r.buildingId}','${bldLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
+    const catSpan    = r.categoryId ? `<span onclick="quickFilterLog('sel-log-cat','${r.categoryId}','${catLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by category">${catLabel}</span>` : catLabel;
+    html += `<div class="ti" style="flex-direction:column;padding:13px 14px;cursor:default" onclick="editLogEntry('${r.id}')">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 8px;width:100%;align-items:center">
+        <div class="ct" style="color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">${r.subject||'—'}</div>
+        <div style="text-align:center">${typeSpan}</div>
+        <div style="text-align:right">${statusSpan}</div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${typeSpan}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 8px;width:100%;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);align-items:center">
+        <div style="font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${supSpan}</div>
+        <div style="font-size:11px;color:var(--sub);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bldSpan}</div>
+        <div style="font-size:11px;color:var(--sub);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${catSpan}</div>
+      </div>
     </div>`;
   });
   html += '</div>';
