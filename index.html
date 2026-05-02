@@ -454,13 +454,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="topbar-inner">
         <div class="topbar-left"><div class="topbar-title">Tickets</div><div class="topbar-sub" id="tix-lbl"></div></div>
         <div class="topbar-actions">
+          <button class="ib" id="tix-sort-btn" onclick="toggleTixSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">A–Z</button>
           <button class="ib" onclick="openNewTicket()" id="btn-new-tix" style="display:none" title="New Ticket"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="ib" onclick="navTo('calendar')" title="Calendar"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><rect x="7" y="13" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="11" y="13" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="15" y="13" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="7" y="17" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="11" y="17" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/></svg></button>
           <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
         </div>
       </div>
     </div>
-    <div style="padding:4px 14px 8px;font-size:12px;color:var(--sub);line-height:1.5">For issues that need to be tracked, assigned, and resolved — like a broken heater or a leaking pipe.</div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="tsearch" placeholder="Search tickets…" oninput="setPage('tix',1);renderTix()"/></div>
     <!-- hidden selects (drive filtering; values set from modal) -->
     <select id="sel-tix-status" style="display:none" onchange="setPage('tix',1);renderTix()">
@@ -495,6 +495,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </button>
     </div>
     <div id="tix-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
+    <div id="tix-bldg-btns" style="display:none;padding:6px 14px 0;gap:8px"></div>
     <div id="tix-list"></div>
   </div>
 
@@ -1833,7 +1834,7 @@ function navTo(s){
   currentScreen=s;
   scr.scrollTop=0;
   if(s==='dashboard')   renderDash();
-  if(s==='tickets')     renderTix();
+  if(s==='tickets')     { tixActiveBldg=null; tixSort='date'; renderTix(); }
   if(s==='assets')      renderAst();
   if(s==='users')       {renderRoleLegend();renderUsers();}
   if(s==='buildings')   renderBlds();
@@ -3331,7 +3332,50 @@ function removeInspFilter(id){
   setPage('insp',1); renderInspections();
 }
 
+let tixSort = 'date'; // 'date' | 'alpha'
+let tixActiveBldg = null;
+
+function toggleTixSort(){
+  tixSort = tixSort === 'date' ? 'alpha' : 'date';
+  const btn = document.getElementById('tix-sort-btn');
+  if(btn){
+    btn.textContent = tixSort === 'alpha' ? 'A–Z' : '0–9';
+    btn.style.color = tixSort === 'alpha' ? 'var(--blue)' : 'var(--sub)';
+    btn.style.borderColor = tixSort === 'alpha' ? 'rgba(37,99,235,.4)' : '';
+    btn.style.background  = tixSort === 'alpha' ? 'rgba(37,99,235,.08)' : '';
+  }
+  setPage('tix',1); renderTix();
+}
+
+function renderTixBldgBtns(){
+  const wrap = document.getElementById('tix-bldg-btns');
+  if(!wrap) return;
+  if(!currentUser){ wrap.style.display='none'; return; }
+  const raw = (currentUser.buildings||'').trim();
+  if(!raw){ wrap.style.display='none'; return; }
+  const names = raw.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!names.length || names.length > 3){ wrap.style.display='none'; return; }
+  wrap.style.display = 'flex';
+  wrap.innerHTML = names.map(name=>{
+    const bld = DB.buildings.find(b=>b.name.trim().toLowerCase()===name.toLowerCase());
+    const count = bld ? DB.tickets.filter(t=>t.building===bld.name).length : 0;
+    const isActive = tixActiveBldg === name;
+    const activeStyle = isActive
+      ? 'background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.4);color:var(--blue);'
+      : 'background:var(--card);border-color:var(--border);color:var(--sub);';
+    return `<button onclick="toggleTixBldgBtn('${name.replace(/'/g,"\'")}',this)" style="flex:1;min-width:0;padding:7px 8px;border-radius:var(--rs);font-size:12px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${activeStyle}">${name} <span style="opacity:.55;font-size:10px">${count}</span></button>`;
+  }).join('');
+}
+
+function toggleTixBldgBtn(name){
+  tixActiveBldg = tixActiveBldg === name ? null : name;
+  renderTixBldgBtns();
+  setPage('tix',1); renderTix();
+}
+
 function clearTixFilters(){
+  tixActiveBldg=null; tixSort='date';
+  const _sb=document.getElementById('tix-sort-btn'); if(_sb){_sb.textContent='A–Z';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';}
   ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup','sel-tix-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const sort=document.getElementById('sel-tix-sort');if(sort)sort.value='newest';
   const search=document.getElementById('tsearch');if(search)search.value='';
@@ -3389,8 +3433,10 @@ function renderTix(){
   const typeVal=document.getElementById('sel-tix-type')?.value||'All';
   syncSelActive('sel-tix-status'); syncSelActive('sel-tix-pri'); syncSelActive('sel-tix-cat'); syncSelActive('sel-tix-bldg'); syncSelActive('sel-tix-floor');
   updateTixFilterBadge();
+  renderTixBldgBtns();
   let list=DB.tickets;
   const _tixBldIds=getUserBuildingIds(); if(_tixBldIds.size) list=list.filter(t=>_tixBldIds.has(DB.buildings.find(b=>b.name===t.building)?.id));
+  if(tixActiveBldg) list=list.filter(t=>t.building===tixActiveBldg);
   if(statusVal==='mine') list=list.filter(t=>t.assignedTo===currentUser?.name||t.createdBy===currentUser?.name);
   else if(statusVal==='notclosed') list=list.filter(t=>t.status!=='Closed');
   else if(statusVal!=='All') list=list.filter(t=>t.status===statusVal);
@@ -3407,7 +3453,8 @@ function renderTix(){
   if(q) list=list.filter(t=>t.subject.toLowerCase().includes(q)||t.building.toLowerCase().includes(q)||t.id.toLowerCase().includes(q)||t.assignedTo?.toLowerCase().includes(q)||(t.reportedBy||'').toLowerCase().includes(q));
   // Sort
   const priOrder={Critical:0,High:1,Medium:2,Low:3};
-  if(sortVal==='oldest') list=[...list].sort((a,b)=>new Date(a.dateOpened)-new Date(b.dateOpened));
+  if(tixSort==='alpha') list=[...list].sort((a,b)=>(a.subject||'').localeCompare(b.subject||''));
+  else if(sortVal==='oldest') list=[...list].sort((a,b)=>new Date(a.dateOpened)-new Date(b.dateOpened));
   else if(sortVal==='priority') list=[...list].sort((a,b)=>(priOrder[a.priority]??9)-(priOrder[b.priority]??9));
   else if(sortVal==='days') list=[...list].sort((a,b)=>daysSince(b.dateOpened)-daysSince(a.dateOpened));
   else list=[...list].sort((a,b)=>new Date(b.dateOpened)-new Date(a.dateOpened));
@@ -3420,38 +3467,26 @@ function renderTix(){
 }
 
 function tixItemHTML(t,clickable=true){
-  const stCls={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Cancelled:'b-cancel',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
+  const stColors={Open:'var(--red)','In Progress':'var(--amber)',Closed:'var(--green)',Cancelled:'var(--muted)',Planned:'var(--purple)',Requested:'#CA8A04',Ordered:'var(--teal)'};
+  const stColor = stColors[t.status] || 'var(--muted)';
   const fn=clickable?`openTixDetail('${t.id}')`:`navTo('tickets')`;
-  const floorLabel = DB.floors.find(f=>f.id===t.floor)?.label || DB.floors.find(f=>f.label===t.floor)?.label || t.floor || '—';
   const supName = t.supplierId ? (DB.suppliers.find(s=>s.id===t.supplierId)?.name || '—') : '—';
-  const bldSpan  = t.building  ? `<span onclick="quickFilterTix('sel-tix-bldg','${t.building.replace(/'/g,"\\'")}','${t.building.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${t.building}</span>` : '—';
-  const flrSpan  = floorLabel!=='—' ? `<span onclick="quickFilterTix('sel-tix-floor','${floorLabel.replace(/'/g,"\\'")}','${floorLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by floor">${floorLabel}</span>` : '—';
-  const supSpan  = t.supplierId ? `<span onclick="quickFilterTix('sel-tix-sup','${t.supplierId}','${supName.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supName}</span>` : '—';
-  const catSpan  = t.category   ? `<span onclick="quickFilterTix('sel-tix-cat','${t.category.replace(/'/g,"\\'")}','${t.category.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by category">${t.category}</span>` : '';
-  const tc       = LOG_TYPE_COLORS[t.type] || null;
-  const typeSpan = t.type && tc ? `<span onclick="quickFilterTix('sel-tix-type','${t.type}','${t.type}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color};cursor:pointer" title="Filter by type">${t.type}</span>` : '';
-  return`<div class="ti" onclick="${fn}" style="padding-bottom:0">
-    <div style="flex:1;min-width:0">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-        <div class="ct" style="flex:1;min-width:0">${t.subject}</div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;margin-left:8px">
-          <span class="badge ${stCls}" onclick="quickFilterTix('sel-tix-status','${t.status}','${t.status}',event)" style="cursor:pointer" title="Filter by status">${t.status}</span>
-          ${typeSpan}
-        </div>
-      </div>
-      <div class="cm" style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <span style="flex-shrink:0">${t.id}${t.dateOpened ? ' · ' + df(t.dateOpened) : ''}</span>
-        <span style="text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${catSpan||'—'}</span>
-      </div>
-      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:10px">
-        <div class="bs"><div class="bs-val">${bldSpan}</div><div class="bs-lbl">Building</div></div>
-        <div class="bs"><div class="bs-val">${flrSpan}</div><div class="bs-lbl">Floor</div></div>
-        <div class="bs"><div class="bs-val">${t.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
-        <div class="bs"><div class="bs-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${supSpan}</div><div class="bs-lbl">Supplier</div></div>
-      </div>
+  const bldLabel = t.building || '—';
+  const bldSpan  = t.building ? `<span onclick="quickFilterTix('sel-tix-bldg','${t.building.replace(/'/g,"\'")}','${t.building.replace(/'/g,"\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
+  const supSpan  = t.supplierId ? `<span onclick="quickFilterTix('sel-tix-sup','${t.supplierId}','${supName.replace(/'/g,"\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supName}</span>` : '—';
+  const statusSpan = `<span onclick="quickFilterTix('sel-tix-status','${t.status}','${t.status}',event)" style="font-size:11px;font-weight:600;color:${stColor};cursor:pointer;white-space:nowrap" title="Filter by status">${t.status}</span>`;
+  return`<div class="ti" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:11px 14px" onclick="${fn}">
+    <div>
+      <div class="ct" style="color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.subject||'—'}</div>
+      <div style="font-size:11px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bldSpan}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;max-width:110px">
+      ${statusSpan}
+      <span style="font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;max-width:110px">${supSpan}</span>
     </div>
   </div>`;
 }
+
 
 function openTixDetail(id){
   const t=DB.tickets.find(x=>x.id===id); if(!t) return;
