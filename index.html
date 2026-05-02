@@ -7303,27 +7303,33 @@ function calDayClick(dateStr){
       </span>
       <button class="mt-close" onclick="closeMo('mo-insp-filter')">&#x2715;</button>
     </div>
-    <div class="fg"><label>Status</label>
-      <select class="fi2" id="mf-insp-status">
-        <option value="All">All</option>
-        <option value="In Progress">In Progress</option>
-        <option value="Completed">Completed</option>
-      </select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
+      <div class="fg" style="padding:0"><label>Building</label>
+        <select class="fi2" id="mf-insp-bldg" onchange="onMfInspBldgChange()"><option value="All">All Buildings</option></select>
+      </div>
+      <div class="fg" style="padding:0"><label>Floor</label>
+        <select class="fi2" id="mf-insp-floor"><option value="All">All Floors</option></select>
+      </div>
     </div>
-    <div class="fg"><label>Building</label>
-      <select class="fi2" id="mf-insp-bldg" onchange="onMfInspBldgChange()"><option value="All">All Buildings</option></select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
+      <div class="fg" style="padding:0"><label>Status</label>
+        <select class="fi2" id="mf-insp-status">
+          <option value="All">All</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+      <div class="fg" style="padding:0"><label>Category</label>
+        <select class="fi2" id="mf-insp-cat"><option value="All">All Categories</option></select>
+      </div>
     </div>
-    <div class="fg"><label>Floor</label>
-      <select class="fi2" id="mf-insp-floor"><option value="All">All Floors</option></select>
-    </div>
-    <div class="fg"><label>Category</label>
-      <select class="fi2" id="mf-insp-cat"><option value="All">All Categories</option></select>
-    </div>
-    <div class="fg"><label>Date from</label>
-      <input type="date" class="fi2" id="mf-insp-date-from" style="font-size:14px">
-    </div>
-    <div class="fg"><label>Date to</label>
-      <input type="date" class="fi2" id="mf-insp-date-to" style="font-size:14px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
+      <div class="fg" style="padding:0"><label>Date from</label>
+        <input type="date" class="fi2" id="mf-insp-date-from" style="font-size:14px">
+      </div>
+      <div class="fg" style="padding:0"><label>Date to</label>
+        <input type="date" class="fi2" id="mf-insp-date-to" style="font-size:14px">
+      </div>
     </div>
     <div style="display:flex;gap:10px;padding:4px 18px 18px">
       <button onclick="clearInspFilters()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Clear All</button>
