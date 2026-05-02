@@ -830,7 +830,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
     <div id="log-filter-chips" style="padding:6px 14px 0;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="log-bldg-btns" style="display:none;padding:6px 14px 0;gap:8px"></div>
-    <div id="log-debug-panel" style="display:none;margin:8px 14px;padding:12px 14px;background:#F8FAFF;border:1.5px solid #B5D4F4;border-radius:10px;font-size:11px;font-family:monospace;color:#0C447C;line-height:1.7;white-space:pre-wrap;word-break:break-all"></div>
     <div id="log-list"></div>
   </div>
 
@@ -5939,7 +5938,16 @@ function applyLogFilterModal(){
   ['type','status','bldg','floor','unit','asset','sup','cat'].forEach(k=>{
     const mVal = document.getElementById('mf-log-'+k)?.value || 'All';
     const hSel = document.getElementById('sel-log-'+k);
-    if(hSel) hSel.value = mVal;
+    if(!hSel) return;
+    // Ensure the option exists in the hidden select before setting value
+    if(mVal !== 'All' && !hSel.querySelector(`option[value="${mVal}"]`)){
+      const mEl = document.getElementById('mf-log-'+k);
+      const label = mEl?.querySelector(`option[value="${mVal}"]`)?.textContent || mVal;
+      const opt = document.createElement('option');
+      opt.value = mVal; opt.textContent = label;
+      hSel.appendChild(opt);
+    }
+    hSel.value = mVal;
   });
   // Apply date range
   const hFrom = document.getElementById('sel-log-date-from');
@@ -6174,14 +6182,7 @@ function renderLogbook(){
   // Update filter badge + chips
   updateLogFilterBadge();
 
-  // ── In-app debug panel ──
-  const _dbgEl = document.getElementById('log-debug-panel');
-  if(_dbgEl){
-    const _catRows = DB.categories.map(c=>`  ${c.id} → "${c.category}"`).join('\n') || '  (no categories loaded)';
-    const _logRows = DB.logs.slice(0,8).map(r=>`  ${r.id}: categoryId="${r.categoryId}" categoryName="${r.categoryName}"`).join('\n') || '  (no log entries)';
-    _dbgEl.style.display = 'block';
-    _dbgEl.textContent = `Categories in DB (${DB.categories.length}):\n${_catRows}\n\nFirst log entries (${DB.logs.length} total):\n${_logRows}`;
-  }
+
   let rows = DB.logs.slice().sort((a,z)=>
     logSort === 'alpha'
       ? (a.subject||'').localeCompare(z.subject||'')
