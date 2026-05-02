@@ -89,9 +89,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .drawer-item.danger{color:var(--red);}
 .drawer-item-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(239,68,68,.15);color:var(--red);}
 .drawer-footer{padding:12px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);text-align:center;background:var(--surface);}
-.info-subscreen{position:absolute;top:0;left:0;width:100%;min-height:100%;background:var(--surface);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto;z-index:2;}
+.info-subscreen{position:absolute;top:0;left:0;width:100%;height:100%;background:var(--surface);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto;z-index:2;}
 .info-subscreen.open{transform:translateX(0);}
-.info-main{transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto;width:100%;flex-shrink:0;}
+.info-main{transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto;width:100%;flex:1;min-height:0;}
 .info-main.pushed{transform:translateX(-30%);}
 .info-back-btn{display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;color:var(--blue);font-size:13px;font-weight:600;padding:0;}
 .info-row{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
@@ -1002,6 +1002,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="info-row" onclick="openInfoSub('logbook')">
       <div style="display:flex;align-items:center;gap:12px"><div class="info-icon-wrap" style="background:#EEEDFE"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3489" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div><div style="font-size:14px;font-weight:600;color:var(--text)">Logbook</div><div style="font-size:11px;color:var(--sub)">Events, notes &amp; observations</div></div></div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
+    <div class="info-row" onclick="openInfoSub('buildings')">
+      <div style="display:flex;align-items:center;gap:12px"><div class="info-icon-wrap" style="background:#F0FDF4"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6E46" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><div><div style="font-size:14px;font-weight:600;color:var(--text)">Buildings</div><div style="font-size:11px;color:var(--sub)">Health score, size &amp; workload</div></div></div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
   </div>
 
   <!-- SUB: Stats -->
@@ -1094,6 +1097,22 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="info-formula">Score = avg % of entries + assets + suppliers across all buildings.<br><br>Reflects how actively each building is being logged and maintained.</div>
       <div class="info-section-lbl" style="padding:14px 0 6px">Logbook vs Tickets</div>
       <div class="info-desc">Logbook = something happened (past, no action needed). Ticket = something needs to happen (future, assigned &amp; tracked). Logbook entries have no status lifecycle or assignee.</div>
+    </div>
+  </div>
+
+  <!-- SUB: Buildings -->
+  <div class="info-subscreen" id="info-sub-buildings">
+    <div class="topbar"><div class="topbar-inner"><button class="info-back-btn" onclick="closeInfoSub('buildings')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="15 18 9 12 15 6"/></svg> Info</button><div style="font-size:14px;font-weight:600;color:var(--text)">Buildings</div><div style="width:60px"></div></div></div>
+    <div style="padding:14px 18px">
+      <div class="info-desc">Each building gets a health score based on how much active work it demands relative to its size. A small building with many open tickets ranks under more pressure than a large building with the same tickets.</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Size Index</div>
+      <div class="info-desc">Measures how large a building is. Used to normalise the workload so pressure is comparable across buildings of different sizes.</div>
+      <div class="info-formula"><strong>If m² is set:</strong><br>m² ÷ 100 + (floors ÷ 1 000 m²) + (units ÷ 1 000 m²) + (assets ÷ 1 000 m²)<br><br><strong>If m² not set:</strong><br>floors × 3 + units × 2 + workspace × 1 + assets × 0.5</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Workload</div>
+      <div class="info-desc">The raw pressure on a building — how many active issues it currently carries, weighted by severity.</div>
+      <div class="info-formula">(Open tickets × 4) + (Failed assets × 5) + (Active inspections × 3)</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Health score</div>
+      <div class="info-formula">Score = 100 − (Workload ÷ Size Index × 50)<br><br>100% = no active issues. Lower = more pressure relative to building size.</div>
     </div>
   </div>
 
@@ -4910,16 +4929,13 @@ function renderBlds(){
         <div style="font-size:12px;color:var(--sub)">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')||'—'}</div>
         <div style="text-align:right;font-size:12px;color:var(--sub)">${sqm}</div>
         <div style="font-size:12px;color:var(--sub)">${b.phone||'—'}</div>
-        <div style="text-align:right;font-size:12px;color:var(--sub)">Size Index: ${bldData.sizeIndex}</div>
         <div></div>
-        <div style="text-align:right;font-size:12px;color:var(--sub)">Workload: ${bldData.issueLoad}</div>
-        <div style="grid-column:1/-1;border-top:1px solid var(--border);margin-top:6px;padding-top:8px;font-size:11px;color:var(--muted);font-family:monospace">${bldData.formulaStr}</div>
       </div>
       <div class="bc-body">
         <div class="bs"><div class="bs-val">${bldData.periodTix}</div><div class="bs-lbl">Tickets</div></div>
         <div class="bs"><div class="bs-val">${bldData.periodFailed}</div><div class="bs-lbl">Failed assets</div></div>
         <div class="bs"><div class="bs-val">${bldData.periodInsp}</div><div class="bs-lbl">Inspections</div></div>
-        <div class="bs"><div class="bs-val">${bldData.issueLoad}</div><div class="bs-lbl">Workload</div></div>
+
       </div>
     </div>`;
   }).join('');
