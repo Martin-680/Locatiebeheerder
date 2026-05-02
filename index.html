@@ -814,19 +814,25 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <input type="hidden" id="sel-log-date-from" value="">
     <input type="hidden" id="sel-log-date-to" value="">
 
-    <div style="padding:4px 14px 8px;font-size:12px;color:var(--sub);line-height:1.5">For recording events or observations that don't require action, such as a tenant visit, a meter reading, or a routine check.</div>
-    <div style="padding:0 14px 10px;display:flex;gap:8px;align-items:center">
+    <div style="padding:8px 14px 0;display:flex;align-items:center;gap:8px">
       <div style="flex:1;position:relative">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="log-search" placeholder="Search entries…" oninput="setPage('log',1);renderLogbook()" style="width:100%;padding:8px 10px 8px 32px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;background:var(--surface);color:var(--text)"/>
       </div>
       <button class="btn-clear-filter" id="log-clear-btn" onclick="clearLogFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
-      <button id="log-filter-btn" onclick="openLogFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);flex-shrink:0;transition:all .15s">
+    </div>
+    <div style="padding:8px 14px 0;display:flex;align-items:center;gap:8px">
+      <button id="log-filter-btn" onclick="openLogFilterModal()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--sub);box-shadow:0 1px 3px rgba(0,0,0,.06);transition:all .15s">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
         Filters<span id="log-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:2px"></span>
       </button>
     </div>
-    <div id="log-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
+    <div id="log-filter-chips" style="padding:6px 14px 0;display:none;flex-wrap:wrap;gap:6px"></div>
+    <div style="padding:10px 14px 4px;display:flex;gap:8px">
+      <button id="log-seg-all"     onclick="setLogSeg('All')"     style="flex:1;padding:7px 0;border-radius:var(--rs);font-size:12px;font-weight:600;border:1.5px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;transition:all .15s">All</button>
+      <button id="log-seg-open"    onclick="setLogSeg('open')"    style="flex:1;padding:7px 0;border-radius:var(--rs);font-size:12px;font-weight:600;border:1.5px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;transition:all .15s">Open</button>
+      <button id="log-seg-gesloten" onclick="setLogSeg('gesloten')" style="flex:1;padding:7px 0;border-radius:var(--rs);font-size:12px;font-weight:600;border:1.5px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;transition:all .15s">Gesloten</button>
+    </div>
     <div id="log-list"></div>
   </div>
 
@@ -1820,7 +1826,7 @@ function navTo(s){
   if(s==='inspections') renderInspections();
   if(s==='units')       renderUnits();
   if(s==='floors')      renderFloors();
-  if(s==='logbook')     renderLogbook();
+  if(s==='logbook')     { setLogSeg(document.getElementById('sel-log-status')?.value||'All'); }
   if(s==='stats')       {renderDash();renderStats();}
   if(s==='priorities')  {renderDash();renderPriorities();}
   if(s==='calendar')    renderCalendar();
@@ -6048,6 +6054,23 @@ function quickFilterTix(field, value, label, e){
   renderTix();
 }
 
+function setLogSeg(v){
+  const sel = document.getElementById('sel-log-status');
+  if(sel){ sel.value = v; }
+  const styles = {
+    'All':      { border:'1.5px solid var(--border)',              background:'var(--card)',             color:'var(--sub)' },
+    'open':     { border:'1.5px solid rgba(239,68,68,.35)',        background:'rgba(239,68,68,.1)',       color:'var(--red)' },
+    'gesloten': { border:'1.5px solid rgba(16,185,129,.35)',       background:'rgba(16,185,129,.1)',      color:'var(--green)' }
+  };
+  ['All','open','gesloten'].forEach(k=>{
+    const btn = document.getElementById('log-seg-'+k);
+    if(!btn) return;
+    const s = (k===v) ? styles[k] : { border:'1.5px solid var(--border)', background:'var(--card)', color:'var(--sub)' };
+    Object.assign(btn.style, s);
+  });
+  setPage('log',1); renderLogbook();
+}
+
 function renderLogbook(){
   populateLogBldgFilter();
 
@@ -6107,26 +6130,15 @@ function renderLogbook(){
   let html = '<div class="tlist">';
   slice.forEach(r=>{
     const tc  = LOG_TYPE_COLORS[r.type]    || { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
-    const sc  = LOG_STATUS_COLORS[r.status]|| { bg:'rgba(100,116,139,.1)', color:'var(--muted)' };
-    const supLabel = r.supplierName && r.supplierName !== r.supplierId ? r.supplierName : (r.supplierId ? r.supplierName : '—');
+    const typeSpan = r.type ? `<span onclick="quickFilterLog('sel-log-type','${r.type}','${r.type}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color};cursor:pointer;white-space:nowrap" title="Filter by type">${r.type}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
     const bldLabel = r.building || '—';
-    const catLabel = r.categoryName || '—';
-    const typeSpan   = r.type   ? `<span onclick="quickFilterLog('sel-log-type','${r.type}','${r.type}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${tc.bg};color:${tc.color};cursor:pointer" title="Filter by type">${r.type}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
-    const statusSpan = r.status ? `<span onclick="quickFilterLog('sel-log-status','${r.status}','${r.status}',event)" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${sc.bg};color:${sc.color};cursor:pointer" title="Filter by status">${r.status}</span>` : '<span style="font-size:11px;color:var(--muted)">—</span>';
-    const supSpan    = r.supplierId ? `<span onclick="quickFilterLog('sel-log-sup','${r.supplierId}','${supLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supLabel}</span>` : '—';
-    const bldSpan    = r.buildingId ? `<span onclick="quickFilterLog('sel-log-bldg','${r.buildingId}','${bldLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
-    const catSpan    = r.categoryId ? `<span onclick="quickFilterLog('sel-log-cat','${r.categoryId}','${catLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by category">${catLabel}</span>` : catLabel;
-    html += `<div class="ti" style="flex-direction:column;padding:13px 14px;cursor:default" onclick="editLogEntry('${r.id}')">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 8px;width:100%;align-items:center">
-        <div class="ct" style="color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">${r.subject||'—'}</div>
-        <div style="text-align:center">${typeSpan}</div>
-        <div style="text-align:right">${statusSpan}</div>
+    const bldSpan  = r.buildingId ? `<span onclick="quickFilterLog('sel-log-bldg','${r.buildingId}','${bldLabel.replace(/'/g,"\\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
+    html += `<div class="ti" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;padding:11px 14px" onclick="editLogEntry('${r.id}')">
+      <div>
+        <div class="ct" style="color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.subject||'—'}</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bldSpan}${r.floor?' · '+r.floor:''}${r.unit?' · '+r.unit:''}</div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px 8px;width:100%;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);align-items:center">
-        <div style="font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${supSpan}</div>
-        <div style="font-size:11px;color:var(--sub);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bldSpan}</div>
-        <div style="font-size:11px;color:var(--sub);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${catSpan}</div>
-      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${typeSpan}</div>
     </div>`;
   });
   html += '</div>';
