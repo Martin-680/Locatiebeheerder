@@ -89,6 +89,21 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .drawer-item.danger{color:var(--red);}
 .drawer-item-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(239,68,68,.15);color:var(--red);}
 .drawer-footer{padding:12px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);text-align:center;background:var(--surface);}
+.info-subscreen{position:absolute;inset:0;background:var(--surface);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto;z-index:1;}
+.info-subscreen.open{transform:translateX(0);}
+.info-main{transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.info-main.pushed{transform:translateX(-30%);}
+.info-back-btn{display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;color:var(--blue);font-size:13px;font-weight:600;padding:0;}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.info-row:active{background:var(--card);}
+.info-icon-wrap{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.info-formula{background:var(--bg);border-left:3px solid var(--blue);padding:10px 13px;font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:8px;}
+.info-desc{background:var(--bg);border-radius:var(--rs);padding:11px 13px;font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:8px;}
+.info-section-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:14px 18px 6px;}
+.info-field-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.info-field-row:last-child{border-bottom:none;}
+.info-status-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;}
+.info-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 
 /* ── BOTTOM NAV ── */
 .bottom-nav{height:var(--nav-h);padding-bottom:var(--safe-b);background:rgba(255,255,255,.96);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(6,1fr);position:relative;z-index:200;flex-shrink:0;}
@@ -153,7 +168,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .alert-sub{font-size:11px;color:var(--sub);}
 
 /* ── SEARCH BAR ── */
-.sbar{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 14px;margin:0 14px 10px;flex-shrink:0;}
+.sbar{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 12px;margin:0 14px 10px;flex-shrink:0;}
 .sbar input{flex:1;background:none;border:none;outline:none;font-size:14px;color:var(--text);}
 .sbar input::placeholder{color:var(--muted);}
 
@@ -462,7 +477,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
-    <div style="padding:8px 14px 0"><div class="sbar" style="margin:0"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="tsearch" placeholder="Search tickets…" oninput="setPage('tix',1);renderTix()"/></div></div>
+    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="tsearch" placeholder="Search tickets…" oninput="setPage('tix',1);renderTix()"/></div>
     <!-- hidden selects (drive filtering; values set from modal) -->
     <select id="sel-tix-status" style="display:none" onchange="setPage('tix',1);renderTix()">
       <option value="All">All Statuses</option><option value="Open">Open</option>
@@ -616,12 +631,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <input type="hidden" id="sel-insp-date-from" value="">
     <input type="hidden" id="sel-insp-date-to" value="">
 
-    <div style="padding:8px 14px 0">
-      <div style="position:relative">
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="insp-search" placeholder="Search inspections…" oninput="setPage('insp',1);renderInspections()" style="width:100%;padding:8px 10px 8px 32px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;background:var(--surface);color:var(--text)"/>
-      </div>
-    </div>
+    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="insp-search" placeholder="Search inspections…" oninput="setPage('insp',1);renderInspections()"/></div>
     <div id="insp-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="insp-list"></div>
   </div>
@@ -807,13 +817,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <input type="hidden" id="sel-log-date-from" value="">
     <input type="hidden" id="sel-log-date-to" value="">
 
-    <div style="padding:8px 14px 0;display:flex;align-items:center;gap:8px">
-      <div style="flex:1;position:relative">
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="log-search" placeholder="Search entries…" oninput="setPage('log',1);renderLogbook()" style="width:100%;padding:8px 10px 8px 32px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;background:var(--surface);color:var(--text)"/>
-      </div>
-      <button class="btn-clear-filter" id="log-clear-btn" onclick="clearLogFilters()" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear</button>
-    </div>
+    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="log-search" placeholder="Search entries…" oninput="setPage('log',1);renderLogbook()"/></div>
 
     <div id="log-filter-chips" style="padding:6px 14px 0;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="log-bldg-btns" style="display:none;padding:6px 14px 0;gap:8px"></div>
@@ -990,6 +994,123 @@ input,select,textarea{font-family:inherit;color:var(--text);}
   </nav>
 
 
+
+</div>
+
+
+<!-- ═══════ INFO SCREEN ═══════ -->
+<div id="screen-info" class="screen" style="overflow:hidden;position:relative">
+  <div class="info-main" id="info-main">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left"><div class="topbar-title">Info</div><div class="topbar-sub">App reference guide</div></div>
+        <div class="topbar-actions"><button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button></div>
+      </div>
+    </div>
+    <div style="padding:10px 18px 4px;font-size:12px;color:var(--sub)">Tap a screen to see how it works and what it tracks.</div>
+    <div class="info-row" onclick="openInfoSub('stats')">
+      <div style="display:flex;align-items:center;gap:12px"><div class="info-icon-wrap" style="background:#E6F1FB"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><div><div style="font-size:14px;font-weight:600;color:var(--text)">Stats</div><div style="font-size:11px;color:var(--sub)">Portfolio overview &amp; trends</div></div></div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="info-row" onclick="openInfoSub('priorities')">
+      <div style="display:flex;align-items:center;gap:12px"><div class="info-icon-wrap" style="background:#FCEBEB"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div><div style="font-size:14px;font-weight:600;color:var(--text)">Priorities</div><div style="font-size:11px;color:var(--sub)">Urgent &amp; overdue items</div></div></div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="info-row" onclick="openInfoSub('tickets')">
+      <div style="display:flex;align-items:center;gap:12px"><div class="info-icon-wrap" style="background:#FAEEDA"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#633806" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a2 2 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2 2 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/></svg></div><div><div style="font-size:14px;font-weight:600;color:var(--text)">Tickets</div><div style="font-size:11px;color:var(--sub)">Issues, tasks &amp; statuses</div></div></div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="info-row" onclick="openInfoSub('inspections')">
+      <div style="display:flex;align-items:center;gap:12px"><div class="info-icon-wrap" style="background:#E1F5EE"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div><div style="font-size:14px;font-weight:600;color:var(--text)">Inspections</div><div style="font-size:11px;color:var(--sub)">Rounds, items &amp; results</div></div></div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="info-row" onclick="openInfoSub('logbook')">
+      <div style="display:flex;align-items:center;gap:12px"><div class="info-icon-wrap" style="background:#EEEDFE"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C3489" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div><div style="font-size:14px;font-weight:600;color:var(--text)">Logbook</div><div style="font-size:11px;color:var(--sub)">Events, notes &amp; observations</div></div></div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+
+  <!-- SUB: Stats -->
+  <div class="info-subscreen" id="info-sub-stats">
+    <div class="topbar"><div class="topbar-inner"><button class="info-back-btn" onclick="closeInfoSub('stats')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="15 18 9 12 15 6"/></svg> Info</button><div style="font-size:14px;font-weight:600;color:var(--text)">Stats</div><div style="width:60px"></div></div></div>
+    <div style="padding:14px 18px">
+      <div class="info-desc">Stats gives a portfolio-wide view of your buildings, units, tickets and assets. All numbers recalculate live from your Google Sheets data.</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Key calculations</div>
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:0 14px">
+        <div class="info-field-row"><span style="color:var(--sub)">Occupancy rate</span><span style="font-weight:600;color:var(--green)">Occupied ÷ Total units</span></div>
+        <div class="info-field-row"><span style="color:var(--sub)">Open ticket rate</span><span style="font-weight:600;color:var(--red)">Open ÷ All tickets</span></div>
+        <div class="info-field-row"><span style="color:var(--sub)">Asset health</span><span style="font-weight:600;color:var(--blue)">Active ÷ Total assets</span></div>
+        <div class="info-field-row"><span style="color:var(--sub)">Avg days open</span><span style="font-weight:600">Sum(days) ÷ Open count</span></div>
+      </div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Trend chart</div>
+      <div class="info-desc">Monthly ticket volume for the last 6 months, calculated from <code>dateOpened</code> on each ticket row in the Tickets sheet.</div>
+    </div>
+  </div>
+
+  <!-- SUB: Priorities -->
+  <div class="info-subscreen" id="info-sub-priorities">
+    <div class="topbar"><div class="topbar-inner"><button class="info-back-btn" onclick="closeInfoSub('priorities')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="15 18 9 12 15 6"/></svg> Info</button><div style="font-size:14px;font-weight:600;color:var(--text)">Priorities</div><div style="width:60px"></div></div></div>
+    <div style="padding:14px 18px">
+      <div class="info-desc">Priorities surfaces tickets that need attention now — overdue, critical, or stalled. The list recalculates on every load based on today's date.</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Priority levels</div>
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:0 14px">
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#E24B4A"></div><span style="font-size:13px;color:var(--text)">Critical</span></div><span style="font-size:11px;color:var(--sub)">Act same day</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#EF9F27"></div><span style="font-size:13px;color:var(--text)">High</span></div><span style="font-size:11px;color:var(--sub)">Act within 3 days</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#378ADD"></div><span style="font-size:13px;color:var(--text)">Medium</span></div><span style="font-size:11px;color:var(--sub)">Act within 7 days</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#888780"></div><span style="font-size:13px;color:var(--text)">Low</span></div><span style="font-size:11px;color:var(--sub)">Act within 30 days</span></div>
+      </div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Overdue calculation</div>
+      <div class="info-formula">Days open = Today − dateOpened<br>Overdue if days open &gt; priority threshold AND status ≠ Closed</div>
+    </div>
+  </div>
+
+  <!-- SUB: Tickets -->
+  <div class="info-subscreen" id="info-sub-tickets">
+    <div class="topbar"><div class="topbar-inner"><button class="info-back-btn" onclick="closeInfoSub('tickets')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="15 18 9 12 15 6"/></svg> Info</button><div style="font-size:14px;font-weight:600;color:var(--text)">Tickets</div><div style="width:60px"></div></div></div>
+    <div style="padding:14px 18px">
+      <div class="info-desc">Tickets track issues that need to be resolved — a broken heater, a leak, a planned replacement. Each ticket moves through a status lifecycle.</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Status lifecycle</div>
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:0 14px">
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#E24B4A"></div><span style="font-size:13px;color:var(--text)">Open</span></div><span style="font-size:11px;color:var(--sub)">Newly reported</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#EF9F27"></div><span style="font-size:13px;color:var(--text)">In Progress</span></div><span style="font-size:11px;color:var(--sub)">Being worked on</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#1D9E75"></div><span style="font-size:13px;color:var(--text)">Closed</span></div><span style="font-size:11px;color:var(--sub)">Resolved &amp; done</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#7F77DD"></div><span style="font-size:13px;color:var(--text)">Planned</span></div><span style="font-size:11px;color:var(--sub)">Scheduled future work</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#5DCAA5"></div><span style="font-size:13px;color:var(--text)">Ordered</span></div><span style="font-size:11px;color:var(--sub)">Parts / contractor ordered</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#BA7517"></div><span style="font-size:13px;color:var(--text)">Requested</span></div><span style="font-size:11px;color:var(--sub)">Awaiting approval</span></div>
+      </div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Key fields</div>
+      <div class="info-desc" style="font-size:11px;line-height:1.8">Building · Floor · Unit · Assigned to · Supplier · Category · Priority · Date opened · Due date · Activity log</div>
+    </div>
+  </div>
+
+  <!-- SUB: Inspections -->
+  <div class="info-subscreen" id="info-sub-inspections">
+    <div class="topbar"><div class="topbar-inner"><button class="info-back-btn" onclick="closeInfoSub('inspections')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="15 18 9 12 15 6"/></svg> Info</button><div style="font-size:14px;font-weight:600;color:var(--text)">Inspections</div><div style="width:60px"></div></div></div>
+    <div style="padding:14px 18px">
+      <div class="info-desc">Inspections are structured rounds where you walk through a building and mark each item as approved or flagged. Flagged items can auto-create tickets.</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">How a round works</div>
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:0 14px">
+        <div class="info-status-row"><span style="font-size:12px;color:var(--sub);width:18px;flex-shrink:0">1</span><span style="font-size:13px;color:var(--text);margin-left:8px">Select building &amp; scope</span></div>
+        <div class="info-status-row"><span style="font-size:12px;color:var(--sub);width:18px;flex-shrink:0">2</span><span style="font-size:13px;color:var(--text);margin-left:8px">Check each item: OK / Flag</span></div>
+        <div class="info-status-row"><span style="font-size:12px;color:var(--sub);width:18px;flex-shrink:0">3</span><span style="font-size:13px;color:var(--text);margin-left:8px">Add notes on flagged items</span></div>
+        <div class="info-status-row"><span style="font-size:12px;color:var(--sub);width:18px;flex-shrink:0">4</span><span style="font-size:13px;color:var(--text);margin-left:8px">Complete round — saves to sheet</span></div>
+      </div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Completion score</div>
+      <div class="info-formula">Score = Approved items ÷ Total items × 100%<br>Flagged items appear in Priorities if unresolved</div>
+    </div>
+  </div>
+
+  <!-- SUB: Logbook -->
+  <div class="info-subscreen" id="info-sub-logbook">
+    <div class="topbar"><div class="topbar-inner"><button class="info-back-btn" onclick="closeInfoSub('logbook')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="15 18 9 12 15 6"/></svg> Info</button><div style="font-size:14px;font-weight:600;color:var(--text)">Logbook</div><div style="width:60px"></div></div></div>
+    <div style="padding:14px 18px">
+      <div class="info-desc">The Logbook records events that don't need follow-up action — a meter reading, a tenant visit, a delivery. It's your property diary.</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Entry types</div>
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:0 14px">
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#185FA5"></div><span style="font-size:13px;color:var(--text)">Onderhoud</span></div><span style="font-size:11px;color:var(--sub)">Routine maintenance done</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#BA7517"></div><span style="font-size:13px;color:var(--text)">Keuring</span></div><span style="font-size:11px;color:var(--sub)">Certification or check</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#A32D2D"></div><span style="font-size:13px;color:var(--text)">Reparatie</span></div><span style="font-size:11px;color:var(--sub)">Repair completed</span></div>
+        <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#534AB7"></div><span style="font-size:13px;color:var(--text)">Inspectie</span></div><span style="font-size:11px;color:var(--sub)">Observation recorded</span></div>
+      </div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Logbook vs Tickets</div>
+      <div class="info-desc">Logbook = something happened (past, no action needed). Ticket = something needs to happen (future, assigned &amp; tracked). Logbook entries have no status lifecycle or assignee.</div>
+    </div>
+  </div>
 
 </div>
 
@@ -1781,6 +1902,7 @@ function openDrawer(){
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>','Assets',"navTo('assets');closeDrawer()",'assets');
   if(can('canManageCategories')) html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>','Categories',"openCategories();closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>','Refresh',"refreshAllData();closeDrawer()");
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>','Info',"navTo('info');closeDrawer()",'info');
   html+=`<div class="drawer-sep"></div>`;
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>','Export CSV',"openExportModal();closeDrawer()");
   html+=`<div class="drawer-item danger" onclick="signOut();closeDrawer()"><div class="drawer-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div><div>Sign Out</div></div>`;
@@ -1788,6 +1910,14 @@ function openDrawer(){
   document.getElementById('drawer-overlay').classList.add('open');
   document.getElementById('drawer').classList.add('open');
   document.body.style.overflow='hidden';
+}
+function openInfoSub(name){
+  document.getElementById('info-main')?.classList.add('pushed');
+  document.getElementById('info-sub-'+name)?.classList.add('open');
+}
+function closeInfoSub(name){
+  document.getElementById('info-sub-'+name)?.classList.remove('open');
+  document.getElementById('info-main')?.classList.remove('pushed');
 }
 function di(icon,label,action,screen=''){
   const active=screen&&currentScreen===screen;
@@ -1832,6 +1962,7 @@ function navTo(s){
   if(s==='stats')       {renderDash();renderStats();}
   if(s==='priorities')  {renderDash();renderPriorities();}
   if(s==='calendar')    renderCalendar();
+  if(s==='info')        { document.querySelectorAll('.info-subscreen').forEach(x=>x.classList.remove('open')); document.getElementById('info-main')?.classList.remove('pushed'); }
 }
 function navBack(){
   if(prevScreen==='insp-round') navTo('inspections');
