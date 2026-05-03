@@ -5266,7 +5266,11 @@ function inspListCardHTML(r){
     <div class="insp-list-hdr">
       <div style="min-width:0;flex:1">
         <div class="ct">${r.building}${r.floor ? ' · ' + r.floor : ''}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
-        <div class="cm">${r.id} · ${df(r.dateStart)} · ${r.inspector}</div>
+        <div class="cm">${r.inspector}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
+          <span style="font-size:11px;color:var(--muted)">${df(r.dateStart)}</span>
+          <span style="font-size:11px;color:var(--muted)">${r.dateEnd ? df(r.dateEnd) : '—'}</span>
+        </div>
       </div>
       <span class="badge" style="background:${stBg};color:${stColor};flex-shrink:0;margin-left:8px">${stLabel}</span>
     </div>
