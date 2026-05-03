@@ -2370,8 +2370,8 @@ function renderDash(){
         return`<div style="${border}padding:12px 14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${safeId?`dashGoBuilding('${safeId}')`:''}">${m.name}</span>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
-              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Overall score</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health Score</span>
               <span style="font-size:12px;font-weight:800;color:${bc}">${m.score}%</span>
             </div>
           </div>
@@ -2489,8 +2489,8 @@ function renderDash(){
         return`<div style="${border}padding:12px 14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${goInsp}">${m.name}</span>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
-              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Overall score</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health Score</span>
               <span style="font-size:12px;font-weight:800;color:${bc}">${m.score}%</span>
             </div>
           </div>
@@ -2559,8 +2559,8 @@ function renderDash(){
         return`<div style="${border}padding:12px 14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${goLog}">${m.name}</span>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
-              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Overall score</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health Score</span>
               <span style="font-size:12px;font-weight:800;color:${bc}">${m.score}%</span>
             </div>
           </div>
@@ -2666,8 +2666,8 @@ function renderDash(){
           return`<div style="${border}padding:12px 14px;cursor:pointer" onclick="${goB}">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
               <span style="font-size:13px;font-weight:700;color:var(--blue)">${s.b.name}</span>
-              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
-                <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Overall score</span>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Property Health Score</span>
                 <span style="font-size:12px;font-weight:800;color:${barColor}">${pct}%</span>
               </div>
             </div>
