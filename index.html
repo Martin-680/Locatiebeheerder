@@ -960,6 +960,15 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="verhuizing">Verhuizing</option>
         </select>
       </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 2px 2px">
+        <label for="cal-show-insp" style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Show Inspections</label>
+        <label style="position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0">
+          <input type="checkbox" id="cal-show-insp" style="opacity:0;width:0;height:0" onchange="calInspToggle();renderCalendar()">
+          <span id="cal-insp-track" style="position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:22px;transition:.2s">
+            <span id="cal-insp-thumb" style="position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></span>
+          </span>
+        </label>
+      </div>
     </div>
     <div class="cal-months" id="cal-months"></div>
     <div style="display:flex;align-items:center;gap:7px;padding:0 14px 16px;font-size:12px;color:var(--sub)">
@@ -6942,10 +6951,17 @@ function initCalendar(){
   }
 }
 
+function calInspToggle(){
+  const on = document.getElementById('cal-show-insp')?.checked;
+  const track = document.getElementById('cal-insp-track');
+  const thumb = document.getElementById('cal-insp-thumb');
+  if(track) track.style.background = on ? 'var(--blue)' : 'var(--border)';
+  if(thumb) thumb.style.left = on ? '21px' : '3px';
+}
 function calGetMatched(){
-  const supId = document.getElementById('cal-sup')?.value || '';
-  const typ   = document.getElementById('cal-type')?.value || '';
-  // collect all log + ticket entries with a date
+  const supId   = document.getElementById('cal-sup')?.value || '';
+  const typ     = document.getElementById('cal-type')?.value || '';
+  const showInsp= document.getElementById('cal-show-insp')?.checked || false;
   const entries = [];
   DB.logs.forEach(r=>{
     if(!r.date) return;
@@ -6955,7 +6971,12 @@ function calGetMatched(){
     if(!t.dateOpened) return;
     entries.push({ date:t.dateOpened, supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—' });
   });
-  // build map: dateStr → matching entries[]
+  if(showInsp){
+    DB.inspections.forEach(r=>{
+      if(!r.dateStart) return;
+      entries.push({ date:r.dateStart, supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:`${r.building||''}${r.floor?' · '+r.floor:''}` });
+    });
+  }
   const map = {};
   entries.forEach(e=>{
     const supOk = !supId || e.supplierId === supId;
@@ -7028,9 +7049,11 @@ function calDayClick(dateStr){
     const supName = DB.suppliers.find(s=>s.id===e.supplierId)?.name || '—';
     const srcBadge = e.source==='log'
       ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(99,153,34,.15);color:#3B6D11">Log</span>`
+      : e.source==='insp'
+      ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(139,92,246,.12);color:#6D28D9">Inspectie</span>`
       : `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(37,99,235,.12);color:var(--blue)">Ticket</span>`;
-    const typBadge = e.type ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(100,116,139,.12);color:var(--sub)">${e.type}</span>` : '';
-    const editFn = e.source==='log' ? `calOpenEntry('log','${e.id}')` : `calOpenEntry('tix','${e.id}')`;
+    const typBadge = e.type && e.source!=='insp' ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(100,116,139,.12);color:var(--sub)">${e.type}</span>` : '';
+    const editFn = e.source==='log' ? `calOpenEntry('log','${e.id}')` : e.source==='insp' ? `openInspDetail('${e.id}')` : `calOpenEntry('tix','${e.id}')`;
     html += `<div onclick="${editFn}" style="padding:11px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">
         <div style="font-size:14px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.subject}</div>
