@@ -739,7 +739,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="topbar-inner">
         <div class="topbar-left"><div class="topbar-title">Floors</div><div class="topbar-sub" id="floor-lbl"></div></div>
         <div class="topbar-actions">
-          <button class="ib" id="floor-filter-btn" onclick="openFloorFilterModal()" title="Filters" style="position:relative"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg><span id="floor-filter-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:1px 4px;border-radius:20px;pointer-events:none"></span></button>
           <button class="ib" id="floor-sort-btn" onclick="toggleFloorSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">A–Z</button>
           <button class="ib" onclick="openNewFloor()" id="btn-new-floor" style="display:none" title="Add Floor"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
@@ -747,16 +746,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="floor-search" placeholder="Search floors…" oninput="renderFloors()"/></div>
-    <div class="fbar-wrap">
-      <div class="fsel-wrap"><div class="fsel-lbl">Building</div>
-        <select class="fsel" id="sel-floor-bldg" onchange="renderFloors()">
-          <option value="All">All Buildings</option>
-        </select>
-      </div>
-    </div>
-    <div style="padding:0 14px 10px">
-      <button class="btn-clear-filter" onclick="clearFloorFilters()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Clear Filters</button>
-    </div>
+    <select id="sel-floor-bldg" style="display:none" onchange="renderFloors()"><option value="All">All Buildings</option></select>
+    <div id="floor-bldg-btns" style="display:none;padding:8px 14px 10px;gap:8px"></div>
     <div id="floor-list"></div>
   </div>
 
@@ -4552,8 +4543,53 @@ function openNewUnitForBuilding(bldId){
 /* ══════════════════════════════════════════════════════════
    FLOORS
 ══════════════════════════════════════════════════════════ */
+let floorSort = 'asc';
+let floorActiveBldg = null;
+
+function toggleFloorSort(){
+  floorSort = floorSort === 'asc' ? 'desc' : 'asc';
+  const btn = document.getElementById('floor-sort-btn');
+  if(btn){
+    btn.textContent = floorSort === 'asc' ? 'A\u2013Z' : 'Z\u2013A';
+    btn.style.color = floorSort === 'desc' ? 'var(--blue)' : 'var(--sub)';
+    btn.style.borderColor = floorSort === 'desc' ? 'rgba(37,99,235,.4)' : '';
+    btn.style.background  = floorSort === 'desc' ? 'rgba(37,99,235,.08)' : '';
+  }
+  renderFloors();
+}
+
+function renderFloorBldgBtns(){
+  const wrap = document.getElementById('floor-bldg-btns');
+  if(!wrap) return;
+  if(!currentUser){ wrap.style.display='none'; return; }
+  const raw = (currentUser.buildings||'').trim();
+  if(!raw){ wrap.style.display='none'; return; }
+  const names = raw.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!names.length || names.length > 4){ wrap.style.display='none'; return; }
+  wrap.style.display = 'flex';
+  wrap.innerHTML = names.map(name=>{
+    const bld = DB.buildings.find(b=>b.name.trim().toLowerCase()===name.toLowerCase());
+    const count = bld ? DB.floors.filter(f=>f.buildingId===bld.id).length : 0;
+    const isActive = floorActiveBldg === name;
+    const activeStyle = isActive
+      ? 'background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.4);color:var(--blue);'
+      : 'background:var(--card);border-color:var(--border);color:var(--sub);';
+    return `<button onclick="toggleFloorBldgBtn('${name.replace(/'/g,"\\'")}',this)" style="flex:1;min-width:0;padding:7px 8px;border-radius:var(--rs);font-size:12px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${activeStyle}">${name} <span style="opacity:.55;font-size:10px">${count}</span></button>`;
+  }).join('');
+}
+
+function toggleFloorBldgBtn(name){
+  floorActiveBldg = floorActiveBldg === name ? null : name;
+  const bld = DB.buildings.find(b=>b.name.trim().toLowerCase()===name.toLowerCase());
+  const sel = document.getElementById('sel-floor-bldg');
+  if(sel) sel.value = floorActiveBldg && bld ? bld.id : 'All';
+  renderFloorBldgBtns();
+  renderFloors();
+}
+
 function renderFloors(){
   if(!document.getElementById('floor-list')) return;
+  renderFloorBldgBtns();
   const q = (document.getElementById('floor-search')?.value||'').toLowerCase();
 
   const bldSel = document.getElementById('sel-floor-bldg');
@@ -4573,10 +4609,8 @@ function renderFloors(){
     if(q && !f.label.toLowerCase().includes(q)) return false;
     return true;
   }).sort((a,z) => {
-    const bldA = DB.buildings.find(b=>b.id===a.buildingId)?.name||'';
-    const bldZ = DB.buildings.find(b=>b.id===z.buildingId)?.name||'';
-    if(bldA !== bldZ) return bldA.localeCompare(bldZ);
-    return a.sortOrder - z.sortOrder || a.label.localeCompare(z.label);
+    const cmp = a.label.localeCompare(z.label);
+    return floorSort === 'asc' ? cmp : -cmp;
   });
 
   document.getElementById('floor-lbl').textContent = `${list.length} floor${list.length!==1?'s':''}`;
@@ -4595,16 +4629,18 @@ function renderFloors(){
     const units  = DB.units.filter(u=>u.floorId===f.id);
     const assets = DB.assets.filter(a=>a.floorId===f.id);
     const tickets= DB.tickets.filter(t=>t.floorId===f.id && t.status!=='Closed');
-    return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-        <div class="ct" style="flex:1;cursor:pointer" onclick="openFloorDetail('${f.id}')">${f.label}</div>
+    return `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .15s,box-shadow .15s;overflow:hidden" onclick="openFloorDetail('${f.id}')" onmouseenter="this.style.borderColor='rgba(37,99,235,.4)';this.style.boxShadow='0 2px 8px rgba(37,99,235,.08)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px 10px">
+        <div style="min-width:0;flex:1">
+          <div class="ct">${f.label}</div>
+          <div class="cm">${bld?.name||'—'}</div>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);flex-shrink:0;margin-left:8px"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
-      <div class="cm">${f.id}</div>
-      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:0;padding-bottom:4px;cursor:pointer;display:grid;grid-template-columns:repeat(4,1fr)" onclick="openFloorDetail('${f.id}')">
-        <div class="bs"><div class="bs-val">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
-        <div class="bs"><div class="bs-val">${units.length}</div><div class="bs-lbl">Units</div></div>
-        <div class="bs"><div class="bs-val">${assets.length}</div><div class="bs-lbl">Assets</div></div>
-        <div class="bs"><div class="bs-val" style="color:${tickets.length?'var(--red)':'var(--text)'}">${tickets.length}</div><div class="bs-lbl">Tickets</div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border)">
+        <div class="bs" style="padding:8px 4px"><div class="bs-val">${units.length}</div><div class="bs-lbl">Units</div></div>
+        <div class="bs" style="padding:8px 4px;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div class="bs-val">${assets.length}</div><div class="bs-lbl">Assets</div></div>
+        <div class="bs" style="padding:8px 4px"><div class="bs-val" style="color:${tickets.length?'var(--red)':'var(--text)'}">${tickets.length}</div><div class="bs-lbl">Tickets</div></div>
       </div>
     </div>`;
   }).join('') + '</div>';
