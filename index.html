@@ -711,7 +711,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="topbar-inner">
         <div class="topbar-left"><div class="topbar-title">Units</div><div class="topbar-sub" id="unit-lbl"></div></div>
         <div class="topbar-actions">
-          <button class="ib" id="unit-filter-btn" onclick="openUnitFilterModal()" title="Filters" style="position:relative"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg><span id="unit-filter-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:1px 4px;border-radius:20px;pointer-events:none"></span></button>
           <button class="ib" id="unit-sort-btn" onclick="toggleUnitSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">A–Z</button>
           <button class="ib" onclick="openNewUnit()" id="btn-new-unit" style="display:none" title="Add Unit"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
@@ -727,8 +726,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <option value="Active">Problem</option>
       <option value="Available">Normal</option>
     </select>
-
-
+    <div id="unit-bldg-btns" style="display:none;padding:8px 14px 10px;gap:8px"></div>
     <div id="unit-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="unit-list"></div>
   </div>
@@ -4329,8 +4327,53 @@ function openFloorView(buildingName, buildingId, floorEnc){
 /* ══════════════════════════════════════════════════════════
    UNITS
 ══════════════════════════════════════════════════════════ */
+let unitSort = 'asc';
+let unitActiveBldg = null;
+
+function toggleUnitSort(){
+  unitSort = unitSort === 'asc' ? 'desc' : 'asc';
+  const btn = document.getElementById('unit-sort-btn');
+  if(btn){
+    btn.textContent = unitSort === 'asc' ? 'A\u2013Z' : 'Z\u2013A';
+    btn.style.color       = unitSort === 'desc' ? 'var(--blue)' : 'var(--sub)';
+    btn.style.borderColor = unitSort === 'desc' ? 'rgba(37,99,235,.4)' : '';
+    btn.style.background  = unitSort === 'desc' ? 'rgba(37,99,235,.08)' : '';
+  }
+  renderUnits();
+}
+
+function renderUnitBldgBtns(){
+  const wrap = document.getElementById('unit-bldg-btns');
+  if(!wrap) return;
+  if(!currentUser){ wrap.style.display='none'; return; }
+  const raw = (currentUser.buildings||'').trim();
+  if(!raw){ wrap.style.display='none'; return; }
+  const names = raw.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!names.length || names.length > 4){ wrap.style.display='none'; return; }
+  wrap.style.display = 'flex';
+  wrap.innerHTML = names.map(name=>{
+    const bld = DB.buildings.find(b=>b.name.trim().toLowerCase()===name.toLowerCase());
+    const count = bld ? DB.units.filter(u=>u.buildingId===bld.id).length : 0;
+    const isActive = unitActiveBldg === name;
+    const activeStyle = isActive
+      ? 'background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.4);color:var(--blue);'
+      : 'background:var(--card);border-color:var(--border);color:var(--sub);';
+    return `<button onclick="toggleUnitBldgBtn('${name.replace(/'/g,"\\'")}',this)" style="flex:1;min-width:0;padding:7px 8px;border-radius:var(--rs);font-size:12px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${activeStyle}">${name} <span style="opacity:.55;font-size:10px">${count}</span></button>`;
+  }).join('');
+}
+
+function toggleUnitBldgBtn(name){
+  unitActiveBldg = unitActiveBldg === name ? null : name;
+  const bld = DB.buildings.find(b=>b.name.trim().toLowerCase()===name.toLowerCase());
+  const sel = document.getElementById('sel-unit-bldg');
+  if(sel) sel.value = unitActiveBldg && bld ? bld.id : 'All';
+  renderUnitBldgBtns();
+  renderUnits();
+}
+
 function renderUnits(){
   const q = (document.getElementById('unit-search')?.value||'').toLowerCase();
+  renderUnitBldgBtns();
 
   // Populate building filter
   const bldSel = document.getElementById('sel-unit-bldg');
@@ -4382,15 +4425,8 @@ function renderUnits(){
     }
     return true;
   }).sort((a,z) => {
-    const bldA = DB.buildings.find(b=>b.id===a.buildingId)?.name||'';
-    const bldZ = DB.buildings.find(b=>b.id===z.buildingId)?.name||'';
-    if(bldA !== bldZ) return bldA.localeCompare(bldZ);
-    const flrA = DB.floors.find(f=>f.id===a.floorId);
-    const flrZ = DB.floors.find(f=>f.id===z.floorId);
-    const flrSortA = flrA?.sortOrder ?? 999;
-    const flrSortZ = flrZ?.sortOrder ?? 999;
-    if(flrSortA !== flrSortZ) return flrSortA - flrSortZ;
-    return (a.sortOrder||0) - (z.sortOrder||0) || a.label.localeCompare(z.label);
+    const cmp = a.label.localeCompare(z.label);
+    return unitSort === 'asc' ? cmp : -cmp;
   });
 
   document.getElementById('unit-lbl').textContent = `${list.length} unit${list.length!==1?'s':''}`;
@@ -4416,21 +4452,21 @@ function renderUnits(){
       (t.building||'').trim() && (t.floor||'').trim() && (t.unit||'').trim()
     );
     const inUse   = openTix.length > 0;
-    return `<div style="background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
-        <div class="ct" style="flex:1;cursor:pointer" onclick="openUnitDetail('${u.id}')">${u.label}</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px">
-          ${inUse
-            ? `<span class="badge" style="background:rgba(220,38,38,.12);color:var(--red);font-size:11px;font-weight:700">Problem</span>`
-            : `<span class="badge" style="background:rgba(5,150,105,.12);color:var(--green);font-size:11px;font-weight:700">Normal</span>`}
+    return `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .15s,box-shadow .15s;overflow:hidden" onclick="openUnitDetail('${u.id}')" onmouseenter="this.style.borderColor='rgba(37,99,235,.4)';this.style.boxShadow='0 2px 8px rgba(37,99,235,.08)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px 10px;gap:8px">
+        <div style="min-width:0;flex:1">
+          <div class="ct">${u.label}</div>
+          <div class="cm">${bld?.name||'—'}</div>
         </div>
+        ${inUse
+          ? `<span class="badge" style="background:rgba(220,38,38,.12);color:var(--red);font-size:11px;font-weight:700;flex-shrink:0">Problem</span>`
+          : `<span class="badge" style="background:rgba(5,150,105,.12);color:var(--green);font-size:11px;font-weight:700;flex-shrink:0">Normal</span>`}
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
-      <div class="cm">${u.id}</div>
-      <div class="bc-body" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px;padding-bottom:4px;cursor:pointer" onclick="openUnitDetail('${u.id}')">
-        <div class="bs"><div class="bs-val">${bld?.name||'—'}</div><div class="bs-lbl">Building</div></div>
-        <div class="bs"><div class="bs-val">${flr?.label||'—'}</div><div class="bs-lbl">Floor</div></div>
-        <div class="bs"><div class="bs-val">${assets.length}</div><div class="bs-lbl">Assets</div></div>
-        <div class="bs"><div class="bs-val" style="color:${openTix.length?'var(--red)':'var(--text)'}">${openTix.length}</div><div class="bs-lbl">Tickets</div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border)">
+        <div class="bs" style="padding:8px 4px"><div class="bs-val" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${flr?.label||'—'}</div><div class="bs-lbl">Floor</div></div>
+        <div class="bs" style="padding:8px 4px;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div class="bs-val">${assets.length}</div><div class="bs-lbl">Assets</div></div>
+        <div class="bs" style="padding:8px 4px"><div class="bs-val" style="color:${openTix.length?'var(--red)':'var(--text)'}">${openTix.length}</div><div class="bs-lbl">Tickets</div></div>
       </div>
     </div>`;
   }).join('') + '</div>';
