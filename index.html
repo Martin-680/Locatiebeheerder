@@ -5284,6 +5284,14 @@ function renderInspections(){
     inspInspSel.value = inspectors.includes(cur) ? cur : 'All';
   }
 
+  // Populate category filter
+  const catSel = document.getElementById('sel-insp-cat');
+  if(catSel){
+    const cur = catSel.value;
+    catSel.innerHTML = '<option value="All">All Categories</option>' + getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
+    catSel.value = getCategoryList().includes(cur) ? cur : 'All';
+  }
+
   const statusVal    = document.getElementById('sel-insp-status')?.value    || 'All';
   const catVal       = document.getElementById('sel-insp-cat')?.value       || 'All';
   const inspectorVal = document.getElementById('sel-insp-inspector')?.value || 'All';
