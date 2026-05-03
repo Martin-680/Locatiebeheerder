@@ -496,7 +496,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
 
     <div id="tix-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
-    <div id="tix-bldg-btns" style="display:none;padding:6px 14px 0;gap:8px"></div>
+    <div id="tix-bldg-btns" style="display:none;padding:8px 14px 10px;gap:8px"></div>
     <div id="tix-list"></div>
   </div>
 
@@ -609,13 +609,16 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <option value="In Progress">In Progress</option>
       <option value="Completed">Completed</option>
     </select>
-    <select id="sel-insp-bldg"  style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Buildings</option></select>
-    <select id="sel-insp-floor" style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Floors</option></select>
-    <select id="sel-insp-cat"   style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Categories</option></select>
+    <select id="sel-insp-bldg"      style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Buildings</option></select>
+    <select id="sel-insp-floor"     style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Floors</option></select>
+    <select id="sel-insp-cat"       style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Categories</option></select>
+    <select id="sel-insp-inspector" style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All Inspectors</option></select>
+    <select id="sel-insp-result"    style="display:none" onchange="setPage('insp',1);renderInspections()"><option value="All">All</option></select>
     <input type="hidden" id="sel-insp-date-from" value="">
     <input type="hidden" id="sel-insp-date-to" value="">
 
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="insp-search" placeholder="Search inspections…" oninput="setPage('insp',1);renderInspections()"/></div>
+    <div id="insp-bldg-btns" style="display:none;padding:8px 14px 10px;gap:8px"></div>
     <div id="insp-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="insp-list"></div>
   </div>
@@ -787,8 +790,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="log-search" placeholder="Search entries…" oninput="setPage('log',1);renderLogbook()"/></div>
 
-    <div id="log-filter-chips" style="padding:6px 14px 0;display:none;flex-wrap:wrap;gap:6px"></div>
-    <div id="log-bldg-btns" style="display:none;padding:6px 14px 0;gap:8px"></div>
+    <div id="log-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
+    <div id="log-bldg-btns" style="display:none;padding:8px 14px 10px;gap:8px"></div>
     <div id="log-list"></div>
   </div>
 
@@ -1912,7 +1915,7 @@ function navTo(s){
   if(s==='users')       {renderRoleLegend();renderUsers();}
   if(s==='buildings')   renderBlds();
   if(s==='suppliers')   renderSuppliers();
-  if(s==='inspections') { inspSort='date'; const _sb=document.getElementById('insp-sort-btn');if(_sb){_sb.textContent='A–Z';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';} renderInspections(); }
+  if(s==='inspections') { inspActiveBldg=null; inspSort='date'; const _sb=document.getElementById('insp-sort-btn');if(_sb){_sb.textContent='A–Z';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';} renderInspections(); }
   if(s==='units')       renderUnits();
   if(s==='floors')      renderFloors();
   if(s==='logbook')     { logActiveBldg=null; logSort='date'; renderLogbook(); }
@@ -3282,18 +3285,19 @@ function removeTixFilter(id){
 
 /* ── Inspections filter modal ── */
 function openInspFilterModal(){
-  // Populate building
-  const mBldg = document.getElementById('mf-insp-bldg');
-  if(mBldg){
-    const cur = document.getElementById('sel-insp-bldg')?.value || 'All';
-    mBldg.innerHTML = '<option value="All">All Buildings</option>' +
-      [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name))
-        .map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
-    mBldg.value = cur;
-    onMfInspBldgChange(true);
-    const mFloor = document.getElementById('mf-insp-floor');
-    if(mFloor) mFloor.value = document.getElementById('sel-insp-floor')?.value || 'All';
+  // Populate Inspector dropdown from inspection records
+  const mInsp = document.getElementById('mf-insp-inspector');
+  if(mInsp){
+    const cur = document.getElementById('sel-insp-inspector')?.value || 'All';
+    const inspectors = [...new Set(DB.inspections.map(r=>r.inspector).filter(Boolean))].sort();
+    mInsp.innerHTML = '<option value="All">All Inspectors</option>' +
+      inspectors.map(i=>`<option value="${i}">${i}</option>`).join('');
+    mInsp.value = inspectors.includes(cur) ? cur : 'All';
   }
+  // Sync result filter
+  const mResult = document.getElementById('mf-insp-result');
+  const hResult = document.getElementById('sel-insp-result');
+  if(mResult&&hResult) mResult.value = hResult.value || 'All';
   // Populate category
   const mCat = document.getElementById('mf-insp-cat');
   if(mCat){
@@ -3326,7 +3330,7 @@ function onMfInspBldgChange(silent){
     unique.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
 }
 function applyInspFilterModal(){
-  ['status','bldg','floor','cat'].forEach(k=>{
+  ['status','cat','inspector','result'].forEach(k=>{
     const mVal=document.getElementById('mf-insp-'+k)?.value||'All';
     const hSel=document.getElementById('sel-insp-'+k);
     if(hSel) hSel.value=mVal;
@@ -3340,7 +3344,7 @@ function applyInspFilterModal(){
   renderInspections();
 }
 function updateInspFilterBadge(){
-  const ids=['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat'];
+  const ids=['sel-insp-status','sel-insp-inspector','sel-insp-result','sel-insp-cat'];
   const inspDateFrom = document.getElementById('sel-insp-date-from')?.value || '';
   const inspDateTo   = document.getElementById('sel-insp-date-to')?.value   || '';
   const active=ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length
@@ -3355,11 +3359,12 @@ function updateInspFilterBadge(){
   if(!chipsEl) return;
   if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
   chipsEl.style.display='flex';
+  const resultLabels={hasFailed:'Has Failed',hasPending:'Has Pending',allClear:'All Clear'};
   const labels={
-    'sel-insp-status': v=>v,
-    'sel-insp-bldg'  : v=>DB.buildings.find(b=>b.id===v)?.name||v,
-    'sel-insp-floor' : v=>v,
-    'sel-insp-cat'   : v=>v,
+    'sel-insp-status'   : v=>v,
+    'sel-insp-inspector': v=>v,
+    'sel-insp-result'   : v=>resultLabels[v]||v,
+    'sel-insp-cat'      : v=>v,
   };
   let chips = ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').map(id=>{
     const val=document.getElementById(id).value;
@@ -5212,7 +5217,7 @@ let activeRound = null; // { inspId, building, floor, category, items:[{assetId,
 function clearInspFilters(){
   inspSort='date';
   const _sbi=document.getElementById('insp-sort-btn');if(_sbi){_sbi.textContent='A–Z';_sbi.style.color='';_sbi.style.borderColor='';_sbi.style.background='';}
-  ['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat'].forEach(id=>{
+  ['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat','sel-insp-inspector','sel-insp-result'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='All';
   });
   const dfrom=document.getElementById('sel-insp-date-from');if(dfrom)dfrom.value='';
@@ -5225,7 +5230,39 @@ function clearInspFilters(){
 
 function goInspPage(p){ setPage('insp',p); renderInspections(); }
 
+let inspActiveBldg = null;
+
+function renderInspBldgBtns(){
+  const wrap = document.getElementById('insp-bldg-btns');
+  if(!wrap) return;
+  if(!currentUser){ wrap.style.display='none'; return; }
+  const raw = (currentUser.buildings||'').trim();
+  if(!raw){ wrap.style.display='none'; return; }
+  const names = raw.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!names.length || names.length > 4){ wrap.style.display='none'; return; }
+  wrap.style.display = 'flex';
+  wrap.innerHTML = names.map(name=>{
+    const bld = DB.buildings.find(b=>b.name.trim().toLowerCase()===name.toLowerCase());
+    const count = bld ? DB.inspections.filter(r=>r.buildingId===bld.id).length : 0;
+    const isActive = inspActiveBldg === name;
+    const activeStyle = isActive
+      ? 'background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.4);color:var(--blue);'
+      : 'background:var(--card);border-color:var(--border);color:var(--sub);';
+    return `<button onclick="toggleInspBldgBtn('${name.replace(/'/g,"\\'")}',this)" style="flex:1;min-width:0;padding:7px 8px;border-radius:var(--rs);font-size:12px;font-weight:600;border:1.5px solid;cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${activeStyle}">${name} <span style="opacity:.55;font-size:10px">${count}</span></button>`;
+  }).join('');
+}
+
+function toggleInspBldgBtn(name){
+  inspActiveBldg = inspActiveBldg === name ? null : name;
+  const bld = DB.buildings.find(b=>b.name.trim().toLowerCase()===name.toLowerCase());
+  const sel = document.getElementById('sel-insp-bldg');
+  if(sel) sel.value = inspActiveBldg && bld ? bld.id : 'All';
+  renderInspBldgBtns();
+  setPage('insp',1); renderInspections();
+}
+
 function renderInspections(){
+  renderInspBldgBtns();
   // Populate building filter
   const bldSel = document.getElementById('sel-insp-bldg');
   if(bldSel){
@@ -5237,43 +5274,41 @@ function renderInspections(){
 
   const bldgVal = document.getElementById('sel-insp-bldg')?.value || 'All';
 
-  // Populate floor filter based on selected building
-  const floorSel = document.getElementById('sel-insp-floor');
-  if(floorSel){
-    const cur = floorSel.value;
-    const floors = bldgVal !== 'All'
-      ? getFloorsForBuilding(bldgVal)
-      : [...DB.floors].sort((a,z) => a.label.localeCompare(z.label));
-    // Deduplicate by label
-    const seen = new Set();
-    const unique = floors.filter(f=>{ if(seen.has(f.label)) return false; seen.add(f.label); return true; });
-    floorSel.innerHTML = '<option value="All">All Floors</option>' + unique.map(f=>`<option value="${f.label}">${f.label}</option>`).join('');
-    floorSel.value = unique.some(f=>f.label===cur) ? cur : 'All';
+  // Populate inspector filter
+  const inspInspSel = document.getElementById('sel-insp-inspector');
+  if(inspInspSel){
+    const cur = inspInspSel.value;
+    const inspectors = [...new Set(DB.inspections.map(r=>r.inspector).filter(Boolean))].sort();
+    inspInspSel.innerHTML = '<option value="All">All Inspectors</option>' +
+      inspectors.map(i=>`<option value="${i}">${i}</option>`).join('');
+    inspInspSel.value = inspectors.includes(cur) ? cur : 'All';
   }
 
-  // Populate category filter from sheet
-  const catSel = document.getElementById('sel-insp-cat');
-  if(catSel){
-    const cur = catSel.value;
-    catSel.innerHTML = '<option value="All">All Categories</option>' + getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
-    catSel.value = getCategoryList().includes(cur) ? cur : 'All';
-  }
-
-  const statusVal = document.getElementById('sel-insp-status')?.value || 'All';
-  const floorVal  = document.getElementById('sel-insp-floor')?.value  || 'All';
-  const catVal    = document.getElementById('sel-insp-cat')?.value    || 'All';
+  const statusVal    = document.getElementById('sel-insp-status')?.value    || 'All';
+  const catVal       = document.getElementById('sel-insp-cat')?.value       || 'All';
+  const inspectorVal = document.getElementById('sel-insp-inspector')?.value || 'All';
+  const resultVal    = document.getElementById('sel-insp-result')?.value    || 'All';
 
   syncSelActive('sel-insp-status'); syncSelActive('sel-insp-bldg');
-  syncSelActive('sel-insp-floor');  syncSelActive('sel-insp-cat');
+  syncSelActive('sel-insp-inspector'); syncSelActive('sel-insp-result'); syncSelActive('sel-insp-cat');
   updateInspFilterBadge();
 
   const inspQ = (document.getElementById('insp-search')?.value || '').toLowerCase().trim();
   let list = [...DB.inspections].sort((a,b)=> inspSort==='alpha' ? (a.building||'').localeCompare(b.building||'') : (b.dateStart||'') > (a.dateStart||'') ? 1 : -1);
   const _inspBldIds=getUserBuildingIds(); if(_inspBldIds.size) list=list.filter(r=>_inspBldIds.has(r.buildingId));
-  if(statusVal !== 'All') list = list.filter(r => r.status === statusVal);
-  if(bldgVal   !== 'All') list = list.filter(r => r.buildingId === bldgVal);
-  if(floorVal  !== 'All') list = list.filter(r => r.floor === floorVal);
-  if(catVal    !== 'All') list = list.filter(r => r.category === catVal);
+  if(statusVal    !== 'All') list = list.filter(r => r.status === statusVal);
+  if(bldgVal      !== 'All') list = list.filter(r => r.buildingId === bldgVal);
+  if(catVal       !== 'All') list = list.filter(r => r.category === catVal);
+  if(inspectorVal !== 'All') list = list.filter(r => r.inspector === inspectorVal);
+  if(resultVal    !== 'All') list = list.filter(r => {
+    const items = Array.isArray(r.items) ? r.items : [];
+    const hasFailed  = items.some(i=>i.result==='Failed');
+    const hasPending = items.some(i=>!i.result || i.result==='');
+    if(resultVal==='hasFailed')  return hasFailed;
+    if(resultVal==='hasPending') return hasPending;
+    if(resultVal==='allClear')   return !hasFailed && !hasPending && items.length > 0;
+    return true;
+  });
   const inspDateFrom = document.getElementById('sel-insp-date-from')?.value || '';
   const inspDateTo   = document.getElementById('sel-insp-date-to')?.value   || '';
   if(inspDateFrom) list = list.filter(r => (r.dateStart||'') >= inspDateFrom);
@@ -7430,11 +7465,16 @@ function calDayClick(dateStr){
       <button class="mt-close" onclick="closeMo('mo-insp-filter')">&#x2715;</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
-      <div class="fg" style="padding:0"><label>Building</label>
-        <select class="fi2" id="mf-insp-bldg" onchange="onMfInspBldgChange()"><option value="All">All Buildings</option></select>
+      <div class="fg" style="padding:0"><label>Inspector</label>
+        <select class="fi2" id="mf-insp-inspector"><option value="All">All Inspectors</option></select>
       </div>
-      <div class="fg" style="padding:0"><label>Floor</label>
-        <select class="fi2" id="mf-insp-floor"><option value="All">All Floors</option></select>
+      <div class="fg" style="padding:0"><label>Failed / Pending</label>
+        <select class="fi2" id="mf-insp-result">
+          <option value="All">All</option>
+          <option value="hasFailed">Has Failed</option>
+          <option value="hasPending">Has Pending</option>
+          <option value="allClear">All Clear</option>
+        </select>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px 12px">
