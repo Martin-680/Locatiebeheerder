@@ -3537,6 +3537,9 @@ function tixItemHTML(t,clickable=true){
   const bldSpan  = t.building ? `<span onclick="quickFilterTix('sel-tix-bldg','${t.building.replace(/'/g,"\'")}','${t.building.replace(/'/g,"\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
   const supSpan  = t.supplierId ? `<span onclick="quickFilterTix('sel-tix-sup','${t.supplierId}','${supName.replace(/'/g,"\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supName}</span>` : '—';
   const statusSpan = `<span onclick="quickFilterTix('sel-tix-status','${t.status}','${t.status}',event)" style="font-size:11px;font-weight:600;color:${stColor};cursor:pointer;white-space:nowrap" title="Filter by status">${t.status}</span>`;
+  const TIX_TYPE_COLOR={'Storing':'var(--red)','Onderhoud':'var(--red)','Arbo':'var(--red)','Evaluatie':'var(--amber)','Keuring':'var(--amber)','Her-keuring':'var(--amber)'};
+  const typeColor = t.type ? (TIX_TYPE_COLOR[t.type] || 'var(--muted)') : null;
+  const typeSpan  = t.type ? `<span onclick="quickFilterTix('sel-tix-type','${t.type}','${t.type}',event)" style="font-size:11px;font-weight:600;color:${typeColor};cursor:pointer;white-space:nowrap" title="Filter by type">${t.type}</span>` : '';
   return`<div class="ti" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:11px 14px" onclick="${fn}">
     <div>
       <div class="ct" style="color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.subject||'—'}</div>
@@ -3544,6 +3547,7 @@ function tixItemHTML(t,clickable=true){
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;max-width:110px">
       ${statusSpan}
+      ${typeSpan}
       <span style="font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;max-width:110px">${supSpan}</span>
     </div>
   </div>`;
