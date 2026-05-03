@@ -193,6 +193,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:2px 6px 7px}
 .cal-day{height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:12px;color:var(--text);cursor:default}
 .cal-day.cal-match{background:#EAF3DE;color:#27500A;font-weight:700;cursor:pointer}
+.cal-day.cal-insp{background:#EEEDFE;color:#534AB7;font-weight:700;cursor:pointer}
 .cal-day.cal-selected{background:#3B6D11;color:#fff;font-weight:700;cursor:pointer}
 .cal-day.cal-today{outline:1.5px solid var(--blue);outline-offset:-1px}
 .cal-day.cal-empty{pointer-events:none}
@@ -971,9 +972,19 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="cal-months" id="cal-months"></div>
-    <div style="display:flex;align-items:center;gap:7px;padding:0 14px 16px;font-size:12px;color:var(--sub)">
-      <div style="width:16px;height:16px;border-radius:5px;background:#EAF3DE;border:1px solid #97C459;flex-shrink:0"></div>
-      Supplier &amp; type match — tap to see entries
+    <div style="display:flex;flex-direction:column;gap:6px;padding:0 14px 16px;font-size:12px;color:var(--sub)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <div style="width:16px;height:16px;border-radius:5px;background:#EAF3DE;border:1px solid #97C459;flex-shrink:0"></div>
+        Tickets / logbook match
+      </div>
+      <div id="cal-insp-legend" style="display:none;align-items:center;gap:7px">
+        <div style="width:16px;height:16px;border-radius:5px;background:#EEEDFE;border:1px solid #AFA9EC;flex-shrink:0"></div>
+        Inspection start date
+      </div>
+      <div id="cal-both-legend" style="display:none;align-items:center;gap:7px">
+        <div style="width:16px;height:16px;border-radius:5px;background:linear-gradient(135deg,#EAF3DE 50%,#EEEDFE 50%);border:1px solid #ccc;flex-shrink:0"></div>
+        Both on same day
+      </div>
     </div>
   </div>
 
@@ -6957,6 +6968,10 @@ function calInspToggle(){
   const thumb = document.getElementById('cal-insp-thumb');
   if(track) track.style.background = on ? 'var(--blue)' : 'var(--border)';
   if(thumb) thumb.style.left = on ? '21px' : '3px';
+  const li = document.getElementById('cal-insp-legend');
+  const lb = document.getElementById('cal-both-legend');
+  if(li) li.style.display = on ? 'flex' : 'none';
+  if(lb) lb.style.display = on ? 'flex' : 'none';
 }
 function calGetMatched(){
   const supId   = document.getElementById('cal-sup')?.value || '';
@@ -7011,11 +7026,20 @@ function renderCalendar(){
     for(let e=0;e<dow;e++) html+=`<div class="cal-day cal-empty"></div>`;
     for(let day=1;day<=daysInMonth;day++){
       const ds=`${yr}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      const isMatch = !!matched[ds];
-      const isToday = ds===todayStr;
-      const cls=['cal-day',isMatch?'cal-match':'',isToday?'cal-today':'',!isMatch?'cal-empty':''].filter(Boolean).join(' ');
-      const click = isMatch ? `calDayClick('${ds}')` : '';
-      html+=`<div class="${cls}" data-date="${ds}" ${click?`onclick="${click}"`:''}>${day}</div>`;
+      const dayEntries = matched[ds] || [];
+      const hasMatch = dayEntries.some(e=>e.source!=='insp');
+      const hasInsp  = dayEntries.some(e=>e.source==='insp');
+      const isAny    = dayEntries.length > 0;
+      const isToday  = ds===todayStr;
+      let dayStyle = '';
+      const cls = ['cal-day'];
+      if(hasMatch && hasInsp){ dayStyle='background:linear-gradient(135deg,#EAF3DE 50%,#EEEDFE 50%);color:#3B6D11;'; }
+      else if(hasInsp){ cls.push('cal-insp'); }
+      else if(hasMatch){ cls.push('cal-match'); }
+      else { cls.push('cal-empty'); }
+      if(isToday) cls.push('cal-today');
+      const click = isAny ? `calDayClick('${ds}')` : '';
+      html+=`<div class="${cls.join(' ')}" style="${dayStyle}" data-date="${ds}" ${click?`onclick="${click}"`:''}>${day}</div>`;
     }
     html+=`</div></div>`;
   }
