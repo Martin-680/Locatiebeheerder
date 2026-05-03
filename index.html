@@ -4917,9 +4917,10 @@ function openBldDetail(id){
     html+=`<div class="sh"><span class="sh-title">Inspections In Progress (${activeInspections.length})</span><span class="sh-link" onclick="navTo('inspections')">All →</span></div>`;
     html+='<div style="padding:0 14px 8px">'+activeInspections.map(r=>{
       const total    = Array.isArray(r.items)?r.items.length:0;
-      const checked  = Array.isArray(r.items)?r.items.filter(i=>i.result).length:0;
+      const approved_b= Array.isArray(r.items)?r.items.filter(i=>i.result==='Approved').length:0;
       const failed   = Array.isArray(r.items)?r.items.filter(i=>i.result==='Failed').length:0;
-      const pct      = total ? Math.round(checked/total*100) : 0;
+      const skipped  = Array.isArray(r.items)?r.items.filter(i=>i.result==='Skipped').length:0;
+      const pct      = total ? Math.round(approved_b/total*100) : 0;
       const durMs    = r.dateEnd ? new Date(r.dateEnd)-new Date(r.dateStart) : new Date()-new Date(r.dateStart);
       const durDays  = Math.max(1,Math.round(durMs/86400000));
       const durColor = r.dateEnd ? 'var(--sub)' : 'var(--amber)';
@@ -4938,7 +4939,7 @@ function openBldDetail(id){
         </div>
         <div style="padding:0 14px 8px">
           <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-            <span style="font-size:11px;color:var(--muted)">${checked} / ${total} checked</span>
+            <span style="font-size:11px;color:var(--muted)">${approved_b} / ${total} approved</span>
             <span style="font-size:11px;color:var(--muted)">${pct}%</span>
           </div>
           <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
@@ -5392,9 +5393,10 @@ function renderInspections(){
 function inspListCardHTML(r){
   const items   = Array.isArray(r.items) ? r.items : [];
   const total   = items.length;
-  const checked = items.filter(i => i.result === 'Approved' || i.result === 'Failed').length;
   const approved= items.filter(i => i.result === 'Approved').length;
   const failed  = items.filter(i => i.result === 'Failed').length;
+  const skipped = items.filter(i => i.result === 'Skipped').length;
+  const pending = items.filter(i => !i.result || i.result === 'Open').length;
   const stColor = r.status === 'Completed'
     ? (failed > 0 ? 'var(--red)' : 'var(--green)')
     : 'var(--amber)';
@@ -5408,7 +5410,7 @@ function inspListCardHTML(r){
   const durDays = Math.max(1, Math.round(durMs / 86400000));
   const durLabel = durDays === 1 ? '1 day' : `${durDays} days`;
   const durColor = r.dateEnd ? 'var(--sub)' : 'var(--amber)';
-  const pct = total ? Math.round(checked / total * 100) : 0;
+  const pct = total ? Math.round(approved / total * 100) : 0;
   const progColor = r.status !== 'Completed' ? 'var(--blue)' : (failed > 0 ? 'var(--red)' : 'var(--green)');
   const pctColor  = r.status !== 'Completed' ? 'var(--sub)'  : (failed > 0 ? 'var(--red)' : 'var(--green)');
   return `<div class="insp-list-card" onclick="openInspDetail('${r.id}')">
@@ -5434,7 +5436,7 @@ function inspListCardHTML(r){
     </div>
     <div style="padding:0 14px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <span style="font-size:11px;color:var(--muted)">${checked} / ${total} checked</span>
+        <span style="font-size:11px;color:var(--muted)">${approved} / ${total} approved</span>
         <span style="font-size:11px;color:${pctColor}">${pct}%</span>
       </div>
       <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
@@ -5445,7 +5447,8 @@ function inspListCardHTML(r){
       <div class="insp-stat"><div class="insp-stat-val">${total}</div><div class="insp-stat-lbl">Total</div></div>
       <div class="insp-stat"><div class="insp-stat-val" style="color:var(--green)">${approved}</div><div class="insp-stat-lbl">Approved</div></div>
       <div class="insp-stat"><div class="insp-stat-val" style="color:var(--red)">${failed}</div><div class="insp-stat-lbl">Failed</div></div>
-      <div class="insp-stat"><div class="insp-stat-val" style="color:var(--muted)">${total - checked}</div><div class="insp-stat-lbl">Pending</div></div>
+      <div class="insp-stat"><div class="insp-stat-val" style="color:var(--amber)">${skipped}</div><div class="insp-stat-lbl">Skipped</div></div>
+      <div class="insp-stat"><div class="insp-stat-val" style="color:var(--muted)">${pending}</div><div class="insp-stat-lbl">Pending</div></div>
     </div>
   </div>`;
 }
@@ -5950,7 +5953,8 @@ async function saveInspectionRound(){
   const inspFlr = DB.floors.find(f=>f.label===activeRound.floor);
   const inspCat = DB.categories.find(x=>x.category===activeRound.category);
   const todayStr = today.toISOString().split('T')[0];
-  const newStatus = allApproved ? 'Completed' : 'In Progress';
+  const hasSkipped = activeRound.items.some(i => i.result === 'Skipped');
+  const newStatus = allApproved && !hasSkipped ? 'Completed' : 'In Progress';
   const inspRecord = {
     id         : activeRound.inspId,
     buildingId : inspBld ? inspBld.id : activeRound.building,
