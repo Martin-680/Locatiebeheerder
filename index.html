@@ -2295,7 +2295,7 @@ function renderDash(){
         const safeId=m.b2?m.b2.id.replace(/'/g,"\\'"):'';
         const safeName=m.name.replace(/'/g,"\\'");
         const border=i<top3Tix.length-1?'border-bottom:1px solid var(--border);':'';
-        const bc=(p=>{const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
+        const bc=(p=>{p=100-p;const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
         return`<div style="${border}padding:12px 14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${safeId?`dashGoBuilding('${safeId}')`:''}">${m.name}</span>
@@ -2414,7 +2414,7 @@ function renderDash(){
         const safeId=(m.id||'').replace(/'/g,"\\'");
         const border=i<top3Insp.length-1?'border-bottom:1px solid var(--border);':'';
         const goInsp=safeId?`navTo('inspections');setTimeout(()=>{const s=document.getElementById('sel-insp-bldg');if(s){s.value='${safeId}';setPage('insp',1);renderInspections();}},150)`:`navTo('inspections')`;
-        const bc=(p=>{const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
+        const bc=(p=>{p=100-p;const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
         return`<div style="${border}padding:12px 14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${goInsp}">${m.name}</span>
@@ -2484,7 +2484,7 @@ function renderDash(){
         const safeId=(m.id||'').replace(/'/g,"\\'");
         const border=i<top3Log.length-1?'border-bottom:1px solid var(--border);':'';
         const goLog=`navTo('logbook');setTimeout(()=>{const s=document.getElementById('sel-log-bldg');if(s){s.value='${safeId}';setPage('log',1);renderLogbook();}},150)`;
-        const bc=(p=>{const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
+        const bc=(p=>{p=100-p;const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
         return`<div style="${border}padding:12px 14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${goLog}">${m.name}</span>
@@ -2578,6 +2578,7 @@ function renderDash(){
           const pct     = Math.round((pTix+pInsp+pLogs+pFailed)/4);
           const border  = i<bldgStats.length-1?'border-bottom:1px solid var(--border);':'';
           const barColor=(p=>{
+            p=100-p;
             const r=p<50?Math.round(16+(239-16)*(p/50)):239;
             const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));
             const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));
