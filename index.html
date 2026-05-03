@@ -2382,19 +2382,19 @@ function renderDash(){
             <div style="text-align:center;cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)">
               <div style="font-size:13px;font-weight:800;color:var(--amber)">${m.tix}</div>
               <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pTix}%</div>
-              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Tickets</div>
             </div>
             <div style="text-align:center;cursor:pointer" onclick="navTo('units');setTimeout(()=>{const s=document.getElementById('sel-unit-bldg');if(s){s.value='${safeId}';renderUnits();}},150)">
               <div style="font-size:13px;font-weight:800;color:var(--indigo)">${m.units.size||'—'}</div>
               <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pUnit}%</div>
-              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Units</div>
             </div>
             <div style="text-align:center;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeId}';onAstBldgChange();}},150)">
               <div style="font-size:13px;font-weight:800;color:var(--teal)">${m.assets.size||'—'}</div>
               <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pAst}%</div>
-              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Assets</div>
             </div>
           </div>
@@ -2501,19 +2501,19 @@ function renderDash(){
             <div style="text-align:center;cursor:pointer" onclick="${goInsp}">
               <div style="font-size:13px;font-weight:800;color:var(--green)">${m.approved||'—'}</div>
               <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pAppr}%</div>
-              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Approved</div>
             </div>
             <div style="text-align:center;cursor:pointer" onclick="${goInsp}">
               <div style="font-size:13px;font-weight:800;color:${m.failed?'var(--red)':'var(--muted)'}">${m.failed||'—'}</div>
               <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pFail}%</div>
-              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Failed</div>
             </div>
             <div style="text-align:center;cursor:pointer" onclick="${goInsp}">
               <div style="font-size:13px;font-weight:800;color:${m.pending?'var(--amber)':'var(--muted)'}">${m.pending||'—'}</div>
               <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pPend}%</div>
-              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Pending</div>
             </div>
           </div>
@@ -2571,19 +2571,19 @@ function renderDash(){
             <div style="text-align:center;cursor:pointer" onclick="${goLog}">
               <div style="font-size:13px;font-weight:800;color:var(--blue)">${m.total}</div>
               <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pEnt}%</div>
-              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Entries</div>
             </div>
             <div style="text-align:center;cursor:pointer" onclick="${goLog}">
               <div style="font-size:13px;font-weight:800;color:${m.assetCount?'var(--teal)':'var(--muted)'}">${m.assetCount||'—'}</div>
               <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pAst}%</div>
-              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Assets</div>
             </div>
             <div style="text-align:center;cursor:pointer" onclick="${goLog}">
               <div style="font-size:13px;font-weight:800;color:${m.supCount?'var(--indigo)':'var(--muted)'}">${m.supCount||'—'}</div>
               <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pSup}%</div>
-              <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+              
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Suppliers</div>
             </div>
           </div>
@@ -2678,25 +2678,25 @@ function renderDash(){
               <div style="${cellStyle}" onclick="event.stopPropagation();${goTix}" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
                 <div style="font-size:13px;font-weight:800;color:var(--blue)">${s.openTix}</div>
                 <div style="font-size:10px;color:var(--muted);margin-top:1px">${pTix}%</div>
-                <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+                
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Tickets</div>
               </div>
               <div style="${cellStyle}" onclick="event.stopPropagation();${goInsp}" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
                 <div style="font-size:13px;font-weight:800;color:var(--text)">${s.activeInsp}</div>
                 <div style="font-size:10px;color:var(--muted);margin-top:1px">${pInsp}%</div>
-                <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+                
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Inspections</div>
               </div>
               <div style="${cellStyle}" onclick="event.stopPropagation();${goLog}" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
                 <div style="font-size:13px;font-weight:800;color:var(--text)">${s.recentLogs}</div>
                 <div style="font-size:10px;color:var(--muted);margin-top:1px">${pLogs}%</div>
-                <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+                
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Logbook</div>
               </div>
               <div style="${cellStyle}" onclick="event.stopPropagation();${goFail}" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
                 <div style="font-size:13px;font-weight:800;color:${failColor}">${s.failedAssets}</div>
                 <div style="font-size:10px;color:var(--muted);margin-top:1px">${pFailed}%</div>
-                <div style="font-size:8px;font-style:italic;color:var(--muted);margin-top:1px">of total</div>
+                
                 <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Failed</div>
               </div>
             </div>
