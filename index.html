@@ -4911,6 +4911,44 @@ function openBldDetail(id){
     </div>
   </div>`;
 
+  // ── Inspections In Progress ──
+  const activeInspections = DB.inspections.filter(r=>r.buildingId===b.id && r.status!=='Completed');
+  if(activeInspections.length){
+    html+=`<div class="sh"><span class="sh-title">Inspections In Progress (${activeInspections.length})</span><span class="sh-link" onclick="navTo('inspections')">All →</span></div>`;
+    html+='<div style="padding:0 14px 8px">'+activeInspections.map(r=>{
+      const total    = Array.isArray(r.items)?r.items.length:0;
+      const checked  = Array.isArray(r.items)?r.items.filter(i=>i.result).length:0;
+      const failed   = Array.isArray(r.items)?r.items.filter(i=>i.result==='Failed').length:0;
+      const pct      = total ? Math.round(checked/total*100) : 0;
+      const durMs    = r.dateEnd ? new Date(r.dateEnd)-new Date(r.dateStart) : new Date()-new Date(r.dateStart);
+      const durDays  = Math.max(1,Math.round(durMs/86400000));
+      const durColor = r.dateEnd ? 'var(--sub)' : 'var(--amber)';
+      return `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;overflow:hidden" onclick="openInspDetail('${r.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px 10px;gap:8px">
+          <div style="min-width:0;flex:1">
+            <div class="ct">${r.category||'Inspection'}</div>
+            <div class="cm">${r.inspector||'—'}</div>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="color:var(--muted);flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;padding:0 14px 8px">
+          <div style="text-align:left"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:2px">Start</span><span style="font-size:11px;color:var(--sub)">${df(r.dateStart)}</span></div>
+          <div style="text-align:center"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:2px">Duration</span><span style="font-size:11px;color:${durColor}">${durDays} day${durDays!==1?'s':''}</span></div>
+          <div style="text-align:right"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:2px">End</span><span style="font-size:11px;color:${r.dateEnd?'var(--sub)':'var(--muted)'}">${r.dateEnd?df(r.dateEnd):'—'}</span></div>
+        </div>
+        <div style="padding:0 14px 8px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:11px;color:var(--muted)">${checked} / ${total} checked</span>
+            <span style="font-size:11px;color:var(--muted)">${pct}%</span>
+          </div>
+          <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${failed?'var(--red)':'var(--blue)'};border-radius:2px"></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+
   // ── Assets Affected ──
   const affectedAsts=[...new Map(
     openTix.filter(t=>t.assetId).map(t=>DB.assets.find(a=>a.id===t.assetId&&a.building===b.name)).filter(Boolean).map(a=>[a.id,a])
