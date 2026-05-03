@@ -819,55 +819,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
 
   <!-- ═══════ STATS SCREEN ═══════ -->
-  <div id="screen-stats" class="screen">
-    <div class="topbar">
-      <div class="topbar-inner">
-        <div class="topbar-left"><div class="topbar-title">Stats</div><div class="topbar-sub">Building workload overview</div></div>
-        <div class="topbar-actions">
-          <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
-        </div>
-      </div>
-    </div>
-    <!-- Explanation card -->
-    <div style="padding:14px 14px 0">
-      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:7px">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue);flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          How is this calculated?
-        </div>
-        <div style="font-size:12.5px;color:var(--sub);line-height:1.65">
-          Each building gets a <strong>workload score</strong> based on how much active work it currently demands — not simply how big it is.
-        </div>
-        <div style="margin-top:10px;display:flex;flex-direction:column;gap:7px">
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <span style="font-size:15px;flex-shrink:0">🎫</span>
-            <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Open tickets</strong> carry the most weight. Every ticket that is not yet closed counts as active work that still needs to be handled.</div>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <span style="font-size:15px;flex-shrink:0">🔍</span>
-            <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Active inspections</strong> (not yet completed) add to the load because they require planning and follow-up.</div>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <span style="font-size:15px;flex-shrink:0">📋</span>
-            <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Recent logbook entries</strong> from the last 90 days give a sense of how much activity the building has seen lately. Older entries fade out automatically.</div>
-          </div>
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <span style="font-size:15px;flex-shrink:0">🔴</span>
-            <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Failed assets</strong> — assets that were marked failed during an inspection, or assets with status Under Maintenance / Decommissioned that are linked to an open ticket — carry the highest weight. A broken asset typically sits behind multiple tickets and inspections.</div>
-          </div>
-        </div>
-        <div style="margin-top:11px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--sub);line-height:1.6">
-          The raw score is then <strong>adjusted for building size</strong>. Floors, units, and assets tell us how large a building is. A small building with 5 open tickets is proportionally under more pressure than a large building with the same 5 tickets — so the small building ranks higher. This means the percentage bar reflects <em>real workload pressure</em>, not just which building is biggest.
-        </div>
-        <div style="margin-top:10px;padding:9px 12px;background:rgba(37,99,235,.07);border-radius:var(--rs);font-size:12px;color:var(--blue);font-weight:600">
-          The building at 100% is simply the most pressured one right now. As tickets get closed and inspections are completed, the scores update automatically.
-        </div>
-      </div>
-    </div>
-    <!-- Stats list (reuses same element rendered by renderDash) -->
-    <div style="padding:14px 14px 4px"><div class="sh" style="margin:0 0 8px"><span class="sh-title">Top 5 busiest buildings</span></div></div>
-    <div id="dash-stats-page" style="padding:0 14px 20px;display:flex;flex-direction:column;gap:8px"></div>
-  </div>
+
 
 
   <!-- ═══════ PRIORITIES SCREEN ═══════ -->
@@ -1032,15 +984,36 @@ input,select,textarea{font-family:inherit;color:var(--text);}
   <div class="info-subscreen" id="info-sub-stats">
     <div class="topbar"><div class="topbar-inner"><button class="info-back-btn" onclick="closeInfoSub('stats')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="15 18 9 12 15 6"/></svg> Info</button><div style="font-size:14px;font-weight:600;color:var(--text)">Stats</div><div style="width:60px"></div></div></div>
     <div style="padding:14px 18px">
-      <div class="info-desc">Stats gives a portfolio-wide view of your buildings, units, tickets and assets. All numbers recalculate live from your Google Sheets data.</div>
-      <div class="info-section-lbl" style="padding:14px 0 6px">Key calculations</div>
-      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:0 14px">
+      <div class="info-desc">Stats gives a portfolio-wide view of your buildings’ workload. Each building gets a <strong>workload score</strong> based on how much active work it currently demands — not simply how big it is. All numbers recalculate live from your Google Sheets data.</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">What drives the score</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:15px;flex-shrink:0">🎫</span>
+          <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Open tickets</strong> carry the most weight. Every ticket that is not yet closed counts as active work that still needs to be handled.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:15px;flex-shrink:0">🔍</span>
+          <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Active inspections</strong> (not yet completed) add to the load because they require planning and follow-up.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:15px;flex-shrink:0">📋</span>
+          <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Recent logbook entries</strong> from the last 90 days give a sense of how much activity the building has seen lately. Older entries fade out automatically.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:15px;flex-shrink:0">🔴</span>
+          <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Failed assets</strong> — assets marked failed during an inspection, or assets with status Under Maintenance / Decommissioned linked to an open ticket — carry the highest weight.</div>
+        </div>
+      </div>
+      <div class="info-section-lbl" style="padding:0 0 6px">Key calculations</div>
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:0 14px;margin-bottom:14px">
         <div class="info-field-row"><span style="color:var(--sub)">Occupancy rate</span><span style="font-weight:600;color:var(--green)">Occupied ÷ Total units</span></div>
         <div class="info-field-row"><span style="color:var(--sub)">Open ticket rate</span><span style="font-weight:600;color:var(--red)">Open ÷ All tickets</span></div>
         <div class="info-field-row"><span style="color:var(--sub)">Asset health</span><span style="font-weight:600;color:var(--blue)">Active ÷ Total assets</span></div>
         <div class="info-field-row"><span style="color:var(--sub)">Avg days open</span><span style="font-weight:600">Sum(days) ÷ Open count</span></div>
       </div>
-      <div class="info-section-lbl" style="padding:14px 0 6px">Trend chart</div>
+      <div class="info-section-lbl" style="padding:0 0 6px">Size adjustment</div>
+      <div class="info-desc" style="margin-bottom:14px">The raw score is adjusted for building size. Floors, units, and assets tell us how large a building is. A small building with 5 open tickets is proportionally under more pressure than a large building with the same 5 tickets — so the small building ranks higher. This means the percentage bar reflects <em>real workload pressure</em>, not just which building is biggest. The building at 100% is simply the most pressured one right now.</div>
+      <div class="info-section-lbl" style="padding:0 0 6px">Trend chart</div>
       <div class="info-desc">Monthly ticket volume for the last 6 months, calculated from <code>dateOpened</code> on each ticket row in the Tickets sheet.</div>
     </div>
   </div>
@@ -1929,7 +1902,7 @@ function openDrawer(){
 
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>','Dashboard',"navTo('dashboard');closeDrawer()",'dashboard');
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><rect x="7" y="13" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="11" y="13" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="15" y="13" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="7" y="17" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="11" y="17" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/></svg>','Calendar',"navTo('calendar');closeDrawer()",'calendar');
-  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>','Stats',"navTo('stats');closeDrawer()",'stats');
+
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>','Priorities',"navTo('priorities');closeDrawer()",'priorities');
   if(alertCount) html+=`<div class="drawer-item" onclick="closeDrawer();openAlerts()" style="color:var(--blue)"><div class="drawer-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1;font-weight:700">Alerts</div><span class="drawer-item-badge">${alertCount}</span></div>`;
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>','Team',"navTo('users');closeDrawer()",'users');
@@ -1997,7 +1970,7 @@ function navTo(s){
   if(s==='units')       renderUnits();
   if(s==='floors')      renderFloors();
   if(s==='logbook')     { logActiveBldg=null; logSort='date'; renderLogbook(); }
-  if(s==='stats')       {renderDash();renderStats();}
+
   if(s==='priorities')  {renderDash();renderPriorities();}
   if(s==='calendar')    renderCalendar();
   if(s==='info')        { document.querySelectorAll('.info-subscreen').forEach(x=>x.classList.remove('open')); document.getElementById('info-main')?.classList.remove('pushed'); }
@@ -2323,12 +2296,7 @@ function getAlertCount(){
 /* ══════════════════════════════════════════════════════════
    DASHBOARD
 ══════════════════════════════════════════════════════════ */
-function renderStats(){
-  // Mirror the dash-stats content into dash-stats-page for the Stats screen
-  const src=document.getElementById('dash-stats');
-  const dst=document.getElementById('dash-stats-page');
-  if(dst&&src) dst.innerHTML=src.innerHTML;
-}
+
 function renderPriorities(){
   // Mirror the pri-chart content into pri-chart-page for the Priorities screen
   const src=document.getElementById('pri-chart');
