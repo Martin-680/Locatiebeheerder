@@ -444,16 +444,17 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
     <div id="dash-prob-ast" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:6px"></div>
 
-    <div class="sh fu"><span class="sh-title">Tickets</span></div>
-    <div id="dash-bldg-tix" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
-
-    <div class="sh fu"><span class="sh-title">Inspections</span></div>
-    <div id="dash-bldg-insp" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
-
-    <div class="sh fu"><span class="sh-title">Logbook</span></div>
-    <div id="dash-bldg-log" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
-
-    <div class="sh fu"><span class="sh-title">Stats</span></div>
+    <div class="sh fu" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:0">
+      <span class="sh-title">Statistics</span>
+      <span id="dash-stats-period-badge" style="font-size:10px;font-weight:600;color:var(--blue);background:rgba(37,99,235,.1);padding:2px 8px;border-radius:20px;margin-right:14px">last 90 days</span>
+    </div>
+    <div style="padding:8px 14px 10px;display:flex;background:var(--surface)">
+      <div style="display:flex;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);padding:2px;gap:2px;width:100%">
+        <button id="dash-seg-week"    onclick="setDashPeriod('week')"    style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Week</button>
+        <button id="dash-seg-month"   onclick="setDashPeriod('month')"   style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Month</button>
+        <button id="dash-seg-quarter" onclick="setDashPeriod('quarter')" style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)">Quarter</button>
+      </div>
+    </div>
     <div id="dash-stats" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:8px"></div>
 
     <div class="sh fu"><span class="sh-title">By Priority</span></div>
@@ -2293,380 +2294,103 @@ function renderDash(){
   animCount('kpi-other',other);
   animCount('kpi-closed',closed);
   animCount('kpi-unassigned',unassigned);
-  const openTix=DB.tickets.filter(t=>t.status!=='Closed'&&(t.building||'').trim());
-  // Build per-building ticket data with percentage scoring
-  const tixBldgMap={};
-  openTix.forEach(t=>{
-    const name=(t.building||'').trim(); if(!name) return;
-    const b2=DB.buildings.find(x=>(x.name||'').trim()===name);
-    if(!tixBldgMap[name]) tixBldgMap[name]={name,b2,tix:0,assets:new Set(),units:new Set()};
-    tixBldgMap[name].tix++;
-    if(t.assetId) tixBldgMap[name].assets.add(t.assetId);
-    if(t.unit) tixBldgMap[name].units.add(t.unit);
-  });
-  const tixAll=Object.values(tixBldgMap);
-  const totTix=tixAll.reduce((a,m)=>a+m.tix,0)||1;
-  const totTixAst=tixAll.reduce((a,m)=>a+m.assets.size,0)||1;
-  const totTixUnit=tixAll.reduce((a,m)=>a+m.units.size,0)||1;
-  tixAll.forEach(m=>{
-    m.pTix=Math.round(m.tix/totTix*100);
-    m.pAst=Math.round(m.assets.size/totTixAst*100);
-    m.pUnit=Math.round(m.units.size/totTixUnit*100);
-    m.score=Math.round((m.pTix+m.pAst+m.pUnit)/3);
-  });
-  const top3Tix=tixAll.sort((a,b)=>b.score-a.score).slice(0,3);
-  const bldgNames=top3Tix.map(x=>x.name);
-  const bldgContainer=document.getElementById('dash-bldg-tix');
-  if(bldgContainer){
-    if(!top3Tix.length){
-      bldgContainer.innerHTML='';
-    } else {
-      const maxTixScore=top3Tix[0].score||1;
-      const rows=top3Tix.map((m,i)=>{
-        const safeId=m.b2?m.b2.id.replace(/'/g,"\\'"):'';
-        const safeName=m.name.replace(/'/g,"\\'");
-        const border=i<top3Tix.length-1?'border-bottom:1px solid var(--border);':'';
-        const bc=(p=>{p=100-p;const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
-        return`<div style="${border}padding:12px 14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${safeId?`dashGoBuilding('${safeId}')`:''}">${m.name}</span>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health Score</span>
-              <span style="font-size:12px;font-weight:800;color:${bc}">${m.score}%</span>
-            </div>
-          </div>
-          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px">
-            <div style="height:100%;width:${Math.round(m.score/maxTixScore*100)}%;background:${bc};border-radius:3px;transition:width .4s ease"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
-            <div style="text-align:center;cursor:pointer" onclick="navTo('tickets');setTimeout(()=>{const s=document.getElementById('sel-tix-bldg');if(s){s.value='${safeName}';setPage('tix',1);renderTix();}},150)">
-              <div style="font-size:13px;font-weight:800;color:var(--amber)">${m.tix}</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pTix}%</div>
-              
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Tickets</div>
-            </div>
-            <div style="text-align:center;cursor:pointer" onclick="navTo('units');setTimeout(()=>{const s=document.getElementById('sel-unit-bldg');if(s){s.value='${safeId}';renderUnits();}},150)">
-              <div style="font-size:13px;font-weight:800;color:var(--indigo)">${m.units.size||'—'}</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pUnit}%</div>
-              
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Units</div>
-            </div>
-            <div style="text-align:center;cursor:pointer" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-bldg');if(s){s.value='${safeId}';onAstBldgChange();}},150)">
-              <div style="font-size:13px;font-weight:800;color:var(--teal)">${m.assets.size||'—'}</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pAst}%</div>
-              
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Assets</div>
-            </div>
-          </div>
-        </div>`;
-      }).join('');
-      bldgContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}</div>`;
-    }
-  }
-  const ob=document.getElementById('open-badge');
-  const nonClosed=DB.tickets.filter(t=>t.status!=='Closed').length;
-  if(ob){ if(nonClosed>0){ob.textContent=nonClosed;ob.style.display='flex';}else ob.style.display='none'; }
-
-  // Problem Assets
-  const probAstEl=document.getElementById('dash-prob-ast');
-  const probAstLink=document.getElementById('dash-prob-ast-link');
-  if(probAstEl){
-    const problemAssets=DB.assets.filter(a=>{
-      const hasOpenTix=DB.tickets.some(t=>t.assetId===a.id&&t.status!=='Closed');
-      const badStatus=a.status==='Under Maintenance'||a.status==='Decommissioned';
-      return hasOpenTix||badStatus;
-    }).sort((a,b)=>{
-      // Sort: Decommissioned first, then Under Maintenance, then by open ticket count desc
-      const rank=s=>s==='Decommissioned'?0:s==='Under Maintenance'?1:2;
-      if(rank(a.status)!==rank(b.status)) return rank(a.status)-rank(b.status);
-      const tA=DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
-      const tB=DB.tickets.filter(t=>t.assetId===b.id&&t.status!=='Closed').length;
-      return tB-tA;
-    });
-    const LIMIT=10;
-    const shown=problemAssets.slice(0,LIMIT);
-    if(probAstLink) probAstLink.style.display=problemAssets.length>LIMIT?'':'none';
-    if(!shown.length){
-      probAstEl.innerHTML='<div style="font-size:13px;color:var(--muted);padding:0 0 8px">All assets are normal \u2714</div>';
-    } else {
-      probAstEl.innerHTML=shown.map(a=>{
-        const openTix=DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
-        // Status badge
-        const stBadge=a.status==='Decommissioned'
-          ? `<span class="badge" style="background:rgba(100,116,139,.15);color:var(--muted);flex-shrink:0">Decommissioned</span>`
-          : a.status==='Under Maintenance'
-          ? `<span class="badge" style="background:rgba(245,158,11,.12);color:var(--amber);flex-shrink:0">Maintenance</span>`
-          : '';
-        // Ticket badge
-        const tixBadge=openTix>0
-          ? `<span class="badge" style="background:rgba(220,38,38,.12);color:var(--red);flex-shrink:0">${openTix} open ticket${openTix!==1?'s':''}</span>`
-          : '';
-        const loc=[a.building,a.floor,a.unit].filter(Boolean).join(' · ');
-        return`<div onclick="openAstDetail('${a.id}')" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:border-color .15s" onmouseenter="this.style.borderColor='var(--border2)'" onmouseleave="this.style.borderColor='var(--border)'">
-          <div style="flex:1;min-width:0">
-            <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.label||a.name}</div>
-            <div style="font-size:11px;color:var(--sub);margin-top:2px">${a.id}${loc?' · '+loc:''}</div>
-          </div>
-          <div style="display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">${stBadge}${tixBadge}</div>
-        </div>`;
-      }).join('');
-    }
-  }
-  // Inspections building grid
-  const inspContainer=document.getElementById('dash-bldg-insp');
-  if(inspContainer){
-    const bldgInspMap={};
-    DB.inspections.forEach(insp=>{
-      const bName=(insp.building||'').trim(); if(!bName) return;
-      if(!bldgInspMap[bName]) bldgInspMap[bName]={id:insp.buildingId,failed:0,pending:0,approved:0};
-      const m=bldgInspMap[bName];
-      (insp.items||[]).forEach(item=>{
-        if(item.result==='Failed') m.failed++;
-        else if(item.result==='Open') m.pending++;
-        else if(item.result==='Approved') m.approved++;
-      });
-    });
-    const inspAll=Object.entries(bldgInspMap).map(([name,m])=>({name,...m}));
-    const totFail=inspAll.reduce((a,m)=>a+m.failed,0)||1;
-    const totPend=inspAll.reduce((a,m)=>a+m.pending,0)||1;
-    const totAppr=inspAll.reduce((a,m)=>a+m.approved,0)||1;
-    inspAll.forEach(m=>{
-      m.pFail=Math.round(m.failed/totFail*100);
-      m.pPend=Math.round(m.pending/totPend*100);
-      m.pAppr=Math.round(m.approved/totAppr*100);
-      m.score=Math.round((m.pFail+m.pPend+m.pAppr)/3);
-    });
-    const top3Insp=inspAll.filter(m=>m.failed||m.pending||m.approved).sort((a,b)=>b.score-a.score).slice(0,3);
-    if(!top3Insp.length){
-      inspContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No inspection data</div>';
-    } else {
-      const maxInspScore=top3Insp[0].score||1;
-      const rows=top3Insp.map((m,i)=>{
-        const safeId=(m.id||'').replace(/'/g,"\\'");
-        const border=i<top3Insp.length-1?'border-bottom:1px solid var(--border);':'';
-        const goInsp=safeId?`navTo('inspections');setTimeout(()=>{const s=document.getElementById('sel-insp-bldg');if(s){s.value='${safeId}';setPage('insp',1);renderInspections();}},150)`:`navTo('inspections')`;
-        const bc=(p=>{p=100-p;const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
-        return`<div style="${border}padding:12px 14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${goInsp}">${m.name}</span>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health Score</span>
-              <span style="font-size:12px;font-weight:800;color:${bc}">${m.score}%</span>
-            </div>
-          </div>
-          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px">
-            <div style="height:100%;width:${Math.round(m.score/maxInspScore*100)}%;background:${bc};border-radius:3px;transition:width .4s ease"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
-            <div style="text-align:center;cursor:pointer" onclick="${goInsp}">
-              <div style="font-size:13px;font-weight:800;color:var(--green)">${m.approved||'—'}</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pAppr}%</div>
-              
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Approved</div>
-            </div>
-            <div style="text-align:center;cursor:pointer" onclick="${goInsp}">
-              <div style="font-size:13px;font-weight:800;color:${m.failed?'var(--red)':'var(--muted)'}">${m.failed||'—'}</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pFail}%</div>
-              
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Failed</div>
-            </div>
-            <div style="text-align:center;cursor:pointer" onclick="${goInsp}">
-              <div style="font-size:13px;font-weight:800;color:${m.pending?'var(--amber)':'var(--muted)'}">${m.pending||'—'}</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pPend}%</div>
-              
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Pending</div>
-            </div>
-          </div>
-        </div>`;
-      }).join('');
-      inspContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}</div>`;
-    }
-  }
-  // Logbook dashboard grid with percentage scoring
-  const logContainer=document.getElementById('dash-bldg-log');
-  if(logContainer){
-    const bldgLogMap={};
-    DB.logs.filter(r=>r.status!=='gesloten').forEach(r=>{
-      const bld=DB.buildings.find(b=>b.id===r.buildingId);
-      const bName=bld?bld.name:(r.building||'').trim();
-      if(!bName) return;
-      if(!bldgLogMap[bName]) bldgLogMap[bName]={id:r.buildingId||'',assets:new Set(),suppliers:new Set(),total:0};
-      const m=bldgLogMap[bName];
-      m.total++;
-      if(r.assetId) m.assets.add(r.assetId);
-      if(r.supplierId) m.suppliers.add(r.supplierId);
-    });
-    const logAll=Object.entries(bldgLogMap).map(([name,m])=>({name,...m,assetCount:m.assets.size,supCount:m.suppliers.size}));
-    const totLogEnt=logAll.reduce((a,m)=>a+m.total,0)||1;
-    const totLogAst=logAll.reduce((a,m)=>a+m.assetCount,0)||1;
-    const totLogSup=logAll.reduce((a,m)=>a+m.supCount,0)||1;
-    logAll.forEach(m=>{
-      m.pEnt=Math.round(m.total/totLogEnt*100);
-      m.pAst=Math.round(m.assetCount/totLogAst*100);
-      m.pSup=Math.round(m.supCount/totLogSup*100);
-      m.score=Math.round((m.pEnt+m.pAst+m.pSup)/3);
-    });
-    const top3Log=logAll.sort((a,b)=>b.score-a.score).slice(0,3);
-    if(!top3Log.length){
-      logContainer.innerHTML='<div style="padding:0 0 8px;font-size:13px;color:var(--muted)">No logbook data</div>';
-    } else {
-      const maxLogScore=top3Log[0].score||1;
-      const rows=top3Log.map((m,i)=>{
-        const safeId=(m.id||'').replace(/'/g,"\\'");
-        const border=i<top3Log.length-1?'border-bottom:1px solid var(--border);':'';
-        const goLog=`navTo('logbook');setTimeout(()=>{const s=document.getElementById('sel-log-bldg');if(s){s.value='${safeId}';setPage('log',1);renderLogbook();}},150)`;
-        const bc=(p=>{p=100-p;const r=p<50?Math.round(16+(239-16)*(p/50)):239;const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));return`rgb(${r},${g},${b})`;})( m.score);
-        return`<div style="${border}padding:12px 14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span style="font-size:13px;font-weight:700;color:var(--blue);cursor:pointer" onclick="${goLog}">${m.name}</span>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health Score</span>
-              <span style="font-size:12px;font-weight:800;color:${bc}">${m.score}%</span>
-            </div>
-          </div>
-          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px">
-            <div style="height:100%;width:${Math.round(m.score/maxLogScore*100)}%;background:${bc};border-radius:3px;transition:width .4s ease"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
-            <div style="text-align:center;cursor:pointer" onclick="${goLog}">
-              <div style="font-size:13px;font-weight:800;color:var(--blue)">${m.total}</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pEnt}%</div>
-              
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Entries</div>
-            </div>
-            <div style="text-align:center;cursor:pointer" onclick="${goLog}">
-              <div style="font-size:13px;font-weight:800;color:${m.assetCount?'var(--teal)':'var(--muted)'}">${m.assetCount||'—'}</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pAst}%</div>
-              
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Assets</div>
-            </div>
-            <div style="text-align:center;cursor:pointer" onclick="${goLog}">
-              <div style="font-size:13px;font-weight:800;color:${m.supCount?'var(--indigo)':'var(--muted)'}">${m.supCount||'—'}</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:1px">${m.pSup}%</div>
-              
-              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:2px">Suppliers</div>
-            </div>
-          </div>
-        </div>`;
-      }).join('');
-      logContainer.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}</div>`;
-    }
-  }
-  // Building Stats — size-normalised workload score (top 5)
-  const statsEl=document.getElementById('dash-stats');
+  // Statistics section — period-aware health score (top 5 buildings by workload)
+  const statsEl = document.getElementById('dash-stats');
   if(statsEl){
-    const now=new Date();
-    const cutoff=new Date(now.getTime()-90*24*60*60*1000); // 90 days ago
-    // Step 1: compute raw size scores for all buildings
-    const rawSizes=DB.buildings.map(b=>{
-      const floors = DB.floors.filter(f=>f.buildingId===b.id).length;
-      const units  = DB.units.filter(u=>u.buildingId===b.id).length;
-      const assets = DB.assets.filter(a=>a.buildingId===b.id).length;
-      return floors + units + (assets*0.5);
-    });
-    const avgSize=rawSizes.length ? rawSizes.reduce((a,v)=>a+v,0)/rawSizes.length : 1;
-    // Step 2: compute per-building stats
-    const bldgStats=DB.buildings.map((b,bi)=>{
-      const floors      = DB.floors.filter(f=>f.buildingId===b.id).length;
-      const units       = DB.units.filter(u=>u.buildingId===b.id).length;
-      const assets      = DB.assets.filter(a=>a.buildingId===b.id).length;
-      const openTix     = DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed').length;
-      const activeInsp  = DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed').length;
-      const recentLogs  = DB.logs.filter(r=>r.buildingId===b.id&&r.date&&new Date(r.date)>=cutoff).length;
-      // Failed assets: unique assets flagged Failed in inspection items OR with bad status referenced in open tickets
-      const failedFromInsp = new Set();
-      DB.inspections.filter(i=>i.buildingId===b.id).forEach(insp=>{
-        (insp.items||[]).forEach(item=>{
-          if(item.result==='Failed'&&item.assetId) failedFromInsp.add(item.assetId);
-        });
-      });
-      const failedFromTix = new Set();
-      DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&t.assetId).forEach(t=>{
-        const ast=DB.assets.find(a=>a.id===t.assetId);
-        if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned')) failedFromTix.add(t.assetId);
-      });
-      const failedAssets = new Set([...failedFromInsp,...failedFromTix]).size;
-      const activityScore = (openTix*4)+(activeInsp*3)+(recentLogs*1)+(failedAssets*5);
-      const sizeFactor  = Math.max(rawSizes[bi]/avgSize, 0.5); // min 0.5 to avoid division extremes
-      const score       = activityScore/sizeFactor;
-      return{b,floors,units,assets,openTix,activeInsp,recentLogs,failedAssets,score};
-    }).filter(s=>s.score>0).sort((a,z)=>z.score-a.score).slice(0,3);
+    const now    = new Date();
+    const days   = dashPeriod==='week'?7:dashPeriod==='month'?30:90;
+    const cutoff = new Date(now.getTime()-days*24*60*60*1000);
+    const inPeriod = d => d && new Date(d) >= cutoff;
+
+    const bldgStats = DB.buildings.map(b=>{
+      const sqm       = parseFloat(b.size)||0;
+      const unitCount = DB.units.filter(u=>u.buildingId===b.id).length;
+      const effSqm    = sqm>0 ? sqm : unitCount*50;
+      const per100    = effSqm>0 ? effSqm/100 : 1;
+
+      const openTix    = DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&inPeriod(t.dateCreated||t.date)).length;
+      const activeInsp = DB.inspections.filter(i=>i.buildingId===b.id&&i.status==='In Progress'&&inPeriod(i.dateStart)).length;
+      const recentLogs = DB.logs.filter(r=>r.buildingId===b.id&&inPeriod(r.date)).length;
+
+      const pressure   = (openTix*3.0 + activeInsp*1.5 + recentLogs*0.5) / per100;
+      // scale: pressure of ~11 per 100m² = 0% health; tuned so typical load sits 50-80%
+      const health     = Math.max(0, Math.min(100, Math.round(100 - pressure * 9.0)));
+      const workload   = openTix*3.0 + activeInsp*1.5 + recentLogs*0.5;
+      return {b, sqm:effSqm, openTix, activeInsp, recentLogs, health, workload};
+    }).filter(s=>s.workload>0).sort((a,z)=>a.health-z.health).slice(0,5);
 
     if(!bldgStats.length){
-      statsEl.innerHTML='<div style="font-size:13px;color:var(--muted);padding:0 0 8px">No data yet</div>';
+      statsEl.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:0 0 8px">No data yet — add some tickets, inspections or logbook entries ✓</div>';
     } else {
-      const maxScore=bldgStats[0].score;
-      const totalTix    = bldgStats.reduce((a,s)=>a+s.openTix,0)    || 1;
-      const totalInsp   = bldgStats.reduce((a,s)=>a+s.activeInsp,0) || 1;
-      const totalLogs   = bldgStats.reduce((a,s)=>a+s.recentLogs,0) || 1;
-      const totalFailed = bldgStats.reduce((a,s)=>a+s.failedAssets,0) || 1;
-      statsEl.innerHTML=`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        ${bldgStats.map((s,i)=>{
-          const pTix    = Math.round(s.openTix/totalTix*100);
-          const pInsp   = Math.round(s.activeInsp/totalInsp*100);
-          const pLogs   = Math.round(s.recentLogs/totalLogs*100);
-          const pFailed = Math.round(s.failedAssets/totalFailed*100);
-          const pct     = Math.round((pTix+pInsp+pLogs+pFailed)/4);
-          const border  = i<bldgStats.length-1?'border-bottom:1px solid var(--border);':'';
-          const barColor=(p=>{
-            p=100-p;
-            const r=p<50?Math.round(16+(239-16)*(p/50)):239;
-            const g=p<50?Math.round(185+(158-185)*(p/50)):Math.round(158+(68-158)*((p-50)/50));
-            const b=p<50?Math.round(129+(11-129)*(p/50)):Math.round(11+(68-11)*((p-50)/50));
-            return`rgb(${r},${g},${b})`;
-          })(pct);
-          const goB     = `navTo('buildings');setTimeout(()=>openBldDetail('${s.b.id.replace(/'/g,"\\'")}'),150)`;
-          const failColor=s.failedAssets>0?'var(--red)':'var(--text)';
-          const bldId   = s.b.id.replace(/'/g,"\\'");
-          const bldName = s.b.name.replace(/'/g,"\\'");
-          const goTix   = `navTo('tickets');setTimeout(()=>{const e=document.getElementById('sel-tix-bldg');if(e){e.value='${bldName}';setPage('tix',1);renderTix();}},150)`;
-          const goInsp  = `navTo('inspections');setTimeout(()=>{const e=document.getElementById('sel-insp-bldg');if(e){e.value='${bldId}';setPage('insp',1);renderInspections();}},150)`;
-          const goLog   = `navTo('logbook');setTimeout(()=>{const e=document.getElementById('sel-log-bldg');if(e){e.value='${bldId}';setPage('log',1);renderLogbook();}},150)`;
-          const goFail  = `navTo('assets');setTimeout(()=>{const e=document.getElementById('sel-ast-bldg');if(e){e.value='${bldId}';onAstBldgChange();}},150)`;
-          const cellStyle=`text-align:center;cursor:pointer;padding:4px 2px;border-radius:8px;transition:background .15s`;
-          return`<div style="${border}padding:12px 14px;cursor:pointer" onclick="${goB}">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-size:13px;font-weight:700;color:var(--blue)">${s.b.name}</span>
-              <div style="display:flex;align-items:center;gap:6px">
-                <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Property Health Score</span>
-                <span style="font-size:12px;font-weight:800;color:${barColor}">${pct}%</span>
-              </div>
+      const totalTix  = bldgStats.reduce((a,s)=>a+s.openTix,0)  || 1;
+      const totalInsp = bldgStats.reduce((a,s)=>a+s.activeInsp,0)|| 1;
+      const totalLogs = bldgStats.reduce((a,s)=>a+s.recentLogs,0)|| 1;
+      const maxHealth = Math.max(...bldgStats.map(s=>s.health)) || 1;
+
+      const healthColor = h => h>=70?'#059669':h>=40?'#d97706':'#dc2626';
+
+      const rows = bldgStats.map((s,i)=>{
+        const hc      = healthColor(s.health);
+        const bldId   = s.b.id.replace(/'/g,"\'");
+        const bldName = s.b.name.replace(/'/g,"\'");
+        const border  = i<bldgStats.length-1?'border-bottom:1px solid var(--border);':'';
+        const pTix    = Math.round(s.openTix/totalTix*100);
+        const pInsp   = Math.round(s.activeInsp/totalInsp*100);
+        const pLogs   = Math.round(s.recentLogs/totalLogs*100);
+        const sqmStr  = s.sqm ? Number(s.sqm).toLocaleString('nl-NL')+' m²' : '—';
+        const goB     = `navTo('buildings');setTimeout(()=>openBldDetail('${bldId}'),150)`;
+        const goTix   = `navTo('tickets');setTimeout(()=>{const e=document.getElementById('sel-tix-bldg');if(e){e.value='${bldName}';setPage('tix',1);renderTix();}},150)`;
+        const goInsp  = `navTo('inspections');setTimeout(()=>{const e=document.getElementById('sel-insp-bldg');if(e){e.value='${bldId}';setPage('insp',1);renderInspections();}},150)`;
+        const goLog   = `navTo('logbook');setTimeout(()=>{const e=document.getElementById('sel-log-bldg');if(e){e.value='${bldId}';setPage('log',1);renderLogbook();}},150)`;
+        const cellBase = 'text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:pointer;';
+        return `<div style="${border}padding:12px 14px;cursor:pointer" onclick="${goB}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+            <span style="font-size:13px;font-weight:700;color:var(--blue)">${s.b.name}</span>
+            <div style="display:flex;align-items:center;gap:5px">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health</span>
+              <span style="font-size:12px;font-weight:800;color:${hc}">${s.health}%</span>
             </div>
-            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:7px">
-              <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .4s ease"></div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:6px">${sqmStr}</div>
+          <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px">
+            <div style="height:100%;width:${Math.round(s.health/maxHealth*100)}%;background:${hc};border-radius:3px;transition:width .4s ease"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
+            <div style="${cellBase}" onclick="event.stopPropagation();${goTix}">
+              <div style="font-size:13px;font-weight:800;color:${s.openTix>0?'var(--red)':'var(--text)'}">${s.openTix}</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Tickets</div>
+              <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">${pTix}% of total</div>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
-              <div style="${cellStyle}" onclick="event.stopPropagation();${goTix}" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
-                <div style="font-size:13px;font-weight:800;color:var(--blue)">${s.openTix}</div>
-                <div style="font-size:10px;color:var(--muted);margin-top:1px">${pTix}%</div>
-                
-                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Tickets</div>
-              </div>
-              <div style="${cellStyle}" onclick="event.stopPropagation();${goInsp}" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
-                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.activeInsp}</div>
-                <div style="font-size:10px;color:var(--muted);margin-top:1px">${pInsp}%</div>
-                
-                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Inspections</div>
-              </div>
-              <div style="${cellStyle}" onclick="event.stopPropagation();${goLog}" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
-                <div style="font-size:13px;font-weight:800;color:var(--text)">${s.recentLogs}</div>
-                <div style="font-size:10px;color:var(--muted);margin-top:1px">${pLogs}%</div>
-                
-                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Logbook</div>
-              </div>
-              <div style="${cellStyle}" onclick="event.stopPropagation();${goFail}" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
-                <div style="font-size:13px;font-weight:800;color:${failColor}">${s.failedAssets}</div>
-                <div style="font-size:10px;color:var(--muted);margin-top:1px">${pFailed}%</div>
-                
-                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:1px">Failed</div>
-              </div>
+            <div style="${cellBase}" onclick="event.stopPropagation();${goInsp}">
+              <div style="font-size:13px;font-weight:800;color:var(--text)">${s.activeInsp}</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Inspect</div>
+              <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">${pInsp}% of total</div>
             </div>
-          </div>`;
-        }).join('')}
+            <div style="${cellBase}" onclick="event.stopPropagation();${goLog}">
+              <div style="font-size:13px;font-weight:800;color:var(--text)">${s.recentLogs}</div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Logbook</div>
+              <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">${pLogs}% of total</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      // "How it's calculated" explanation
+      const howCalc = `<div style="margin-top:8px;padding:12px 14px;border-top:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">How it\'s calculated</div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:12px;color:var(--sub)">
+          <span>Open ticket</span><span style="font-weight:700;color:var(--text)">× 3.0 pts</span>
+          <span>Active inspection</span><span style="font-weight:700;color:var(--text)">× 1.5 pts</span>
+          <span>Logbook entry</span><span style="font-weight:700;color:var(--text)">× 0.5 pts</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Pressure per 100 m² = weighted sum ÷ (m² ÷ 100). Health = 100 − pressure × 9. If no m² is set, unit count × 50 m² is used as an estimate.</div>
       </div>`;
+
+      statsEl.innerHTML = `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}${howCalc}</div>`;
     }
   }
-  // Entity Health by Priority
+  
+    // Entity Health by Priority
   const pc=document.getElementById('pri-chart');
   (function(){
     const cutoff90=new Date(today.getTime()-90*24*60*60*1000);
@@ -3419,6 +3143,20 @@ let tixActiveBldg = null;
 let showClosedTix = false;
 let showCompletedInsp = false;
 let showGeslotenLog = false;
+let dashPeriod = 'quarter';
+
+function setDashPeriod(p){
+  dashPeriod = p;
+  ['week','month','quarter'].forEach(k=>{
+    const btn = document.getElementById('dash-seg-'+k);
+    if(!btn) return;
+    if(k===p){ btn.style.background='var(--card)'; btn.style.color='var(--text)'; btn.style.boxShadow='0 1px 3px rgba(0,0,0,.08)'; }
+    else      { btn.style.background='none';        btn.style.color='var(--sub)';  btn.style.boxShadow='none'; }
+  });
+  const badge = document.getElementById('dash-stats-period-badge');
+  if(badge) badge.textContent = p==='week'?'last 7 days':p==='month'?'last 30 days':'last 90 days';
+  renderDash();
+}
 
 function toggleShowClosed(){
   showClosedTix = !showClosedTix;
