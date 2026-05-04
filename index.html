@@ -427,22 +427,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           </button>
         </div>
       </div>
-      <div style="padding:0 14px 10px">
-        <div class="sbar" style="margin:0">
-          <span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-          <input id="global-search" placeholder="Search tickets, assets, suppliers…" oninput="renderGlobalSearch()"/>
-          <button id="gs-clear" onclick="clearGlobalSearch()" style="color:var(--muted);font-size:15px;display:none">✕</button>
-        </div>
-        <div id="global-results" style="margin-top:8px"></div>
-      </div>
     </div>
     <div id="dash-guest-banner"></div>
-
-    <div class="sh fu" style="display:flex;align-items:center;justify-content:space-between">
-      <span class="sh-title">Problem Assets</span>
-      <span id="dash-prob-ast-link" style="font-size:12px;color:var(--blue);font-weight:600;padding-right:14px;cursor:pointer;display:none" onclick="navTo('assets');setTimeout(()=>{const s=document.getElementById('sel-ast-tix-status');if(s){s.value='Active';setPage('ast',1);renderAst();}},150)">View all →</span>
-    </div>
-    <div id="dash-prob-ast" style="padding:0 14px 4px;display:flex;flex-direction:column;gap:6px"></div>
 
     <div class="sh fu" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:0">
       <span class="sh-title">Statistics</span>
@@ -2308,7 +2294,7 @@ function renderDash(){
       const effSqm    = sqm>0 ? sqm : unitCount*50;
       const per100    = effSqm>0 ? effSqm/100 : 1;
 
-      const openTix    = DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&inPeriod(t.dateCreated||t.date)).length;
+      const openTix    = DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&inPeriod(t.dateOpened)).length;
       const activeInsp = DB.inspections.filter(i=>i.buildingId===b.id&&i.status==='In Progress'&&inPeriod(i.dateStart)).length;
       const recentLogs = DB.logs.filter(r=>r.buildingId===b.id&&inPeriod(r.date)).length;
 
@@ -4850,7 +4836,7 @@ function calcBldData(b){
   const days=bldPeriod==='week'?7:bldPeriod==='month'?30:90;
   const cutoff=new Date(now.getTime()-days*24*60*60*1000);
   const inPeriod=d=>d&&new Date(d)>=cutoff;
-  const openTix=DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&inPeriod(t.dateCreated||t.date)).length;
+  const openTix=DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&inPeriod(t.dateOpened)).length;
   const activeInsp=DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed'&&inPeriod(i.dateStart)).length;
   const fI=new Set(),fT=new Set();
   DB.inspections.filter(i=>i.buildingId===b.id&&inPeriod(i.dateStart)).forEach(insp=>{(insp.items||[]).forEach(it=>{if(it.result==='Failed'&&it.assetId)fI.add(it.assetId);});});
