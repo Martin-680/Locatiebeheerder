@@ -334,8 +334,11 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .insp-btn:active{transform:scale(.96);}
 .insp-btn-approve{background:rgba(5,150,105,.1);border-color:rgba(5,150,105,.35);color:var(--green);}
 .insp-btn-approve.selected{background:var(--green);border-color:var(--green);color:#fff;}
+.insp-btn-skip{background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.3);color:var(--amber);}
+.insp-btn-skip.selected{background:var(--amber);border-color:var(--amber);color:#fff;}
 .insp-btn-fail{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.25);color:var(--red);}
 .insp-btn-fail.selected{background:var(--red);border-color:var(--red);color:#fff;}
+.insp-chip-skip{background:rgba(217,119,6,.12);color:var(--amber);}
 .insp-note-wrap{display:none;flex-direction:column;gap:8px;}
 .insp-note-wrap.show{display:flex;}
 .insp-note-inp{background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 13px;font-size:13px;color:var(--text);outline:none;width:100%;resize:none;min-height:64px;font-family:inherit;transition:border-color .15s;}
@@ -766,6 +769,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <!-- hidden selects that drive filtering (values set from modal) -->
     <select id="sel-log-type"   style="display:none" onchange="setPage('log',1);renderLogbook()">
       <option value="All">All Types</option>
+      <option value="onderhoud">Onderhoud</option>
+      <option value="keuring">Keuring</option>
+      <option value="her-keuring">Her-keuring</option>
+      <option value="ontvangen">Ontvangen</option>
+      <option value="bestelling">Bestelling</option>
+      <option value="bezoek">Bezoek</option>
+      <option value="evaluatie">Evaluatie</option>
     </select>
     <select id="sel-log-status" style="display:none" onchange="setPage('log',1);renderLogbook()">
       <option value="All">All</option>
@@ -820,6 +830,16 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Type</label>
         <select id="cal-type" class="fi2" style="padding:8px 10px;font-size:13px;width:100%" onchange="renderCalendar()">
           <option value="">All types</option>
+          <option value="arbo">Arbo</option>
+          <option value="bestelling">Bestelling</option>
+          <option value="bezoek">Bezoek</option>
+          <option value="evaluatie">Evaluatie</option>
+          <option value="her-keuring">Her-keuring</option>
+          <option value="keuring">Keuring</option>
+          <option value="onderhoud">Onderhoud</option>
+          <option value="ontvangen">Ontvangen</option>
+          <option value="storing">Storing</option>
+          <option value="verhuizing">Verhuizing</option>
         </select>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 2px 2px">
@@ -1123,6 +1143,16 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fg"><label>Type</label>
         <select class="fs2" id="tf-type">
           <option value="">— Select —</option>
+          <option value="bestelling">Bestelling</option>
+          <option value="bezoek">Bezoek</option>
+          <option value="evaluatie">Evaluatie</option>
+          <option value="her-keuring">Her-keuring</option>
+          <option value="keuring">Keuring</option>
+          <option value="onderhoud">Onderhoud</option>
+          <option value="ontvangen">Ontvangen</option>
+          <option value="arbo">Arbo</option>
+          <option value="storing">Storing</option>
+          <option value="verhuizing">Verhuizing</option>
         </select>
       </div>
       <div class="fg"><label>Category</label>
@@ -1341,7 +1371,7 @@ const SHEET_ID    = '1UkjXu3yOwPWlb1bKjMnXuCrYkxsvzC6wBZ48nPr1P4A';
 const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email openid';
 
 /* Sheet tab names — must match exactly what you created */
-const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', inspectionItems:'InspectionItems', floors:'Floors', units:'Units', categories:'Categories', logs:'Logs', types:'Types' };
+const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', inspectionItems:'InspectionItems', floors:'Floors', units:'Units', categories:'Categories', logs:'Logs' };
 
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
@@ -1355,7 +1385,6 @@ const COLS = {
   floors:    ['id','buildingId','label','sortOrder'],
   units:     ['id','floorId','buildingId','label','sortOrder'],
   categories:['id','category','notes'],
-  types:     ['id','type','notes'],
   logs:      ['id','date','subject','supplierId','buildingId','floorId','unitId','assetId','note','type','status','categoryId'],
 };
 
@@ -1363,11 +1392,11 @@ const COLS = {
    ROLES & PERMISSIONS
 ══════════════════════════════════════════════════════════ */
 const ROLES = {
-  'Property Manager': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:true,  canEditAll:true,  canStartInspection:true,  canManageCategories:true,  canManageTypes:true  },
-  'Supervisor':       { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:false, canManageBuildings:false, canManageSuppliers:true,  canEditAll:false, canStartInspection:true,  canManageCategories:true,  canManageTypes:true  },
-  'Maintenance Tech': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false, canStartInspection:true,  canManageCategories:false, canManageTypes:false },
-  'Admin':            { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:false, canEditAll:false, canStartInspection:false, canManageCategories:false, canManageTypes:false },
-  'Contractor':       { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false, canStartInspection:false, canManageCategories:false, canManageTypes:false },
+  'Property Manager': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:true,  canEditAll:true,  canStartInspection:true,  canManageCategories:true  },
+  'Supervisor':       { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:true,  canManageUsers:false, canManageBuildings:false, canManageSuppliers:true,  canEditAll:false, canStartInspection:true,  canManageCategories:true  },
+  'Maintenance Tech': { canCreateTickets:true,  canCloseTickets:true,  canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false, canStartInspection:true,  canManageCategories:false },
+  'Admin':            { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:true,  canManageBuildings:true,  canManageSuppliers:false, canEditAll:false, canStartInspection:false, canManageCategories:false },
+  'Contractor':       { canCreateTickets:false, canCloseTickets:false, canEditAssets:false, canManageUsers:false, canManageBuildings:false, canManageSuppliers:false, canEditAll:false, canStartInspection:false, canManageCategories:false },
 };
 const ROLE_COLORS = {'Property Manager':'#8B5CF6','Supervisor':'#06B6D4','Maintenance Tech':'#3B82F6','Admin':'#F59E0B','Contractor':'#64748B'};
 const ROLE_CLASS  = {'Property Manager':'rb-manager','Supervisor':'rb-supervisor','Maintenance Tech':'rb-tech','Admin':'rb-admin','Contractor':'rb-contractor'};
@@ -1391,7 +1420,7 @@ function getUserBuildingIds(){
    STATE
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
-let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], inspectionItems:[], floors:[], units:[], categories:[], types:[], logs:[] };
+let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], inspectionItems:[], floors:[], units:[], categories:[], logs:[] };
 let bldPeriod = 'quarter';
 let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null, floor:null, log:null };
 let pendingDelete = null;
@@ -1607,7 +1636,7 @@ function rowsToObjects(rows, cols){
 }
 
 async function loadAllData(){
-  const [users,buildings,assets,tickets,suppliers,inspections,inspectionItems,floors,units,categories,logs,types] = await Promise.all([
+  const [users,buildings,assets,tickets,suppliers,inspections,inspectionItems,floors,units,categories,logs] = await Promise.all([
     sheetsGet(`${TABS.users}!A:Z`),
     sheetsGet(`${TABS.buildings}!A:Z`),
     sheetsGet(`${TABS.assets}!A:Z`),
@@ -1619,13 +1648,11 @@ async function loadAllData(){
     sheetsGet(`${TABS.units}!A:Z`),
     sheetsGet(`${TABS.categories}!A:Z`),
     sheetsGet(`${TABS.logs}!A:Z`),
-    sheetsGet(`${TABS.types}!A:Z`),
   ]);
   DB.users      = rowsToObjects(users,     COLS.users);
   DB.buildings  = rowsToObjects(buildings, COLS.buildings);
   DB.suppliers  = rowsToObjects(suppliers, COLS.suppliers);
   DB.categories = rowsToObjects(categories, COLS.categories);
-  DB.types      = rowsToObjects(types,      COLS.types);
   DB.floors     = rowsToObjects(floors, COLS.floors).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
   DB.units      = rowsToObjects(units,  COLS.units).map(r=>({ ...r, sortOrder: parseInt(r.sortOrder)||0 }));
   DB.tickets = rowsToObjects(tickets, COLS.tickets).map(r=>{
@@ -1837,7 +1864,6 @@ function openDrawer(){
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>','Units',"navTo('units');closeDrawer()",'units');
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>','Assets',"navTo('assets');closeDrawer()",'assets');
   if(can('canManageCategories')) html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>','Categories',"openCategories();closeDrawer()");
-  if(can('canManageTypes')) html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>','Types',"openTypes();closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>','Refresh',"refreshAllData();closeDrawer()");
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>','Info',"navTo('info');closeDrawer()",'info');
   html+=`<div class="drawer-sep"></div>`;
@@ -2034,16 +2060,6 @@ function populateMgrSelect(id){
 }
 function getCategoryList(){
   return DB.categories.map(c=>c.category).filter(Boolean).sort((a,z)=>a.localeCompare(z));
-}
-function getTypeList(){
-  return DB.types.map(t=>t.type).filter(Boolean).sort((a,z)=>a.localeCompare(z));
-}
-function populateTypeSelect(id, allowAll=false, currentVal=''){
-  const el=document.getElementById(id); if(!el) return;
-  const allOpt=allowAll?'<option value="All">All Types</option>':'<option value="">— Select —</option>';
-  el.innerHTML=allOpt+[...DB.types].sort((a,z)=>a.type.localeCompare(z.type))
-    .map(x=>`<option value="${x.type}">${x.type}</option>`).join('');
-  if(currentVal) el.value=currentVal;
 }
 function populateCatSelect(id, allowAll=false, currentVal=''){
   const el=document.getElementById(id); if(!el) return;
@@ -3186,14 +3202,6 @@ function openTixFilterModal(){
       getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
     mCat.value = getCategoryList().includes(cur) ? cur : 'All';
   }
-  // Populate type
-  const mType = document.getElementById('mf-tix-type');
-  if(mType){
-    const cur = document.getElementById('sel-tix-type')?.value || 'All';
-    mType.innerHTML = '<option value="All">All Types</option>' +
-      getTypeList().map(t=>`<option value="${t}">${t}</option>`).join('');
-    mType.value = getTypeList().includes(cur) ? cur : 'All';
-  }
   // Populate supplier
   const mSup = document.getElementById('mf-tix-sup');
   if(mSup){
@@ -3203,10 +3211,12 @@ function openTixFilterModal(){
         .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
     mSup.value = cur;
   }
-  // Sync status only (type already populated above with current value)
-  const mStat=document.getElementById('mf-tix-status');
-  const hStat=document.getElementById('sel-tix-status');
-  if(mStat&&hStat) mStat.value=hStat.value;
+  // Sync status and type
+  ['status','type'].forEach(k=>{
+    const mEl=document.getElementById('mf-tix-'+k);
+    const hEl=document.getElementById('sel-tix-'+k);
+    if(mEl&&hEl) mEl.value=hEl.value;
+  });
   // Sync date range
   const dtFrom = document.getElementById('mf-tix-date-from');
   const dtTo   = document.getElementById('mf-tix-date-to');
@@ -3483,13 +3493,6 @@ function renderTix(){
     tixCatSel.innerHTML='<option value="All">All Categories</option>'+getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
     tixCatSel.value=prev;
   }
-  // Populate type filter from sheet, preserving selection
-  const tixTypeSel=document.getElementById('sel-tix-type');
-  if(tixTypeSel){
-    const prev=tixTypeSel.value;
-    tixTypeSel.innerHTML='<option value="All">All Types</option>'+getTypeList().map(t=>`<option value="${t}">${t}</option>`).join('');
-    tixTypeSel.value=prev;
-  }
   const catVal=tixCatSel?.value||'All';
   const supVal=document.getElementById('sel-tix-sup')?.value||'All';
   const typeVal=document.getElementById('sel-tix-type')?.value||'All';
@@ -3671,7 +3674,7 @@ function openNewTicket(){
   ['tf-subj','tf-reporter','tf-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('tf-status').value='Open';
   document.getElementById('tf-pri').value='Medium';
-  populateTypeSelect('tf-type'); document.getElementById('tf-type').value='';
+  document.getElementById('tf-type').value='';
   document.getElementById('tf-date-opened').value=today.toISOString().split('T')[0];
   document.getElementById('tf-date-closed').value='';
   populateBldSelect('tf-bldg','— Select —');
@@ -3705,7 +3708,6 @@ function editTix(id){
   document.getElementById('tf-date-opened').value=t.dateOpened||'';
   document.getElementById('tf-date-closed').value=t.dateClosed||'';
   populateCatSelect('tf-cat','',t.categoryId||t.category);
-  populateTypeSelect('tf-type', false, t.type||'');
   document.getElementById('tf-status').value=t.status;
   document.getElementById('tf-reporter').value=t.reportedBy||'';
   document.getElementById('tf-notes').value=t.notes||'';
@@ -5452,8 +5454,8 @@ function inspListCardHTML(r){
     <div class="insp-stat-row" style="margin-top:10px">
       <div class="insp-stat"><div class="insp-stat-val">${total}</div><div class="insp-stat-lbl">Total</div></div>
       <div class="insp-stat"><div class="insp-stat-val" style="color:var(--green)">${approved}</div><div class="insp-stat-lbl">Approved</div></div>
-      <div class="insp-stat"><div class="insp-stat-val" style="color:var(--red)">${failed}</div><div class="insp-stat-lbl">Failed</div></div>
       <div class="insp-stat"><div class="insp-stat-val" style="color:var(--amber)">${skipped}</div><div class="insp-stat-lbl">Skipped</div></div>
+      <div class="insp-stat"><div class="insp-stat-val" style="color:var(--red)">${failed}</div><div class="insp-stat-lbl">Failed</div></div>
       <div class="insp-stat"><div class="insp-stat-val" style="color:var(--muted)">${pending}</div><div class="insp-stat-lbl">Pending</div></div>
     </div>
   </div>`;
@@ -5708,6 +5710,7 @@ function inspRoundItemHTML(item, idx){
   const isDone = item.result !== 'Open';
   const isAppr = item.result === 'Approved';
   const isFail = item.result === 'Failed';
+  const isSkip = item.result === 'Skipped';
 
   const idLabel  = isUnit ? item.unitId : (a ? a.id : item.assetId);
   const idColor  = 'var(--sub)';
@@ -5736,7 +5739,7 @@ function inspRoundItemHTML(item, idx){
             </div>
           </div>
           ${isDone
-            ? `<span id="insp-chip-${idx}" class="insp-done-chip ${isAppr ? 'insp-chip-ok' : 'insp-chip-fail'}">${isAppr ? '✓ Approved' : '✕ Failed'}</span>`
+            ? `<span id="insp-chip-${idx}" class="insp-done-chip ${isAppr ? 'insp-chip-ok' : isSkip ? 'insp-chip-skip' : 'insp-chip-fail'}">${isAppr ? '✓ Approved' : isSkip ? '» Skipped' : '✕ Failed'}</span>`
             : `<span id="insp-chip-${idx}" class="badge b-open">Open</span>`
           }
         </div>
@@ -5759,13 +5762,17 @@ function inspRoundItemHTML(item, idx){
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             Approved
           </button>
+          <button class="insp-btn insp-btn-skip${isSkip?' selected':''}" onclick="setInspResult(${idx},'Skipped')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+            Skipped
+          </button>
           <button class="insp-btn insp-btn-fail${isFail?' selected':''}" onclick="setInspResult(${idx},'Failed')">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             Failed
           </button>
         </div>
-        <div class="insp-note-wrap${isFail?' show':''}" id="insp-note-wrap-${idx}">
-          <textarea class="insp-note-inp" id="insp-note-${idx}" placeholder="Describe the issue (required for failures)…" oninput="onInspNoteInput(${idx})">${item.note||''}</textarea>
+        <div class="insp-note-wrap${(isFail||isSkip)?' show':''}" id="insp-note-wrap-${idx}">
+          <textarea class="insp-note-inp" id="insp-note-${idx}" placeholder="${isFail?'Describe the issue (required for failures)…':'Reason for skipping (optional)…'}" oninput="onInspNoteInput(${idx})">${item.note||''}</textarea>
         </div>
       </div>
     </div>`;
@@ -5782,14 +5789,20 @@ function setInspResult(idx, result){
   // Toggle off if clicking same button again
   item.result = (prev === result) ? 'Open' : result;
 
-  // Show/hide note area
+  // Show/hide note area (shown for both Failed and Skipped)
   const noteWrap = document.getElementById('insp-note-wrap-' + idx);
-  if(noteWrap) noteWrap.classList.toggle('show', item.result === 'Failed');
+  if(noteWrap){
+    noteWrap.classList.toggle('show', item.result === 'Failed' || item.result === 'Skipped');
+    const ta = document.getElementById('insp-note-' + idx);
+    if(ta) ta.placeholder = item.result === 'Failed' ? 'Describe the issue (required for failures)\u2026' : 'Reason for skipping (optional)\u2026';
+  }
 
-  // Update approve button style
+  // Update button styles
   const approveBtn = document.querySelector(`#insp-item-${idx} .insp-btn-approve`);
+  const skipBtn    = document.querySelector(`#insp-item-${idx} .insp-btn-skip`);
   const failBtn    = document.querySelector(`#insp-item-${idx} .insp-btn-fail`);
   if(approveBtn) approveBtn.classList.toggle('selected', item.result === 'Approved');
+  if(skipBtn)    skipBtn.classList.toggle('selected',    item.result === 'Skipped');
   if(failBtn)    failBtn.classList.toggle('selected',    item.result === 'Failed');
 
   // Update the status chip
@@ -5798,6 +5811,9 @@ function setInspResult(idx, result){
     if(item.result === 'Approved'){
       chip.className = 'insp-done-chip insp-chip-ok';
       chip.innerHTML = '✓ Approved';
+    } else if(item.result === 'Skipped'){
+      chip.className = 'insp-done-chip insp-chip-skip';
+      chip.innerHTML = '» Skipped';
     } else if(item.result === 'Failed'){
       chip.className = 'insp-done-chip insp-chip-fail';
       chip.innerHTML = '✕ Failed';
@@ -6049,7 +6065,6 @@ function _prefillTicketFromFailure(item){
   document.getElementById('tf-notes').value   = item.note;
   document.getElementById('tf-status').value  = 'Open';
   document.getElementById('tf-pri').value     = 'High';
-  populateTypeSelect('tf-type');
 
   // Set category to match asset/unit category if it exists in the sheet categories
   const catForTicket = item.type === 'unit' ? '' : item.category;
@@ -6200,16 +6215,10 @@ function openLogFilterModal(){
         .map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
     mSup.value = curSup;
   }
-  // Populate and sync type
-  const mType = document.getElementById('mf-log-type');
-  if(mType){
-    const curType = document.getElementById('sel-log-type')?.value || 'All';
-    mType.innerHTML = '<option value="All">All Types</option>' +
-      getTypeList().map(t=>`<option value="${t}">${t}</option>`).join('');
-    mType.value = getTypeList().includes(curType) ? curType : 'All';
-  }
-  // Sync status
+  // Sync type & status
+  const mType   = document.getElementById('mf-log-type');
   const mStatus = document.getElementById('mf-log-status');
+  if(mType)   mType.value   = document.getElementById('sel-log-type')?.value   || 'All';
   if(mStatus) mStatus.value = document.getElementById('sel-log-status')?.value || 'All';
   // Populate and sync category
   const mCat = document.getElementById('mf-log-cat');
@@ -6506,14 +6515,6 @@ function renderLogbook(){
   populateLogBldgFilter();
   renderLogBldgBtns();
 
-  // Populate type filter from sheet, preserving selection
-  const logTypeSel=document.getElementById('sel-log-type');
-  if(logTypeSel){
-    const prev=logTypeSel.value;
-    logTypeSel.innerHTML='<option value="All">All Types</option>'+getTypeList().map(t=>`<option value="${t}">${t}</option>`).join('');
-    logTypeSel.value=prev;
-  }
-
   const typeF   = (document.getElementById('sel-log-type')?.value   || 'All');
   const statusF = (document.getElementById('sel-log-status')?.value || 'All');
   const bldgF   = (document.getElementById('sel-log-bldg')?.value   || 'All');
@@ -6631,7 +6632,7 @@ function openNewLogEntry(){
   // Default date = today
   document.getElementById('lf-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('lf-subject').value = '';
-  populateTypeSelect('lf-type'); document.getElementById('lf-type').value = '';
+  document.getElementById('lf-type').value = '';
   document.getElementById('lf-status').value = 'open';
   document.getElementById('lf-note').value = '';
   // Populate building
@@ -6857,7 +6858,7 @@ function editLogEntry(id){
   if(dupBtn) dupBtn.style.display = '';
   document.getElementById('lf-date').value    = r.date    || '';
   document.getElementById('lf-subject').value = r.subject || '';
-  populateTypeSelect('lf-type', false, r.type || '');
+  document.getElementById('lf-type').value    = r.type    || '';
   document.getElementById('lf-status').value  = r.status  || 'open';
   document.getElementById('lf-note').value    = r.note    || '';
   // Building
@@ -6909,7 +6910,6 @@ function quickTicketFromLog(logId){
   document.getElementById('tf-status').value  = 'Open';
   document.getElementById('tf-pri').value     = 'Medium';
   populateCatSelect('tf-cat');
-  populateTypeSelect('tf-type');
   populateAssignSelect('tf-assign');
   // Cascade building → floor → unit → asset
   populateBldSelect('tf-bldg','— Select —');
@@ -7043,107 +7043,6 @@ async function deleteCategory(id){
   renderCategoryList();
 }
 
-
-/* ══════════════════════════════════════════════════════════
-   MANAGE TYPES
-══════════════════════════════════════════════════════════ */
-let editingTypeId = null;
-
-function openTypes(){
-  if(!can('canManageTypes')){ toast('No permission','err'); return; }
-  editingTypeId = null;
-  renderTypeList();
-  openMo('mo-types');
-}
-
-function renderTypeList(){
-  const list = DB.types.slice().sort((a,z)=>a.type.localeCompare(z.type));
-  const el = document.getElementById('type-list-body');
-  if(!el) return;
-  if(!list.length){
-    el.innerHTML='<div style="padding:18px;text-align:center;font-size:13px;color:var(--muted)">No types yet. Add one below.</div>';
-    return;
-  }
-  el.innerHTML = list.map(t=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:10px;min-width:0">
-        <div style="width:8px;height:8px;border-radius:50%;background:var(--teal);flex-shrink:0"></div>
-        <div style="min-width:0">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:14px;font-weight:600">${t.type}</span>
-            <span style="font-size:10px;color:var(--muted);font-weight:500">${t.id}</span>
-          </div>
-          ${t.notes ? `<div style="font-size:11px;color:var(--sub);margin-top:1px">${t.notes}</div>` : ''}
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0">
-        <button onclick="openEditType('${t.id}')" style="padding:6px 12px;background:#ECFEFF;border:1px solid #A5F3FC;border-radius:8px;font-size:12px;font-weight:700;color:var(--teal)">Edit</button>
-        <button onclick="deleteType('${t.id}')" style="padding:6px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:8px;font-size:12px;font-weight:700;color:var(--red)">Delete</button>
-      </div>
-    </div>`).join('');
-}
-
-function openAddType(){
-  editingTypeId = null;
-  document.getElementById('type-form-title').textContent = 'Add Type';
-  document.getElementById('type-inp').value = '';
-  document.getElementById('type-notes').value = '';
-  document.getElementById('type-form-section').style.display = 'block';
-  document.getElementById('type-inp').focus();
-}
-
-function openEditType(id){
-  const t = DB.types.find(x=>x.id===id); if(!t) return;
-  editingTypeId = id;
-  document.getElementById('type-form-title').textContent = 'Edit Type';
-  document.getElementById('type-inp').value = t.type;
-  document.getElementById('type-notes').value = t.notes || '';
-  document.getElementById('type-form-section').style.display = 'block';
-  document.getElementById('type-inp').focus();
-}
-
-function cancelTypeForm(){
-  document.getElementById('type-form-section').style.display = 'none';
-  document.getElementById('type-inp').value = '';
-  document.getElementById('type-notes').value = '';
-  editingTypeId = null;
-}
-
-async function saveType(){
-  const val = (document.getElementById('type-inp').value||'').trim();
-  if(!val){ toast('Type name required','err'); return; }
-  const duplicate = DB.types.find(t=>t.type.toLowerCase()===val.toLowerCase() && t.id!==editingTypeId);
-  if(duplicate){ toast('Type already exists','err'); return; }
-  const notes = (document.getElementById('type-notes').value||'').trim();
-  if(editingTypeId){
-    const t = DB.types.find(x=>x.id===editingTypeId);
-    if(t){ t.type = val; t.notes = notes; }
-  } else {
-    const nums = DB.types.map(t=>parseInt((t.id||'').split('-')[1]||0)).filter(n=>!isNaN(n));
-    const newId = 'TYP-' + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3,'0');
-    DB.types.push({ id: newId, type: val, notes });
-  }
-  cancelTypeForm();
-  await writeSheet('types');
-  toast(editingTypeId ? 'Type updated' : 'Type added');
-  editingTypeId = null;
-  renderTypeList();
-}
-
-async function deleteType(id){
-  const t = DB.types.find(x=>x.id===id); if(!t) return;
-  const usedInTickets = DB.tickets.filter(x=>x.type===t.type).length;
-  const usedInLogs    = DB.logs.filter(x=>x.type===t.type).length;
-  const usageMsg = (usedInTickets||usedInLogs)
-    ? ` It is used in ${usedInTickets} ticket(s) and ${usedInLogs} log entry(ies) — those will keep the type value but it will no longer appear in dropdowns.`
-    : '';
-  if(!confirm(`Delete type "${t.type}"?${usageMsg}`)) return;
-  DB.types = DB.types.filter(x=>x.id!==id);
-  await writeSheet('types');
-  toast('Type deleted');
-  renderTypeList();
-}
-
 /* ══════════════════════════════════════════════════════════
    EXPORT CSV
 ══════════════════════════════════════════════════════════ */
@@ -7250,13 +7149,6 @@ function calGetMatched(){
 
 function renderCalendar(){
   initCalendar();
-  // Populate type filter, preserving selection
-  const calTypeSel = document.getElementById('cal-type');
-  if(calTypeSel){
-    const prev = calTypeSel.value;
-    calTypeSel.innerHTML = '<option value="">All types</option>' + getTypeList().map(t=>`<option value="${t}">${t}</option>`).join('');
-    if(prev && getTypeList().includes(prev)) calTypeSel.value = prev;
-  }
   const val = document.getElementById('cal-start')?.value;
   if(!val) return;
   const [y, m] = val.split('-').map(Number);
@@ -7425,6 +7317,16 @@ function calDayClick(dateStr){
         <div class="fg" style="padding:0"><label>Type <span style="color:var(--red)">*</span></label>
           <select class="fi2" id="lf-type">
             <option value="">— Select —</option>
+            <option value="bestelling">Bestelling</option>
+            <option value="bezoek">Bezoek</option>
+            <option value="evaluatie">Evaluatie</option>
+            <option value="her-keuring">Her-keuring</option>
+            <option value="keuring">Keuring</option>
+            <option value="onderhoud">Onderhoud</option>
+            <option value="ontvangen">Ontvangen</option>
+            <option value="arbo">Arbo</option>
+            <option value="storing">Storing</option>
+            <option value="verhuizing">Verhuizing</option>
           </select>
         </div>
         <div class="fg" style="padding:0"><label>Category</label>
@@ -7550,44 +7452,6 @@ function calDayClick(dateStr){
   </div>
 </div>
 
-<!-- ═══════ TYPES MODAL ═══════ -->
-<div class="mo" id="mo-types" onclick="mcClick(event,'mo-types')">
-  <div class="ms" style="max-height:88vh">
-    <div class="mh"></div>
-    <div class="mt">
-      <span style="display:flex;align-items:center;gap:8px">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--teal)"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        Manage Types
-      </span>
-      <button class="mt-close" onclick="closeMo('mo-types')">✕</button>
-    </div>
-
-    <!-- Type list -->
-    <div id="type-list-body" style="max-height:340px;overflow-y:auto;border-top:1px solid var(--border)"></div>
-
-    <!-- Add button bar -->
-    <div style="padding:14px 18px 4px">
-      <button onclick="openAddType()" style="width:100%;padding:12px;background:#ECFEFF;border:1.5px solid #A5F3FC;border-radius:var(--rs);font-size:14px;font-weight:700;color:var(--teal);display:flex;align-items:center;justify-content:center;gap:8px">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Type
-      </button>
-    </div>
-
-    <!-- Inline add/edit form (hidden by default) -->
-    <div id="type-form-section" style="display:none;padding:0 18px 4px;border-top:1px solid var(--border);margin-top:8px">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:14px 0 8px" id="type-form-title">Add Type</div>
-      <input class="fi2" id="type-inp" placeholder="e.g. Onderhoud" onkeydown="if(event.key==='Enter'){event.preventDefault();saveType();}" style="margin-bottom:10px"/>
-      <input class="fi2" id="type-notes" placeholder="Helper text (optional)…" style="margin-bottom:10px;font-size:12px"/>
-      <div style="display:flex;gap:9px">
-        <button onclick="saveType()" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--teal),var(--blue));border-radius:var(--rs);font-size:14px;font-weight:700;color:#fff">Save</button>
-        <button onclick="cancelTypeForm()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Cancel</button>
-      </div>
-    </div>
-
-    <div style="height:12px"></div>
-  </div>
-</div>
-
 <!-- ═══════ TICKETS FILTER MODAL ═══════ -->
 <div class="mo" id="mo-tix-filter" onclick="mcClick(event,'mo-tix-filter')">
   <div class="ms">
@@ -7603,6 +7467,16 @@ function calDayClick(dateStr){
       <div class="fg" style="padding:0"><label>Type</label>
         <select class="fi2" id="mf-tix-type">
           <option value="All">All Types</option>
+          <option value="arbo">Arbo</option>
+          <option value="bestelling">Bestelling</option>
+          <option value="bezoek">Bezoek</option>
+          <option value="evaluatie">Evaluatie</option>
+          <option value="her-keuring">Her-keuring</option>
+          <option value="keuring">Keuring</option>
+          <option value="onderhoud">Onderhoud</option>
+          <option value="ontvangen">Ontvangen</option>
+          <option value="storing">Storing</option>
+          <option value="verhuizing">Verhuizing</option>
         </select>
       </div>
       <div class="fg" style="padding:0"><label>Category</label>
@@ -7848,6 +7722,16 @@ function calDayClick(dateStr){
       <div class="fg" style="padding:0"><label>Type</label>
         <select class="fi2" id="mf-log-type">
           <option value="All">All Types</option>
+          <option value="bestelling">Bestelling</option>
+          <option value="bezoek">Bezoek</option>
+          <option value="evaluatie">Evaluatie</option>
+          <option value="her-keuring">Her-keuring</option>
+          <option value="keuring">Keuring</option>
+          <option value="onderhoud">Onderhoud</option>
+          <option value="ontvangen">Ontvangen</option>
+          <option value="arbo">Arbo</option>
+          <option value="storing">Storing</option>
+          <option value="verhuizing">Verhuizing</option>
         </select>
       </div>
       <div class="fg" style="padding:0"><label>Category</label>
