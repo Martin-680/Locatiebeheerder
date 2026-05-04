@@ -3913,22 +3913,25 @@ function goAstPage(p){setPage('ast',p);renderAst();}
 /* ── Shared asset card HTML — used in Assets view, Building view, Floor view ── */
 function astCardHTML(a, onclick){
   const openTix=(DB.tickets||[]).filter(t=>t.assetId===a.id&&t.status!=='Closed').length;
+  const logCount=(DB.logs||[]).filter(r=>r.assetId===a.id).length;
+  const inspCount=(DB.inspectionItems||[]).filter(i=>i.assetId===a.id).length;
   const tixColor=openTix>0?'var(--red)':'var(--text)';
   const tixBadge=openTix>0
     ? `<span class="badge" style="background:rgba(220,38,38,.12);color:var(--red);font-size:11px;font-weight:700;flex-shrink:0">Problem</span>`
     : `<span class="badge" style="background:rgba(5,150,105,.12);color:var(--green);font-size:11px;font-weight:700;flex-shrink:0">Normal</span>`;
+  const floorLabel = a.floor ? `<span style="display:inline-block;width:3px;height:3px;border-radius:50%;background:currentColor;vertical-align:middle;margin:0 5px;opacity:.4"></span>${a.floor}` : '';
   return`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .15s,box-shadow .15s;overflow:hidden" onclick="${onclick}" onmouseenter="this.style.borderColor='rgba(37,99,235,.4)';this.style.boxShadow='0 2px 8px rgba(37,99,235,.08)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px 10px;gap:8px">
       <div style="min-width:0;flex:1">
         <div class="ct">${a.name}</div>
-        <div class="cm">${a.building||'—'}</div>
+        <div class="cm">${a.building||'—'}${floorLabel}</div>
       </div>
       ${tixBadge}
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border)">
-      <div class="bs" style="padding:8px 4px"><div class="bs-val" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
-      <div class="bs" style="padding:8px 4px;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div class="bs-val" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
+      <div class="bs" style="padding:8px 4px"><div class="bs-val">${logCount}</div><div class="bs-lbl">Logbook</div></div>
+      <div class="bs" style="padding:8px 4px;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div class="bs-val">${inspCount}</div><div class="bs-lbl">Inspect</div></div>
       <div class="bs" style="padding:8px 4px"><div class="bs-val" style="color:${tixColor}">${openTix}</div><div class="bs-lbl">Tickets</div></div>
     </div>
   </div>`;
@@ -4568,6 +4571,7 @@ function renderUnits(){
     const bld  = DB.buildings.find(b=>b.id===u.buildingId);
     const flr  = DB.floors.find(f=>f.id===u.floorId);
     const assets = DB.assets.filter(a=>a.unitId===u.id && a.floorId===u.floorId);
+    const logCount = DB.logs.filter(r=>r.unitId===u.id).length;
     const openTix = DB.tickets.filter(t=>
       t.status!=='Closed' &&
       (t.building||'').trim() === (bld?.name||'') &&
@@ -4576,11 +4580,12 @@ function renderUnits(){
       (t.building||'').trim() && (t.floor||'').trim() && (t.unit||'').trim()
     );
     const inUse   = openTix.length > 0;
+    const floorDot = flr?.label ? `<span style="display:inline-block;width:3px;height:3px;border-radius:50%;background:currentColor;vertical-align:middle;margin:0 5px;opacity:.4"></span>${flr.label}` : '';
     return `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .15s,box-shadow .15s;overflow:hidden" onclick="editUnit('${u.id}')" onmouseenter="this.style.borderColor='rgba(37,99,235,.4)';this.style.boxShadow='0 2px 8px rgba(37,99,235,.08)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px 10px;gap:8px">
         <div style="min-width:0;flex:1">
           <div class="ct">${u.label}</div>
-          <div class="cm">${bld?.name||'—'}</div>
+          <div class="cm">${bld?.name||'—'}${floorDot}</div>
         </div>
         ${inUse
           ? `<span class="badge" style="background:rgba(220,38,38,.12);color:var(--red);font-size:11px;font-weight:700;flex-shrink:0">Problem</span>`
@@ -4588,7 +4593,7 @@ function renderUnits(){
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border)">
-        <div class="bs" style="padding:8px 4px"><div class="bs-val" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${flr?.label||'—'}</div><div class="bs-lbl">Floor</div></div>
+        <div class="bs" style="padding:8px 4px"><div class="bs-val">${logCount}</div><div class="bs-lbl">Logbook</div></div>
         <div class="bs" style="padding:8px 4px;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div class="bs-val">${assets.length}</div><div class="bs-lbl">Assets</div></div>
         <div class="bs" style="padding:8px 4px"><div class="bs-val" style="color:${openTix.length?'var(--red)':'var(--text)'}">${openTix.length}</div><div class="bs-lbl">Tickets</div></div>
       </div>
