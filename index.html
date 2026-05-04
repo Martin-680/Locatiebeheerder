@@ -169,6 +169,12 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
 /* ── SEARCH BAR ── */
 .sbar{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:8px 12px;margin:0 14px 10px;flex-shrink:0;}
+.hide-strip{display:flex;align-items:center;justify-content:space-between;padding:6px 16px;background:var(--card2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-size:11px;color:var(--sub);flex-shrink:0;}
+.hide-strip-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;}
+.hide-strip-toggle-track{width:28px;height:16px;border-radius:20px;background:var(--border2);position:relative;flex-shrink:0;transition:background .15s;}
+.hide-strip-toggle-track.on{background:var(--blue);}
+.hide-strip-toggle-track::after{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:2px;left:2px;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.hide-strip-toggle-track.on::after{left:14px;}
 .sbar input{flex:1;background:none;border:none;outline:none;font-size:14px;color:var(--text);}
 .sbar input::placeholder{color:var(--muted);}
 
@@ -500,6 +506,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
     <div id="tix-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="tix-bldg-btns" style="display:none;padding:8px 14px 10px;gap:8px"></div>
+    <div id="tix-hide-strip" class="hide-strip">
+      <span id="tix-hide-label"></span>
+      <div class="hide-strip-toggle" onclick="toggleShowClosed()">
+        <span id="tix-hide-toggle-lbl">Show closed</span>
+        <div class="hide-strip-toggle-track" id="tix-hide-track"></div>
+      </div>
+    </div>
     <div id="tix-list"></div>
   </div>
 
@@ -623,6 +636,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="insp-search" placeholder="Search inspections…" oninput="setPage('insp',1);renderInspections()"/></div>
     <div id="insp-bldg-btns" style="display:none;padding:8px 14px 10px;gap:8px"></div>
     <div id="insp-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
+    <div id="insp-hide-strip" class="hide-strip">
+      <span id="insp-hide-label"></span>
+      <div class="hide-strip-toggle" onclick="toggleShowCompleted()">
+        <span>Show completed</span>
+        <div class="hide-strip-toggle-track" id="insp-hide-track"></div>
+      </div>
+    </div>
     <div id="insp-list"></div>
   </div>
 
@@ -795,6 +815,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
     <div id="log-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="log-bldg-btns" style="display:none;padding:8px 14px 10px;gap:8px"></div>
+    <div id="log-hide-strip" class="hide-strip">
+      <span id="log-hide-label"></span>
+      <div class="hide-strip-toggle" onclick="toggleShowGesloten()">
+        <span>Show gesloten</span>
+        <div class="hide-strip-toggle-track" id="log-hide-track"></div>
+      </div>
+    </div>
     <div id="log-list"></div>
   </div>
 
@@ -1914,15 +1941,15 @@ function navTo(s){
   currentScreen=s;
   scr.scrollTop=0;
   if(s==='dashboard')   renderDash();
-  if(s==='tickets')     { tixActiveBldg=null; tixSort='date'; renderTix(); }
+  if(s==='tickets')     { tixActiveBldg=null; tixSort='date'; showClosedTix=false; renderTix(); }
   if(s==='assets')      renderAst();
   if(s==='users')       {renderRoleLegend();renderUsers();}
   if(s==='buildings')   renderBlds();
   if(s==='suppliers')   renderSuppliers();
-  if(s==='inspections') { inspActiveBldg=null; inspSort='date'; const _sb=document.getElementById('insp-sort-btn');if(_sb){_sb.textContent='A–Z';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';} renderInspections(); }
+  if(s==='inspections') { inspActiveBldg=null; inspSort='date'; showCompletedInsp=false; const _sb=document.getElementById('insp-sort-btn');if(_sb){_sb.textContent='A–Z';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';} renderInspections(); }
   if(s==='units')       renderUnits();
   if(s==='floors')      renderFloors();
-  if(s==='logbook')     { logActiveBldg=null; logSort='date'; renderLogbook(); }
+  if(s==='logbook')     { logActiveBldg=null; logSort='date'; showGeslotenLog=false; renderLogbook(); }
 
 
   if(s==='calendar')    renderCalendar();
@@ -3389,6 +3416,22 @@ function removeInspFilter(id){
 let inspSort = 'date'; // 'date' | 'alpha'
 let tixSort = 'date'; // 'date' | 'alpha'
 let tixActiveBldg = null;
+let showClosedTix = false;
+let showCompletedInsp = false;
+let showGeslotenLog = false;
+
+function toggleShowClosed(){
+  showClosedTix = !showClosedTix;
+  setPage('tix',1); renderTix();
+}
+function toggleShowCompleted(){
+  showCompletedInsp = !showCompletedInsp;
+  setPage('insp',1); renderInspections();
+}
+function toggleShowGesloten(){
+  showGeslotenLog = !showGeslotenLog;
+  setPage('log',1); renderLogbook();
+}
 
 function toggleInspSort(){
   inspSort = inspSort === 'date' ? 'alpha' : 'date';
@@ -3517,6 +3560,18 @@ function renderTix(){
   if(dateFrom) list=list.filter(t=>(t.dateOpened||'')>=dateFrom);
   if(dateTo)   list=list.filter(t=>(t.dateOpened||'')<=dateTo);
   if(q) list=list.filter(t=>t.subject.toLowerCase().includes(q)||t.building.toLowerCase().includes(q)||t.id.toLowerCase().includes(q)||t.assignedTo?.toLowerCase().includes(q)||(t.reportedBy||'').toLowerCase().includes(q));
+  // Hide-closed strip: only applies when status filter is 'All' (not overriding)
+  const tixHideActive = (statusVal === 'All' || statusVal === 'notclosed');
+  const closedCount = tixHideActive ? list.filter(t=>t.status==='Closed').length : 0;
+  if(tixHideActive && !showClosedTix) list = list.filter(t=>t.status!=='Closed');
+  const tixStrip = document.getElementById('tix-hide-strip');
+  const tixLabel = document.getElementById('tix-hide-label');
+  const tixTrack = document.getElementById('tix-hide-track');
+  if(tixStrip){
+    tixStrip.style.display = (tixHideActive && closedCount > 0) ? 'flex' : 'none';
+    if(tixLabel) tixLabel.textContent = showClosedTix ? `${closedCount} closed shown` : `${closedCount} closed hidden`;
+    if(tixTrack) tixTrack.classList.toggle('on', showClosedTix);
+  }
   // Sort
   const priOrder={Critical:0,High:1,Medium:2,Low:3};
   if(tixSort==='alpha') list=[...list].sort((a,b)=>(a.subject||'').localeCompare(b.subject||''));
@@ -3529,7 +3584,10 @@ function renderTix(){
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M2 9a2 2 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2 2 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/><line x1="9" y1="9" x2="9" y2="15"/></svg></div><div style="font-size:13px">No tickets found</div><div style="font-size:12px;color:var(--muted);margin-top:4px"><button onclick="clearTixFilters()" style="color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button></div></div>';return;}
   const page=pages.tix;
   const slice=list.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
-  c.innerHTML='<div class="tlist">'+slice.map(t=>tixItemHTML(t,true)).join('')+'</div>'+renderPagination('tix',list.length,'goTixPage');
+  c.innerHTML='<div class="tlist">'+slice.map(t=>{
+    const dim = showClosedTix && t.status==='Closed' ? ' style="opacity:.4"' : '';
+    return `<div${dim}>${tixItemHTML(t,true)}</div>`;
+  }).join('')+'</div>'+renderPagination('tix',list.length,'goTixPage');
 }
 
 function tixItemHTML(t,clickable=true){
@@ -5407,6 +5465,18 @@ function renderInspections(){
     (r.status||'').toLowerCase().includes(inspQ) ||
     (DB.buildings.find(b=>b.id===r.buildingId)?.name||'').toLowerCase().includes(inspQ)
   );
+  // Hide-completed strip: only applies when status filter is 'All'
+  const inspHideActive = (statusVal === 'All');
+  const completedCount = inspHideActive ? list.filter(r=>r.status==='Completed').length : 0;
+  if(inspHideActive && !showCompletedInsp) list = list.filter(r=>r.status!=='Completed');
+  const inspStrip = document.getElementById('insp-hide-strip');
+  const inspLabel = document.getElementById('insp-hide-label');
+  const inspTrack = document.getElementById('insp-hide-track');
+  if(inspStrip){
+    inspStrip.style.display = (inspHideActive && completedCount > 0) ? 'flex' : 'none';
+    if(inspLabel) inspLabel.textContent = showCompletedInsp ? `${completedCount} completed shown` : `${completedCount} completed hidden`;
+    if(inspTrack) inspTrack.classList.toggle('on', showCompletedInsp);
+  }
 
   const lbl = document.getElementById('insp-lbl');
   if(lbl) lbl.textContent = `${list.length} round${list.length!==1?'s':''}`;
@@ -5427,7 +5497,10 @@ function renderInspections(){
 
   const page  = pages.insp;
   const slice = list.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
-  c.innerHTML = slice.map(r => inspListCardHTML(r)).join('') + renderPagination('insp', list.length, 'goInspPage');
+  c.innerHTML = slice.map(r => {
+    const dim = showCompletedInsp && r.status==='Completed' ? '<div style="opacity:.4">' : '<div>';
+    return dim + inspListCardHTML(r) + '</div>';
+  }).join('') + renderPagination('insp', list.length, 'goInspPage');
 }
 
 function inspListCardHTML(r){
@@ -6588,6 +6661,18 @@ function renderLogbook(){
     (r.unit||'').toLowerCase().includes(searchF) ||
     (r.assetLabel||'').toLowerCase().includes(searchF)
   );
+  // Hide-gesloten strip: only applies when status filter is 'All'
+  const logHideActive = (statusF === 'All');
+  const geslotenCount = logHideActive ? rows.filter(r=>r.status==='gesloten').length : 0;
+  if(logHideActive && !showGeslotenLog) rows = rows.filter(r=>r.status!=='gesloten');
+  const logStrip = document.getElementById('log-hide-strip');
+  const logLabel = document.getElementById('log-hide-label');
+  const logTrack = document.getElementById('log-hide-track');
+  if(logStrip){
+    logStrip.style.display = (logHideActive && geslotenCount > 0) ? 'flex' : 'none';
+    if(logLabel) logLabel.textContent = showGeslotenLog ? `${geslotenCount} gesloten shown` : `${geslotenCount} gesloten hidden`;
+    if(logTrack) logTrack.classList.toggle('on', showGeslotenLog);
+  }
 
   const total = rows.length;
   document.getElementById('log-lbl').textContent = total + ' entr' + (total===1?'y':'ies');
@@ -6614,7 +6699,8 @@ function renderLogbook(){
     const bldSpan  = r.buildingId ? `<span onclick="quickFilterLog('sel-log-bldg','${r.buildingId}','${bldLabel.replace(/'/g,"\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by building">${bldLabel}</span>` : bldLabel;
     const supLabel = r.supplierName || '—';
     const supSpan  = r.supplierId ? `<span onclick="quickFilterLog('sel-log-sup','${r.supplierId}','${supLabel.replace(/'/g,"\'")}',event)" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px" title="Filter by supplier">${supLabel}</span>` : '—';
-    html += `<div class="ti" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:11px 14px" onclick="editLogEntry('${r.id}')">
+    const dim = showGeslotenLog && r.status==='gesloten' ? 'opacity:.4;' : '';
+    html += `<div class="ti" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:11px 14px;${dim}" onclick="editLogEntry('${r.id}')">
       <div>
         <div class="ct" style="color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.subject||'—'}</div>
         <div style="font-size:11px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bldSpan}</div>
