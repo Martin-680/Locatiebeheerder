@@ -3676,10 +3676,22 @@ function astCardHTML(a, onclick){
         <div style="height:100%;width:${aHealth}%;background:${aColor};border-radius:3px;transition:width .4s ease"></div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border)">
-      <div class="bs" style="padding:8px 4px"><div class="bs-val">${logCount}</div><div class="bs-lbl">Logbook</div></div>
-      <div class="bs" style="padding:8px 4px;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div class="bs-val">${inspCount}</div><div class="bs-lbl">Inspect</div></div>
-      <div class="bs" style="padding:8px 4px"><div class="bs-val" style="color:${openTix>0?'var(--red)':'var(--text)'}">${openTix}</div><div class="bs-lbl">Tickets</div></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px 8px 10px;border-top:1px solid var(--border)">
+      <div style="text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:default;">
+        <div style="font-size:13px;font-weight:800;color:var(--text)">${logCount}</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Logbook</div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">\${Math.round(logCount/totalItems*100)}% of total</div>
+      </div>
+      <div style="text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:default;">
+        <div style="font-size:13px;font-weight:800;color:var(--text)">${inspCount}</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Inspect</div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">\${Math.round(inspCount/totalItems*100)}% of total</div>
+      </div>
+      <div style="text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:default;">
+        <div style="font-size:13px;font-weight:800;color:${openTix>0?'var(--red)':'var(--text)'}">${openTix}</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Tickets</div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">\${Math.round(openTix/totalItems*100)}% of total</div>
+      </div>
     </div>
     ${can('canEditAll')?`<div style="border-top:1px solid var(--border);padding:0" onclick="event.stopPropagation()"><button onclick="confirmDelete('asset','${a.id}')" style="width:100%;padding:9px;background:none;border:none;font-size:12px;font-weight:700;color:var(--red);cursor:pointer"> Delete</button></div>`:''}
   </div>`;
@@ -4361,10 +4373,22 @@ function renderUnits(){
           <div style="height:100%;width:${uHealth}%;background:${uColor};border-radius:3px;transition:width .4s ease"></div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border)">
-        <div class="bs" style="padding:8px 4px"><div class="bs-val">${logCount}</div><div class="bs-lbl">Logbook</div></div>
-        <div class="bs" style="padding:8px 4px;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div class="bs-val">${inspCount}</div><div class="bs-lbl">Inspect</div></div>
-        <div class="bs" style="padding:8px 4px"><div class="bs-val" style="color:${openTix.length?'var(--red)':'var(--text)'}">${openTix.length}</div><div class="bs-lbl">Tickets</div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px 8px 10px;border-top:1px solid var(--border)">
+        <div style="text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:default;">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">${logCount}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Logbook</div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">\${Math.round(logCount/(logCount+inspCount+openTix.length||1)*100)}% of total</div>
+        </div>
+        <div style="text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:default;">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">${inspCount}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Inspect</div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">\${Math.round(inspCount/(logCount+inspCount+openTix.length||1)*100)}% of total</div>
+        </div>
+        <div style="text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:default;">
+          <div style="font-size:13px;font-weight:800;color:${openTix.length?'var(--red)':'var(--text)'}">${openTix.length}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Tickets</div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">\${Math.round(openTix.length/(logCount+inspCount+openTix.length||1)*100)}% of total</div>
+        </div>
       </div>
       ${can('canEditAll')?`<div style="border-top:1px solid var(--border);padding:0" onclick="event.stopPropagation()"><button onclick="confirmDelete('unit','${u.id}')" style="width:100%;padding:9px;background:none;border:none;font-size:12px;font-weight:700;color:var(--red);cursor:pointer"> Delete</button></div>`:''}
     </div>`;
@@ -4624,10 +4648,22 @@ function renderFloors(){
           <div style="height:100%;width:${health}%;background:${color};border-radius:3px;transition:width .4s ease"></div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border)">
-        <div class="bs" style="padding:8px 4px"><div class="bs-val">${fLogs}</div><div class="bs-lbl">Logbook</div></div>
-        <div class="bs" style="padding:8px 4px;border-left:1px solid var(--border);border-right:1px solid var(--border)"><div class="bs-val">${fInsp}</div><div class="bs-lbl">Inspect</div></div>
-        <div class="bs" style="padding:8px 4px"><div class="bs-val" style="color:${fTix?'var(--red)':'var(--text)'}">${fTix}</div><div class="bs-lbl">Tickets</div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px 8px 10px;border-top:1px solid var(--border)">
+        <div style="text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:default;">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">${fLogs}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Logbook</div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">\${Math.round(fLogs/(fLogs+fInsp+fTix||1)*100)}% of total</div>
+        </div>
+        <div style="text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:default;">
+          <div style="font-size:13px;font-weight:800;color:var(--text)">${fInsp}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Inspect</div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">\${Math.round(fInsp/(fLogs+fInsp+fTix||1)*100)}% of total</div>
+        </div>
+        <div style="text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:default;">
+          <div style="font-size:13px;font-weight:800;color:${fTix?'var(--red)':'var(--text)'}">${fTix}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Tickets</div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">\${Math.round(fTix/(fLogs+fInsp+fTix||1)*100)}% of total</div>
+        </div>
       </div>
     </div>`;
   }).join('') + '</div>';
