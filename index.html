@@ -3871,6 +3871,7 @@ function openAstDetail(id){
   const a=DB.assets.find(x=>x.id===id); if(!a) return;
   const sc={Active:'var(--green)','Under Maintenance':'var(--amber)',Decommissioned:'var(--red)'}[a.status]||'var(--green)';
   const relTix=DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed');
+  const relInsp=DB.inspectionItems.filter(i=>i.assetId===a.id);
   document.getElementById('ast-detail-title').textContent = a.name;
   document.getElementById('ast-detail-sub').textContent = a.id + (a.building ? '  ·  ' + a.building : '') + (a.floor ? '  ·  ' + a.floor : '');
 
@@ -3892,6 +3893,14 @@ function openAstDetail(id){
       <div class="dr"><span class="dk">Last Serviced</span><span class="dv">${df(a.lastServiced)}</span></div>
     </div>`;
 
+  const rCol={Approved:'var(--green)',Failed:'var(--red)',Pending:'var(--amber)',Skipped:'var(--muted)',Open:'var(--muted)'};
+  const inspHTML = relInsp.length
+    ? relInsp.map(i=>{
+        const insp=DB.inspections.find(r=>r.id===i.inspectionId);
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:600;color:var(--text)">${i.label||'—'}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${insp?df(insp.dateStart):'—'}</div></div><span style="font-size:11px;font-weight:700;color:${rCol[i.result]||'var(--muted)'}">${i.result||'—'}</span></div>`;
+      }).join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No inspection records</div>';
+
   const tixHTML = relTix.length
     ? `<div class="tlist" style="padding:0">${relTix.map(t=>`<div class="ti" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:11px 14px;cursor:pointer" onclick="closeMo('mo-ast-detail');setTimeout(()=>openTixDetail('${t.id}'),200)"><div><div class="ct" style="color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.subject||'—'}</div><div style="font-size:11px;color:var(--sub);margin-top:3px">${t.building||'—'}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0"><span style="font-size:11px;font-weight:600;color:${{Open:'var(--red)','In Progress':'var(--amber)',Closed:'var(--green)'}[t.status]||'var(--muted)'}">${t.status}</span></div></div>`).join('')}</div>`
     : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No open tickets</div>';
@@ -3899,9 +3908,11 @@ function openAstDetail(id){
   document.getElementById('ast-detail-body').innerHTML=`
     <div style="display:flex;border-bottom:1px solid var(--border);padding:0 18px">
       <button id="adtab-info"    style="${tabActive}" onclick="astDetailTab('info')">Info</button>
+      <button id="adtab-inspect" style="${tabStyle}"  onclick="astDetailTab('inspect')">Inspect (${relInsp.length})</button>
       <button id="adtab-tickets" style="${tabStyle}"  onclick="astDetailTab('tickets')">Tickets (${relTix.length})</button>
     </div>
     <div id="adpanel-info"    style="padding-bottom:8px">${infoHTML}</div>
+    <div id="adpanel-inspect" style="display:none;padding:0 18px 8px">${inspHTML}</div>
     <div id="adpanel-tickets" style="display:none;padding:4px 18px 8px">${tixHTML}</div>
     <div style="padding:8px 18px 0;display:flex;gap:9px;flex-wrap:wrap">
       ${can('canEditAssets')?`<button onclick="editAst('${a.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>`:''}
@@ -4688,7 +4699,7 @@ function unitDetailTab(tab){
 }
 
 function astDetailTab(tab){
-  const tabs=['info','tickets'];
+  const tabs=['info','inspect','tickets'];
   const activeS='flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
   const inactS ='flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
   tabs.forEach(t=>{
