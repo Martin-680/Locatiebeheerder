@@ -7125,9 +7125,8 @@ function calDayClick(dateStr){
 </div>
 
 <!-- Floor detail modal -->
-<div class="mo" id="mo-floor-detail" onclick="mcClick(event,'mo-floor-detail')">
-  <div class="ms" style="max-height:88vh">
-    <div class="mh"></div>
+<div class="mo" id="mo-floor-detail" onclick="mcClick(event,'mo-floor-detail')" style="justify-content:flex-start;padding-top:env(safe-area-inset-top,0px)">
+  <div class="ms" style="max-height:100vh;border-radius:0 0 22px 22px;border-top:none;border-bottom:1.5px solid var(--border)">
     <div class="mt"><span id="floor-detail-title">Floor</span><button class="mt-close" onclick="closeMo('mo-floor-detail')">✕</button></div>
     <div id="floor-detail-body" style="overflow-y:auto;padding-bottom:24px"></div>
   </div>
