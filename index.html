@@ -4636,6 +4636,24 @@ function openFloorDetail(id){
   openMo('mo-floor-detail');
 }
 
+function fvAccordion(secId, chevId){
+  const allSecs  = ['fv-sec-tickets','fv-sec-assets','fv-sec-suppliers'];
+  const allChevs = ['fv-chev-tickets','fv-chev-assets','fv-chev-suppliers'];
+  allSecs.forEach((s,i)=>{
+    const sec  = document.getElementById(s);
+    const chev = document.getElementById(allChevs[i]);
+    if(!sec) return;
+    if(s===secId){
+      const opening = sec.style.display==='none';
+      sec.style.display  = opening ? '' : 'none';
+      if(chev) chev.style.transform = opening ? 'rotate(180deg)' : '';
+    } else {
+      sec.style.display = 'none';
+      if(chev) chev.style.transform = '';
+    }
+  });
+}
+
 function floorDetailAccordion(section){
   const sections = ['units','assets','tickets'];
   sections.forEach(s=>{
