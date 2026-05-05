@@ -6631,7 +6631,9 @@ function renderLogbook(){
   let html = '<div style="padding:0 14px 8px">';
   slice.forEach(r=>{
     const dim  = showGeslotenLog && r.status==='gesloten' ? 'opacity:.4;' : '';
-    const sub  = [r.building, r.floor||'', r.unit||''].filter(Boolean).join(' · ');
+    const rFloor = r.floor || DB.floors.find(f=>f.id===r.floorId)?.label || '';
+    const rUnit  = r.unit  || DB.units.find(u=>u.id===r.unitId)?.label  || '';
+    const sub  = [r.building, rFloor, rUnit].filter(Boolean).join(' · ');
     const bldLogs = r.building ? (DB.logs||[]).filter(x=>x.building===r.building).length : 0;
     const wPct = Math.round(bldLogs/totalLogs*100);
     const hc   = wPct>=40?'#dc2626':wPct>=20?'#d97706':'#059669';
