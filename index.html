@@ -992,7 +992,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <div class="info-field-row"><span style="color:var(--sub)">Avg days open</span><span style="font-weight:600">Sum(days) ÷ Open count</span></div>
       </div>
       <div class="info-section-lbl" style="padding:0 0 6px">Size adjustment</div>
-      <div class="info-desc" style="margin-bottom:14px">The raw score is adjusted for building size. Floors, units, and assets tell us how large a building is. A small building with 5 open tickets is proportionally under more pressure than a large building with the same 5 tickets — so the small building ranks higher. This means the percentage bar reflects <em>real workload pressure</em>, not just which building is biggest. The building at 100% is simply the most pressured one right now.</div>
+      <div class="info-desc" style="margin-bottom:14px">The raw score is adjusted for building size. A small building with 5 open tickets is proportionally under more pressure than a large building with the same 5 tickets — so the small building ranks higher. Each item is weighted by urgency: <strong>open ticket ×3</strong>, <strong>active inspection ×2</strong>, <strong>log entry ×1</strong>, <strong>closed / completed ×0.5</strong>. Resolved work still counts but at half weight, so a building that clears its backlog improves its score. The health % reflects real workload pressure, not just building size.</div>
       <div class="info-section-lbl" style="padding:0 0 6px">Trend chart</div>
       <div class="info-desc">Monthly ticket volume for the last 6 months, calculated from <code>dateOpened</code> on each ticket row in the Tickets sheet.</div>
     </div>
@@ -1053,7 +1053,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <div class="info-status-row"><div style="display:flex;align-items:center;gap:8px"><div class="info-dot" style="background:#BA7517"></div><span style="font-size:13px;color:var(--text)">Requested</span></div><span style="font-size:11px;color:var(--sub)">Awaiting approval</span></div>
       </div>
       <div class="info-section-lbl" style="padding:14px 0 6px">Dashboard score</div>
-      <div class="info-formula">Score = avg % of tickets + units + assets across your accessible buildings.<br><br>A higher score means more of your portfolio is affected by open tickets.</div>
+      <div class="info-formula">Score = weighted pressure across your accessible buildings:<br><br>Open ticket ×3 · Active inspection ×2 · Log entry ×1 · Closed / completed ×0.5<br><br>A higher score means more active, unresolved work in your portfolio.</div>
       <div class="info-section-lbl" style="padding:14px 0 6px">Key fields</div>
       <div class="info-desc" style="font-size:11px;line-height:1.8">Building · Floor · Unit · Assigned to · Supplier · Category · Priority · Date opened · Due date · Activity log</div>
       <div class="info-section-lbl" style="padding:14px 0 6px">How are Ticket entries' workload calculated</div>
@@ -1083,7 +1083,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="info-section-lbl" style="padding:14px 0 6px">Completion score</div>
       <div class="info-formula">Score = Approved items ÷ Total items × 100%<br>Flagged items appear in Priorities if unresolved</div>
       <div class="info-section-lbl" style="padding:14px 0 6px">Dashboard score</div>
-      <div class="info-formula">Score = avg % of approved + failed + pending across your accessible buildings.<br><br>Reflects how much inspection activity is spread across your portfolio.</div>
+      <div class="info-formula">Score = weighted pressure across your accessible buildings:<br><br>Open ticket ×3 · Active inspection ×2 · Log entry ×1 · Closed / completed ×0.5<br><br>A higher score means more active inspection load relative to your portfolio.</div>
     </div>
   </div>
 
@@ -2355,13 +2355,15 @@ function renderDash(){
       const per100    = effSqm>0 ? effSqm/100 : 1;
 
       const openTix    = DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&inPeriod(t.dateCreated||t.date)).length;
+      const closedTix  = DB.tickets.filter(t=>t.buildingId===b.id&&t.status==='Closed'&&inPeriod(t.dateClosed||t.date)).length;
       const activeInsp = DB.inspections.filter(i=>i.buildingId===b.id&&i.status==='In Progress'&&inPeriod(i.dateStart)).length;
+      const doneInsp   = DB.inspections.filter(i=>i.buildingId===b.id&&i.status==='Completed'&&inPeriod(i.dateEnd||i.dateStart)).length;
       const recentLogs = DB.logs.filter(r=>r.buildingId===b.id&&inPeriod(r.date)).length;
 
-      const pressure   = (openTix*3.0 + activeInsp*1.5 + recentLogs*0.5) / per100;
-      // scale: pressure of ~11 per 100m² = 0% health; tuned so typical load sits 50-80%
+      const pressure   = (openTix*3 + activeInsp*2 + recentLogs*1 + closedTix*0.5 + doneInsp*0.5) / per100;
+      // log×1, inspection×2, open ticket×3, closed/completed×0.5
       const health     = Math.max(0, Math.min(100, Math.round(100 - pressure * 9.0)));
-      const workload   = openTix*3.0 + activeInsp*1.5 + recentLogs*0.5;
+      const workload   = openTix*3 + activeInsp*2 + recentLogs*1 + closedTix*0.5 + doneInsp*0.5;
       return {b, sqm:effSqm, openTix, activeInsp, recentLogs, health, workload};
     }).filter(s=>s.workload>0).sort((a,z)=>a.health-z.health).slice(0,5);
 
@@ -2404,7 +2406,7 @@ function renderDash(){
                 <div class="wl-tip-row"><span style="color:var(--sub)">Active inspections</span><span style="font-weight:700">${s.activeInsp}</span></div>
                 <div class="wl-tip-row"><span style="color:var(--sub)">Recent log entries</span><span style="font-weight:700">${s.recentLogs}</span></div>
                 <div class="wl-tip-row"><span style="color:var(--sub)">Health score</span><span style="font-weight:700;color:${hc}">${s.health}%</span></div>
-                <div class="wl-tip-formula">Pressure = (tickets×3 + inspections×1.5 + logs×0.5) ÷ size<br>Health = 100 − pressure × 9</div>
+                <div class="wl-tip-formula">Pressure = (open tickets×3 + active inspections×2 + log entries×1 + closed×0.5) ÷ size<br>Health = 100 − pressure × 9</div>
               </div>
             </div>
           </div>
@@ -2440,7 +2442,7 @@ function renderDash(){
           <span>Active inspection</span><span style="font-weight:700;color:var(--text)">× 1.5 pts</span>
           <span>Logbook entry</span><span style="font-weight:700;color:var(--text)">× 0.5 pts</span>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Pressure per 100 m² = weighted sum ÷ (m² ÷ 100). Health = 100 − pressure × 9. If no m² is set, unit count × 50 m² is used as an estimate.</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Pressure per 100 m² = (open tickets×3 + active inspections×2 + log entries×1 + closed/completed×0.5) ÷ (m² ÷ 100). Health = 100 − pressure × 9. If no m² is set, unit count × 50 m² is used as an estimate.</div>
       </div>`;
 
       statsEl.innerHTML = `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}${howCalc}</div>`;
@@ -3410,7 +3412,7 @@ function tixItemHTML(t,clickable=true){
             <div class="wl-tip-row"><span style="color:var(--sub)">Open tickets here</span><span style="font-weight:700">${bldTix}</span></div>
             <div class="wl-tip-row"><span style="color:var(--sub)">Total open tickets</span><span style="font-weight:700">${totalTix}</span></div>
             <div class="wl-tip-row"><span style="color:var(--sub)">Workload share</span><span style="font-weight:700;color:${hc}">${wPct}%</span></div>
-            <div class="wl-tip-formula">${bldTix} ÷ ${totalTix} × 100 = ${wPct}%<br>Share of all open tickets across your portfolio.</div>
+            <div class="wl-tip-formula">${bldTix} ÷ ${totalTix} × 100 = ${wPct}%<br>Share of open tickets across your accessible buildings. Weights: open ticket×3, closed×0.5.</div>
           </div>
         </div>
       </div>
@@ -3724,8 +3726,9 @@ function astCardHTML(a, onclick){
   const inspCount=(DB.inspectionItems||[]).filter(i=>i.assetId===a.id).length;
   const floorLabel = a.floor ? `<span style="display:inline-block;width:3px;height:3px;border-radius:50%;background:currentColor;vertical-align:middle;margin:0 5px;opacity:.4"></span>${a.floor}` : '';
   const aHcFn  = h=>h>=70?'#059669':h>=40?'#d97706':'#dc2626';
-  const totalItems = logCount+inspCount+openTix||1;
-  const pressure   = (openTix*3+inspCount*1.5+logCount*0.5)/totalItems*10;
+  const closedAstTix = (DB.tickets||[]).filter(t=>t.assetId===a.id&&t.status==='Closed').length;
+  const totalItems = logCount+inspCount+openTix+closedAstTix||1;
+  const pressure   = (openTix*3+inspCount*2+logCount*1+closedAstTix*0.5)/totalItems*10;
   const aHealth    = Math.max(0,Math.min(100,Math.round(100-pressure)));
   const aColor     = aHcFn(aHealth);
   return`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .15s,box-shadow .15s;overflow:hidden" onclick="${onclick}" onmouseenter="this.style.borderColor='rgba(37,99,235,.4)';this.style.boxShadow='0 2px 8px rgba(37,99,235,.08)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''">
@@ -4417,8 +4420,9 @@ function renderUnits(){
     const floorDot = flr?.label ? `<span style="display:inline-block;width:3px;height:3px;border-radius:50%;background:currentColor;vertical-align:middle;margin:0 5px;opacity:.4"></span>${flr.label}` : '';
     const uHcFn  = h=>h>=70?'#059669':h>=40?'#d97706':'#dc2626';
     const inspCount = DB.inspectionItems.filter(i=>i.unitId===u.id).length;
-    const totalItems = logCount+inspCount+openTix.length||1;
-    const pressure   = (openTix.length*3+inspCount*1.5+logCount*0.5)/totalItems*10;
+    const closedUnitTix = DB.tickets.filter(t=>t.unit===u.label&&t.building===(bld?.name||'')&&t.status==='Closed').length;
+    const totalItems = logCount+inspCount+openTix.length+closedUnitTix||1;
+    const pressure   = (openTix.length*3+inspCount*2+logCount*1+closedUnitTix*0.5)/totalItems*10;
     const uHealth    = Math.max(0,Math.min(100,Math.round(100-pressure)));
     const uColor     = uHcFn(uHealth);
     return `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .15s,box-shadow .15s;overflow:hidden" onclick="openUnitDetail('${u.id}')" onmouseenter="this.style.borderColor='rgba(37,99,235,.4)';this.style.boxShadow='0 2px 8px rgba(37,99,235,.08)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''">
@@ -4688,8 +4692,10 @@ function renderFloors(){
     const fLogs   = DB.logs.filter(r=>r.floorId===f.id).length;
     const fInsp   = DB.inspectionItems.filter(i=>DB.assets.some(a=>a.floorId===f.id&&a.id===i.assetId)||DB.units.some(u=>u.floorId===f.id&&u.id===i.unitId)).length;
     const fTix    = DB.tickets.filter(t=>t.floorId===f.id&&t.status!=='Closed').length;
-    const totalItems = fLogs+fInsp+fTix||1;
-    const pressure   = (fTix*3+fInsp*1.5+fLogs*0.5)/totalItems*10;
+    const fTixClosed = DB.tickets.filter(t=>t.floorId===f.id&&t.status==='Closed').length;
+    const fInspDone  = DB.inspectionItems.filter(i=>(DB.assets.some(a=>a.floorId===f.id&&a.id===i.assetId)||DB.units.some(u=>u.floorId===f.id&&u.id===i.unitId))&&i.result==='Approved').length;
+    const totalItems = fLogs+fInsp+fTix+fTixClosed+fInspDone||1;
+    const pressure   = (fTix*3+fInsp*2+fLogs*1+fTixClosed*0.5+fInspDone*0.5)/totalItems*10;
     const health     = Math.max(0,Math.min(100,Math.round(100-pressure)));
     const color      = hc(health);
     return `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:border-color .15s,box-shadow .15s;overflow:hidden" onclick="openFloorDetail('${f.id}')" onmouseenter="this.style.borderColor='rgba(37,99,235,.4)';this.style.boxShadow='0 2px 8px rgba(37,99,235,.08)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''">
@@ -5467,7 +5473,7 @@ function inspListCardHTML(r){
               <div class="wl-tip-row"><span style="color:var(--sub)">Inspections here</span><span style="font-weight:700">${bldInspCount}</span></div>
               <div class="wl-tip-row"><span style="color:var(--sub)">Total inspections</span><span style="font-weight:700">${totalInspAll}</span></div>
               <div class="wl-tip-row"><span style="color:var(--sub)">Workload share</span><span style="font-weight:700;color:${wHc}">${wPct}%</span></div>
-              <div class="wl-tip-formula">${bldInspCount} ÷ ${totalInspAll} × 100 = ${wPct}%<br>Share of all inspections across your portfolio.</div>
+              <div class="wl-tip-formula">${bldInspCount} ÷ ${totalInspAll} × 100 = ${wPct}%<br>Share of inspections across your accessible buildings. Weights: active×2, completed×0.5.</div>
             </div>
           </div>
           <span class="badge" style="background:${stBg};color:${stColor}">${stLabel}</span>
@@ -6660,7 +6666,7 @@ function renderLogbook(){
               <div class="wl-tip-row"><span style="color:var(--sub)">Log entries here</span><span style="font-weight:700">${bldLogs}</span></div>
               <div class="wl-tip-row"><span style="color:var(--sub)">Total log entries</span><span style="font-weight:700">${totalLogs}</span></div>
               <div class="wl-tip-row"><span style="color:var(--sub)">Workload share</span><span style="font-weight:700;color:${hc}">${wPct}%</span></div>
-              <div class="wl-tip-formula">${bldLogs} ÷ ${totalLogs} × 100 = ${wPct}%<br>Share of all logbook entries across your portfolio.</div>
+              <div class="wl-tip-formula">${bldLogs} ÷ ${totalLogs} × 100 = ${wPct}%<br>Share of log entries across your accessible buildings. Weights: log entry×1.</div>
             </div>
           </div>
         </div>
