@@ -3736,10 +3736,28 @@ function astCardHTML(a, onclick){
     <div style="padding:12px 14px 6px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
         <div class="ct" style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.name}</div>
-        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:8px">
-          <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health</span>
-          <span style="font-size:12px;font-weight:800;color:${aColor}">${aHealth}%</span>
-        </div>
+        <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+            <div class="wl-tooltip-chip">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health</span>
+              <span style="font-size:12px;font-weight:800;color:${aColor}">${aHealth}%</span>
+              <span class="wl-info">ⓘ</span>
+            </div>
+            <div class="wl-tip">
+              <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px">Health — ${a.name}</div>
+              <div style="display:grid;grid-template-columns:1fr auto;gap:3px 12px;font-size:11px;padding-bottom:8px;border-bottom:0.5px solid var(--border)">
+                <span style="color:var(--sub)">Open tickets</span><span style="font-weight:700;text-align:right;color:${aColor}">${openTix} × 3 = ${Math.round(openTix*3*10)/10} pts</span>
+                <span style="color:var(--sub)">Active insp.</span><span style="font-weight:700;text-align:right">${inspCount} × 2 = ${Math.round(inspCount*2*10)/10} pts</span>
+                <span style="color:var(--sub)">Log entries</span><span style="font-weight:700;text-align:right">${logCount} × 1 = ${logCount} pts</span>
+                <span style="color:var(--sub)">Closed tickets</span><span style="font-weight:700;text-align:right;color:var(--muted)">${closedAstTix} × 0.5 = ${Math.round(closedAstTix*0.5*10)/10} pts</span>
+                <span style="font-weight:600;color:var(--text)">Total pressure</span><span style="font-weight:700;text-align:right">${Math.round(pressure*10)/10} pts</span>
+              </div>
+              <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6">Health = 100 − (pressure ÷ items × 10)<br>= 100 − (${Math.round(pressure*10)/10} ÷ ${totalItems} × 10) = <strong>${aHealth}%</strong></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
+                <span style="font-size:11px;font-weight:700;color:var(--text)">Health score</span>
+                <span style="font-size:14px;font-weight:800;color:${aColor}">${aHealth}%</span>
+              </div>
+            </div>
+          </div>
       </div>
       <div class="cm">${a.building||'—'}${floorLabel}</div>
       <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px">
@@ -4430,9 +4448,27 @@ function renderUnits(){
       <div style="padding:12px 14px 6px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
           <div class="ct" style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.label}</div>
-          <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:8px">
-            <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health</span>
-            <span style="font-size:12px;font-weight:800;color:${uColor}">${uHealth}%</span>
+          <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+            <div class="wl-tooltip-chip">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health</span>
+              <span style="font-size:12px;font-weight:800;color:${uColor}">${uHealth}%</span>
+              <span class="wl-info">ⓘ</span>
+            </div>
+            <div class="wl-tip">
+              <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px">Health — ${u.label}</div>
+              <div style="display:grid;grid-template-columns:1fr auto;gap:3px 12px;font-size:11px;padding-bottom:8px;border-bottom:0.5px solid var(--border)">
+                <span style="color:var(--sub)">Open tickets</span><span style="font-weight:700;text-align:right;color:${uColor}">${openTix.length} × 3 = ${Math.round(openTix.length*3*10)/10} pts</span>
+                <span style="color:var(--sub)">Active insp.</span><span style="font-weight:700;text-align:right">${inspCount} × 2 = ${Math.round(inspCount*2*10)/10} pts</span>
+                <span style="color:var(--sub)">Log entries</span><span style="font-weight:700;text-align:right">${logCount} × 1 = ${logCount} pts</span>
+                <span style="color:var(--sub)">Closed tickets</span><span style="font-weight:700;text-align:right;color:var(--muted)">${closedUnitTix} × 0.5 = ${Math.round(closedUnitTix*0.5*10)/10} pts</span>
+                <span style="font-weight:600;color:var(--text)">Total pressure</span><span style="font-weight:700;text-align:right">${Math.round(pressure*10)/10} pts</span>
+              </div>
+              <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6">Health = 100 − (pressure ÷ items × 10)<br>= 100 − (${Math.round(pressure*10)/10} ÷ ${totalItems} × 10) = <strong>${uHealth}%</strong></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
+                <span style="font-size:11px;font-weight:700;color:var(--text)">Health score</span>
+                <span style="font-size:14px;font-weight:800;color:${uColor}">${uHealth}%</span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="cm">${bld?.name||'—'}${floorDot}</div>
@@ -4703,9 +4739,27 @@ function renderFloors(){
       <div style="padding:12px 14px 6px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
           <div class="ct" style="min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.label}</div>
-          <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:8px">
-            <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health</span>
-            <span style="font-size:12px;font-weight:800;color:${color}">${health}%</span>
+          <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+            <div class="wl-tooltip-chip">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health</span>
+              <span style="font-size:12px;font-weight:800;color:${color}">${health}%</span>
+              <span class="wl-info">ⓘ</span>
+            </div>
+            <div class="wl-tip">
+              <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px">Health — ${f.label}</div>
+              <div style="display:grid;grid-template-columns:1fr auto;gap:3px 12px;font-size:11px;padding-bottom:8px;border-bottom:0.5px solid var(--border)">
+                <span style="color:var(--sub)">Open tickets</span><span style="font-weight:700;text-align:right;color:${color}">${fTix} × 3 = ${Math.round(fTix*3*10)/10} pts</span>
+                <span style="color:var(--sub)">Active insp.</span><span style="font-weight:700;text-align:right">${fInsp} × 2 = ${Math.round(fInsp*2*10)/10} pts</span>
+                <span style="color:var(--sub)">Log entries</span><span style="font-weight:700;text-align:right">${fLogs} × 1 = ${fLogs} pts</span>
+                <span style="color:var(--sub)">Closed tickets</span><span style="font-weight:700;text-align:right;color:var(--muted)">${fTixClosed} × 0.5 = ${Math.round(fTixClosed*0.5*10)/10} pts</span>
+                <span style="font-weight:600;color:var(--text)">Total pressure</span><span style="font-weight:700;text-align:right">${Math.round(pressure*10)/10} pts</span>
+              </div>
+              <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6">Health = 100 − (pressure ÷ items × 10)<br>= 100 − (${Math.round(pressure*10)/10} ÷ ${totalItems} × 10) = <strong>${health}%</strong></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
+                <span style="font-size:11px;font-weight:700;color:var(--text)">Health score</span>
+                <span style="font-size:14px;font-weight:800;color:${color}">${health}%</span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="cm">${bld?.name||'—'}</div>
