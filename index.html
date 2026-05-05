@@ -3872,33 +3872,20 @@ function openAstDetail(id){
   const sc={Active:'var(--green)','Under Maintenance':'var(--amber)',Decommissioned:'var(--red)'}[a.status]||'var(--green)';
   const relTix=DB.tickets.filter(t=>t.assetId===a.id&&t.status!=='Closed');
   const relInsp=DB.inspectionItems.filter(i=>i.assetId===a.id);
+  const relLogs=DB.logs.filter(r=>r.assetId===a.id).sort((a,z)=>new Date(z.date)-new Date(a.date));
+  const rCol={Approved:'var(--green)',Failed:'var(--red)',Pending:'var(--amber)',Skipped:'var(--muted)',Open:'var(--muted)'};
   document.getElementById('ast-detail-title').textContent = a.name;
   document.getElementById('ast-detail-sub').textContent = a.id + (a.building ? '  ·  ' + a.building : '') + (a.floor ? '  ·  ' + a.floor : '');
 
   const tabStyle  = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
   const tabActive = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
 
-  const infoHTML = `
-    <div style="padding:0 18px">
-      <div style="padding:10px 0 8px"><span class="badge" style="background:${sc}18;color:${sc}">${a.status}</span></div>
-      <div class="dr"><span class="dk">Building</span><span class="dv">${a.building}</span></div>
-      ${a.floor?`<div class="dr"><span class="dk">Floor</span><span class="dv">${a.floor}</span></div>`:''}
-      <div class="dr"><span class="dk">Unit</span><span class="dv">${a.unit||'—'}</span></div>
-      <div class="dr"><span class="dk">Supplier</span><span class="dv">${a.supplierName||'—'}</span></div>
-      <div class="dr"><span class="dk">Category</span><span class="dv">${a.category||'—'}</span></div>
-      <div class="dr"><span class="dk">Manufacturer</span><span class="dv">${a.manufacturer||'—'}</span></div>
-      <div class="dr"><span class="dk">Model</span><span class="dv">${a.model||'—'}</span></div>
-      <div class="dr"><span class="dk">Warranty</span><span class="dv">${df(a.warrantyExpiry)}</span></div>
-      <div class="dr"><span class="dk">Purchased</span><span class="dv">${df(a.purchaseDate)}</span></div>
-      <div class="dr"><span class="dk">Last Serviced</span><span class="dv">${df(a.lastServiced)}</span></div>
-    </div>`;
+  const logHTML = relLogs.length
+    ? relLogs.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div style="min-width:0;flex:1"><div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.subject||'—'}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${df(r.date)}${r.type?' · '+r.type:''}</div></div><span style="font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;margin-left:8px">${r.status||''}</span></div>`).join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No logbook entries</div>';
 
-  const rCol={Approved:'var(--green)',Failed:'var(--red)',Pending:'var(--amber)',Skipped:'var(--muted)',Open:'var(--muted)'};
   const inspHTML = relInsp.length
-    ? relInsp.map(i=>{
-        const insp=DB.inspections.find(r=>r.id===i.inspectionId);
-        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:600;color:var(--text)">${i.label||'—'}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${insp?df(insp.dateStart):'—'}</div></div><span style="font-size:11px;font-weight:700;color:${rCol[i.result]||'var(--muted)'}">${i.result||'—'}</span></div>`;
-      }).join('')
+    ? relInsp.map(i=>{const insp=DB.inspections.find(r=>r.id===i.inspectionId);return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:600;color:var(--text)">${i.label||'—'}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${insp?df(insp.dateStart):'—'}</div></div><span style="font-size:11px;font-weight:700;color:${rCol[i.result]||'var(--muted)'}">${i.result||'—'}</span></div>`;}).join('')
     : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No inspection records</div>';
 
   const tixHTML = relTix.length
@@ -3907,11 +3894,11 @@ function openAstDetail(id){
 
   document.getElementById('ast-detail-body').innerHTML=`
     <div style="display:flex;border-bottom:1px solid var(--border);padding:0 18px">
-      <button id="adtab-info"    style="${tabActive}" onclick="astDetailTab('info')">Info</button>
+      <button id="adtab-log"     style="${tabActive}" onclick="astDetailTab('log')">Logbook (${relLogs.length})</button>
       <button id="adtab-inspect" style="${tabStyle}"  onclick="astDetailTab('inspect')">Inspect (${relInsp.length})</button>
       <button id="adtab-tickets" style="${tabStyle}"  onclick="astDetailTab('tickets')">Tickets (${relTix.length})</button>
     </div>
-    <div id="adpanel-info"    style="padding-bottom:8px">${infoHTML}</div>
+    <div id="adpanel-log"     style="padding:0 18px 8px">${logHTML}</div>
     <div id="adpanel-inspect" style="display:none;padding:0 18px 8px">${inspHTML}</div>
     <div id="adpanel-tickets" style="display:none;padding:4px 18px 8px">${tixHTML}</div>
     <div style="padding:8px 18px 0;display:flex;gap:9px;flex-wrap:wrap">
@@ -4375,6 +4362,9 @@ function openUnitDetail(id){
   const flr  = DB.floors.find(f=>f.id===u.floorId);
   const assets  = DB.assets.filter(a=>a.unitId===u.id && a.floorId===u.floorId);
   const openTix = DB.tickets.filter(t=>t.unit===u.label && t.building===(bld?.name||'') && t.status!=='Closed');
+  const uLogs   = DB.logs.filter(r=>r.unitId===u.id).sort((a,z)=>new Date(z.date)-new Date(a.date));
+  const uInsp   = DB.inspectionItems.filter(i=>i.unitId===u.id);
+  const rCol    = {Approved:'var(--green)',Failed:'var(--red)',Pending:'var(--amber)',Skipped:'var(--muted)',Open:'var(--muted)'};
 
   document.getElementById('unit-detail-title').textContent = u.label;
   document.getElementById('unit-detail-sub').textContent = u.id + (bld ? '  ·  ' + bld.name : '') + (flr ? '  ·  ' + flr.label : '');
@@ -4382,17 +4372,13 @@ function openUnitDetail(id){
   const tabStyle  = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
   const tabActive = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
 
-  const infoHTML = `
-    <div style="padding:0 18px">
-      <div class="dr"><span class="dk">Building</span><span class="dv">${bld?.name||'—'}</span></div>
-      <div class="dr"><span class="dk">Floor</span><span class="dv">${flr?.label||'—'}</span></div>
-      <div class="dr"><span class="dk">Assets</span><span class="dv">${assets.length}</span></div>
-      <div class="dr"><span class="dk">Open Tickets</span><span class="dv" style="color:${openTix.length?'var(--red)':'var(--text)'}">${openTix.length}</span></div>
-    </div>`;
+  const logHTML = uLogs.length
+    ? uLogs.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div style="min-width:0;flex:1"><div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.subject||'—'}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${df(r.date)}${r.type?' · '+r.type:''}</div></div><span style="font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;margin-left:8px">${r.status||''}</span></div>`).join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No logbook entries</div>';
 
-  const assetsHTML = assets.length
-    ? assets.map(a=>astCardHTML(a,`openAstDetail('${a.id}');closeMo('mo-unit-detail')`)).join('')
-    : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No assets for this unit</div>';
+  const inspHTML = uInsp.length
+    ? uInsp.map(i=>{const insp=DB.inspections.find(r=>r.id===i.inspectionId);return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:600;color:var(--text)">${i.label||'—'}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${insp?df(insp.dateStart):'—'}</div></div><span style="font-size:11px;font-weight:700;color:${rCol[i.result]||'var(--muted)'}">${i.result||'—'}</span></div>`;}).join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No inspection records</div>';
 
   const tixHTML = openTix.length
     ? `<div class="tlist" style="padding:0">${openTix.map(t=>tixItemHTML(t,true)).join('')}</div>`
@@ -4400,12 +4386,12 @@ function openUnitDetail(id){
 
   document.getElementById('unit-detail-body').innerHTML = `
     <div style="display:flex;border-bottom:1px solid var(--border);padding:0 18px">
-      <button id="udtab-info"    style="${tabActive}" onclick="unitDetailTab('info')">Info</button>
-      <button id="udtab-assets"  style="${tabStyle}"  onclick="unitDetailTab('assets')">Assets (${assets.length})</button>
+      <button id="udtab-log"     style="${tabActive}" onclick="unitDetailTab('log')">Logbook (${uLogs.length})</button>
+      <button id="udtab-inspect" style="${tabStyle}"  onclick="unitDetailTab('inspect')">Inspect (${uInsp.length})</button>
       <button id="udtab-tickets" style="${tabStyle}"  onclick="unitDetailTab('tickets')">Tickets (${openTix.length})</button>
     </div>
-    <div id="udpanel-info"    style="padding-bottom:8px">${infoHTML}</div>
-    <div id="udpanel-assets"  style="display:none;padding:0 18px 8px">${assetsHTML}</div>
+    <div id="udpanel-log"     style="padding:0 18px 8px">${logHTML}</div>
+    <div id="udpanel-inspect" style="display:none;padding:0 18px 8px">${inspHTML}</div>
     <div id="udpanel-tickets" style="display:none;padding:4px 18px 8px">${tixHTML}</div>
     ${can('canManageBuildings') ? `
     <div style="padding:8px 18px 0;display:flex;gap:9px;flex-wrap:wrap">
@@ -4628,20 +4614,17 @@ function openFloorDetail(id){
   const fAssets = DB.assets.filter(a=>a.floorId===f.id);
   const fTix    = DB.tickets.filter(t=>t.floorId===f.id && t.status!=='Closed');
 
-  const unitsHTML = units.length ? units.sort((a,z)=>a.label.localeCompare(z.label)).map(u=>{
-    const uAssets = DB.assets.filter(a=>a.unitId===u.id && a.floorId===u.floorId);
-    const uTix    = DB.tickets.filter(t=>t.unitId===u.id && t.status!=='Closed');
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="closeMo('mo-floor-detail');openUnitDetail('${u.id}')">
-      <div><div style="font-size:11px;font-weight:700;color:var(--teal)">${u.id}</div><div style="font-size:13px;font-weight:600;color:var(--text)">${u.label||'—'}</div></div>
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        ${uAssets.length?`<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:#EAF3DE;color:#3B6D11">${uAssets.length} assets</span>`:''}
-        ${uTix.length?`<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:#FAECE7;color:#993C1D">${uTix.length} tickets</span>`:''}
-      </div>
-    </div>`;
-  }).join('') : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No units on this floor</div>';
+  const fLogs = DB.logs.filter(r=>r.floorId===f.id).sort((a,z)=>new Date(z.date)-new Date(a.date));
+  const fInsp = DB.inspectionItems.filter(i=>fAssets.some(a=>a.id===i.assetId)||units.some(u=>u.id===i.unitId));
+  const rCol  = {Approved:'var(--green)',Failed:'var(--red)',Pending:'var(--amber)',Skipped:'var(--muted)',Open:'var(--muted)'};
 
-  const assetsHTML = fAssets.length ? fAssets.map(a=>astCardHTML(a,`closeMo('mo-floor-detail');openAstDetail('${a.id}')`)).join('')
-    : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No assets on this floor</div>';
+  const logHTML = fLogs.length
+    ? fLogs.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div style="min-width:0;flex:1"><div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.subject||'—'}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${df(r.date)}${r.type?' · '+r.type:''}</div></div><span style="font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;margin-left:8px">${r.status||''}</span></div>`).join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No logbook entries</div>';
+
+  const inspHTML = fInsp.length
+    ? fInsp.map(i=>{const insp=DB.inspections.find(r=>r.id===i.inspectionId);return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:600;color:var(--text)">${i.label||'—'}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${insp?df(insp.dateStart):'—'}</div></div><span style="font-size:11px;font-weight:700;color:${rCol[i.result]||'var(--muted)'}">${i.result||'—'}</span></div>`;}).join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No inspection records</div>';
 
   const ticketsHTML = fTix.length ? fTix.map(t=>tixItemHTML(t,true)).join('')
     : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No open tickets</div>';
@@ -4653,12 +4636,12 @@ function openFloorDetail(id){
   document.getElementById('floor-detail-sub').textContent = f.id + (bld ? '  ·  ' + bld.name : '');
   document.getElementById('floor-detail-body').innerHTML = `
     <div style="display:flex;border-bottom:1px solid var(--border);padding:0 18px">
-      <button id="fdtab-units"   style="${tabActiveS}" onclick="floorDetailTab('units')">Units (${units.length})</button>
-      <button id="fdtab-assets"  style="${tabStyle}"   onclick="floorDetailTab('assets')">Assets (${fAssets.length})</button>
+      <button id="fdtab-log"     style="${tabActiveS}" onclick="floorDetailTab('log')">Logbook (${fLogs.length})</button>
+      <button id="fdtab-inspect" style="${tabStyle}"   onclick="floorDetailTab('inspect')">Inspect (${fInsp.length})</button>
       <button id="fdtab-tickets" style="${tabStyle}"   onclick="floorDetailTab('tickets')">Tickets (${fTix.length})</button>
     </div>
-    <div id="fdpanel-units"   style="padding:0 18px 8px">${unitsHTML}</div>
-    <div id="fdpanel-assets"  style="display:none;padding:0 18px 8px">${assetsHTML}</div>
+    <div id="fdpanel-log"     style="padding:0 18px 8px">${logHTML}</div>
+    <div id="fdpanel-inspect" style="display:none;padding:0 18px 8px">${inspHTML}</div>
     <div id="fdpanel-tickets" style="display:none;padding:4px 18px 8px">${ticketsHTML}</div>
     ${can('canManageBuildings') ? `
     <div style="padding:8px 18px 0;display:flex;gap:9px">
@@ -4687,7 +4670,7 @@ function fvAccordion(secId, chevId){
 }
 
 function unitDetailTab(tab){
-  const tabs=['info','assets','tickets'];
+  const tabs=['log','inspect','tickets'];
   const activeS='flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
   const inactS ='flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
   tabs.forEach(t=>{
@@ -4699,7 +4682,7 @@ function unitDetailTab(tab){
 }
 
 function astDetailTab(tab){
-  const tabs=['info','inspect','tickets'];
+  const tabs=['log','inspect','tickets'];
   const activeS='flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
   const inactS ='flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
   tabs.forEach(t=>{
@@ -4711,7 +4694,7 @@ function astDetailTab(tab){
 }
 
 function floorDetailTab(tab){
-  const tabs = ['units','assets','tickets'];
+  const tabs = ['log','inspect','tickets'];
   const activeS = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
   const inactS  = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
   tabs.forEach(t=>{
