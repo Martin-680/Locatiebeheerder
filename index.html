@@ -4586,53 +4586,45 @@ function openFloorDetail(id){
   const fTix    = DB.tickets.filter(t=>t.floorId===f.id && t.status!=='Closed');
 
   document.getElementById('floor-detail-title').textContent = f.label;
-  document.getElementById('floor-detail-title').textContent = f.label;
+  const unitsHTML = units.length ? units.sort((a,z)=>a.label.localeCompare(z.label)).map(u=>{
+    const uAssets = DB.assets.filter(a=>a.unitId===u.id && a.floorId===u.floorId);
+    const uTix    = DB.tickets.filter(t=>t.unitId===u.id && t.status!=='Closed');
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="closeMo('mo-floor-detail');openUnitDetail('${u.id}')">
+      <div><div style="font-size:11px;font-weight:700;color:var(--teal)">${u.id}</div><div style="font-size:13px;font-weight:600;color:var(--text)">${u.label||'—'}</div></div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        ${uAssets.length?`<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:#EAF3DE;color:#3B6D11">${uAssets.length} assets</span>`:''}
+        ${uTix.length?`<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:#FAECE7;color:#993C1D">${uTix.length} tickets</span>`:''}
+      </div>
+    </div>`;
+  }).join('') : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No units on this floor</div>';
+
+  const assetsHTML = fAssets.length ? fAssets.map(a=>astCardHTML(a,`closeMo('mo-floor-detail');openAstDetail('${a.id}')`)).join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No assets on this floor</div>';
+
+  const ticketsHTML = fTix.length ? fTix.map(t=>tixItemHTML(t,true)).join('')
+    : '<div style="font-size:12px;color:var(--muted);padding:12px 0">No open tickets</div>';
+
+  const tabStyle   = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
+  const tabActiveS = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
+
   document.getElementById('floor-detail-body').innerHTML = `
-    <div style="padding:0 18px 12px">
-      <div style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--teal);margin-bottom:4px">${f.id}</div>
-      <div style="font-size:20px;font-weight:700;margin-bottom:8px">${f.label}</div>
-    </div>
-    <div style="padding:0 18px">
-      <div class="dr"><span class="dk">Building</span><span class="dv">${bld?.name||'—'}</span></div>
-      <div class="dr"><span class="dk">Sort Order</span><span class="dv">${f.sortOrder||0}</span></div>
-      <div class="dr"><span class="dk">Units</span><span class="dv">${units.length}</span></div>
-      <div class="dr"><span class="dk">Assets</span><span class="dv">${fAssets.length}</span></div>
-      <div class="dr"><span class="dk">Open Tickets</span><span class="dv" style="color:${fTix.length?'var(--red)':'var(--text)'}">${fTix.length}</span></div>
-    </div>
-    <div style="margin-top:12px;border-top:1px solid var(--border)">
-      <div style="border-bottom:1px solid var(--border)">
-        <button onclick="floorDetailAccordion('units')" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text)">
-          <span style="display:flex;align-items:center;gap:8px">Units <span style="font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;background:#E6F1FB;color:#185FA5">${units.length}</span></span>
-          <span id="fdchev-units" style="font-size:11px;color:var(--muted);transition:transform .2s;display:inline-block">&#9660;</span>
-        </button>
-        <div id="fdsec-units" style="display:none;padding:0 18px 14px">
-          ${units.length ? units.sort((a,z)=>a.label.localeCompare(z.label)).map(u=>{
-            const uAssets = DB.assets.filter(a=>a.unitId===u.id && a.floorId===u.floorId);
-            const uTix    = DB.tickets.filter(t=>t.unitId===u.id && t.status!=='Closed');
-            return `<div style="background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;margin-bottom:7px;cursor:pointer;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:center" onclick="closeMo('mo-floor-detail');openUnitDetail('${u.id}')"><div><div style="font-size:13px;color:var(--teal);font-weight:600;margin-bottom:2px">${u.id}</div><div style="font-size:13px;font-weight:600">${u.label||'—'}</div></div><div style="text-align:center"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Assets</div><div style="font-size:13px;font-weight:600;color:var(--text)">${uAssets.length||'—'}</div></div><div style="text-align:center"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Tickets</div><div style="font-size:13px;font-weight:600;color:${uTix.length?'var(--red)':'var(--text)'};">${uTix.length||'—'}</div></div></div>`;}).join('') : '<div style="font-size:12px;color:var(--muted)">No units</div>'}
-        </div>
-      </div>
-      <div style="border-bottom:1px solid var(--border)">
-        <button onclick="floorDetailAccordion('assets')" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text)">
-          <span style="display:flex;align-items:center;gap:8px">Assets <span style="font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;background:#EAF3DE;color:#3B6D11">${fAssets.length}</span></span>
-          <span id="fdchev-assets" style="font-size:11px;color:var(--muted);transition:transform .2s;display:inline-block">&#9660;</span>
-        </button>
-        <div id="fdsec-assets" style="display:none;padding:0 18px 14px">
-          ${fAssets.length ? fAssets.map(a=>astCardHTML(a,`closeMo('mo-floor-detail');openAstDetail('${a.id}')`)).join('') : '<div style="font-size:12px;color:var(--muted)">No assets</div>'}
-        </div>
-      </div>
-      <div>
-        <button onclick="floorDetailAccordion('tickets')" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text)">
-          <span style="display:flex;align-items:center;gap:8px">Tickets <span style="font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;background:#FAECE7;color:#993C1D">${fTix.length}</span></span>
-          <span id="fdchev-tickets" style="font-size:11px;color:var(--muted);transition:transform .2s;display:inline-block">&#9660;</span>
-        </button>
-        <div id="fdsec-tickets" style="display:none;padding:0 18px 14px">
-          ${fTix.length ? fTix.map(t=>tixItemHTML(t,true)).join('') : '<div style="font-size:12px;color:var(--muted)">No open tickets</div>'}
-        </div>
+    <div style="padding:12px 18px 10px">
+      <div style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--teal);margin-bottom:2px">${f.id}</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between">
+        <div style="font-size:20px;font-weight:700">${f.label}</div>
+        <div style="font-size:12px;color:var(--muted)">${bld?.name||'—'}</div>
       </div>
     </div>
+    <div style="display:flex;border-bottom:1px solid var(--border);padding:0 18px">
+      <button id="fdtab-units"   style="${tabActiveS}" onclick="floorDetailTab('units')">Units (${units.length})</button>
+      <button id="fdtab-assets"  style="${tabStyle}"   onclick="floorDetailTab('assets')">Assets (${fAssets.length})</button>
+      <button id="fdtab-tickets" style="${tabStyle}"   onclick="floorDetailTab('tickets')">Tickets (${fTix.length})</button>
+    </div>
+    <div id="fdpanel-units"   style="padding:0 18px 8px">${unitsHTML}</div>
+    <div id="fdpanel-assets"  style="display:none;padding:0 18px 8px">${assetsHTML}</div>
+    <div id="fdpanel-tickets" style="display:none;padding:4px 18px 8px">${ticketsHTML}</div>
     ${can('canManageBuildings') ? `
-    <div style="padding:16px 18px 0;display:flex;gap:9px">
+    <div style="padding:8px 18px 0;display:flex;gap:9px">
       <button onclick="editFloor('${f.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>
     </div>` : ''}
     <div style="height:24px"></div>`;
@@ -4657,20 +4649,15 @@ function fvAccordion(secId, chevId){
   });
 }
 
-function floorDetailAccordion(section){
-  const sections = ['units','assets','tickets'];
-  sections.forEach(s=>{
-    const sec  = document.getElementById('fdsec-'+s);
-    const chev = document.getElementById('fdchev-'+s);
-    if(!sec) return;
-    if(s===section){
-      const opening = sec.style.display==='none';
-      sec.style.display  = opening ? '' : 'none';
-      if(chev) chev.style.transform = opening ? 'rotate(180deg)' : '';
-    } else {
-      sec.style.display = 'none';
-      if(chev) chev.style.transform = '';
-    }
+function floorDetailTab(tab){
+  const tabs = ['units','assets','tickets'];
+  const activeS = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
+  const inactS  = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
+  tabs.forEach(t=>{
+    const btn   = document.getElementById('fdtab-'+t);
+    const panel = document.getElementById('fdpanel-'+t);
+    if(btn)   btn.style.cssText   = t===tab ? activeS : inactS;
+    if(panel) panel.style.display = t===tab ? '' : 'none';
   });
 }
 
