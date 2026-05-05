@@ -359,22 +359,22 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .insp-list-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);margin:0 14px 10px;padding:14px 16px;cursor:pointer;transition:border-color .15s;}
 .insp-list-card:active{border-color:var(--border2);}
 .insp-list-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
-.wl-tooltip-wrap{position:relative;display:inline-flex;align-items:center;}
+.wl-tooltip-wrap{display:inline-flex;align-items:center;}
 .wl-tooltip-chip{display:flex;align-items:center;gap:4px;cursor:pointer;border-radius:6px;padding:2px 4px;transition:background .15s;flex-shrink:0;}
 .wl-tooltip-chip:hover{background:var(--card2,rgba(0,0,0,.06));}
 .wl-tooltip-chip .wl-info{font-size:10px;color:var(--muted);margin-left:1px;line-height:1;}
-.wl-tip{position:absolute;top:calc(100% + 7px);right:0;background:var(--surface,var(--card));border:1.5px solid var(--border);border-radius:12px;padding:11px 13px;width:210px;z-index:600;box-shadow:0 4px 20px rgba(0,0,0,.14);display:none;pointer-events:none;}
-.wl-tip.open{display:block;pointer-events:all;}
+.wl-tip{display:none;}
+#wl-tip-global{position:fixed;background:var(--surface,var(--card));border:1.5px solid var(--border);border-radius:12px;padding:11px 13px;width:220px;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.18);}
 .wl-tip-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:7px;}
 .wl-tip-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:0.5px solid var(--border);}
 .wl-tip-row:last-of-type{border-bottom:none;}
 .wl-tip-formula{font-size:10px;color:var(--muted);margin-top:7px;line-height:1.5;padding-top:7px;border-top:0.5px solid var(--border);}
-.wl-tooltip-wrap{position:relative;display:inline-flex;align-items:center;}
+.wl-tooltip-wrap{display:inline-flex;align-items:center;}
 .wl-tooltip-chip{display:flex;align-items:center;gap:4px;cursor:pointer;border-radius:6px;padding:2px 4px;transition:background .15s;flex-shrink:0;}
 .wl-tooltip-chip:hover{background:var(--card2,rgba(0,0,0,.06));}
 .wl-tooltip-chip .wl-info{font-size:10px;color:var(--muted);margin-left:1px;line-height:1;}
-.wl-tip{position:absolute;top:calc(100% + 7px);right:0;background:var(--surface,var(--card));border:1.5px solid var(--border);border-radius:12px;padding:11px 13px;width:210px;z-index:600;box-shadow:0 4px 20px rgba(0,0,0,.14);display:none;pointer-events:none;}
-.wl-tip.open{display:block;pointer-events:all;}
+.wl-tip{display:none;}
+#wl-tip-global{position:fixed;background:var(--surface,var(--card));border:1.5px solid var(--border);border-radius:12px;padding:11px 13px;width:220px;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.18);}
 .wl-tip-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:7px;}
 .wl-tip-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:0.5px solid var(--border);}
 .wl-tip-row:last-of-type{border-bottom:none;}
@@ -2387,7 +2387,7 @@ function renderDash(){
         return `<div style="${border}padding:12px 14px;cursor:pointer" onclick="${goB}">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
             <span style="font-size:13px;font-weight:700;color:var(--blue)">${s.b.name}</span>
-            <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+            <div class="wl-tooltip-wrap">
               <div class="wl-tooltip-chip">
                 <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health</span>
                 <span style="font-size:12px;font-weight:800;color:${hc}">${s.health}%</span>
@@ -3392,7 +3392,7 @@ function tixItemHTML(t,clickable=true){
     <div style="padding:12px 14px 8px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:2px">
         <div class="ct" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject||'—'}</div>
-        <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+        <div class="wl-tooltip-wrap">
           <div class="wl-tooltip-chip">
             <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Workload</span>
             <span style="font-size:12px;font-weight:800;color:${hc}">${wPct}%</span>
@@ -5447,7 +5447,7 @@ function inspListCardHTML(r){
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
         <div style="font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">${r.building}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-          <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+          <div class="wl-tooltip-wrap">
             <div class="wl-tooltip-chip">
               <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Workload</span>
               <span style="font-size:12px;font-weight:800;color:${wHc}">${wPct}%</span>
@@ -6636,7 +6636,7 @@ function renderLogbook(){
       <div style="padding:12px 14px 8px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:2px">
           <div class="ct" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.subject||'—'}</div>
-          <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+          <div class="wl-tooltip-wrap">
             <div class="wl-tooltip-chip">
               <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Workload</span>
               <span style="font-size:12px;font-weight:800;color:${hc}">${wPct}%</span>
@@ -6665,16 +6665,37 @@ function renderLogbook(){
 
 function goLogPage(p){ setPage('log',p); renderLogbook(); }
 
-function wlTip(el){
-  const tip = el.querySelector('.wl-tip');
-  if(!tip) return;
-  const isOpen = tip.classList.contains('open');
-  document.querySelectorAll('.wl-tip.open').forEach(t=>t.classList.remove('open'));
-  if(!isOpen) tip.classList.add('open');
-}
-document.addEventListener('click', e=>{
-  if(!e.target.closest('.wl-tooltip-wrap')) document.querySelectorAll('.wl-tip.open').forEach(t=>t.classList.remove('open'));
-});
+(function(){
+  const G = document.createElement('div');
+  G.id = 'wl-tip-global';
+  G.style.display = 'none';
+  document.body.appendChild(G);
+  document.addEventListener('click', e=>{
+    const chip = e.target.closest('.wl-tooltip-chip');
+    if(chip){
+      e.stopPropagation();
+      const src = chip.closest('.wl-tooltip-wrap')?.querySelector('.wl-tip');
+      if(!src) return;
+      if(G._src === src && G.style.display !== 'none'){ G.style.display='none'; G._src=null; return; }
+      G.innerHTML = src.innerHTML;
+      G.style.display = 'block';
+      G._src = src;
+      const r = chip.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const tw = 220;
+      let left = r.right - tw;
+      if(left < 8) left = 8;
+      if(left + tw > vw - 8) left = vw - tw - 8;
+      let top = r.bottom + 7;
+      if(top + G.offsetHeight > window.innerHeight - 8) top = r.top - G.offsetHeight - 7;
+      G.style.left = left + 'px';
+      G.style.top  = top  + 'px';
+    } else {
+      G.style.display = 'none';
+      G._src = null;
+    }
+  });
+})();
 
 function clearLogFilters(){
   logActiveBldg = null;
