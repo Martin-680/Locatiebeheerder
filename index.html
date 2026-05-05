@@ -359,6 +359,26 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .insp-list-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);margin:0 14px 10px;padding:14px 16px;cursor:pointer;transition:border-color .15s;}
 .insp-list-card:active{border-color:var(--border2);}
 .insp-list-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.wl-tooltip-wrap{position:relative;display:inline-flex;align-items:center;}
+.wl-tooltip-chip{display:flex;align-items:center;gap:4px;cursor:pointer;border-radius:6px;padding:2px 4px;transition:background .15s;flex-shrink:0;}
+.wl-tooltip-chip:hover{background:var(--card2,rgba(0,0,0,.06));}
+.wl-tooltip-chip .wl-info{font-size:10px;color:var(--muted);margin-left:1px;line-height:1;}
+.wl-tip{position:absolute;top:calc(100% + 7px);right:0;background:var(--surface,var(--card));border:1.5px solid var(--border);border-radius:12px;padding:11px 13px;width:210px;z-index:600;box-shadow:0 4px 20px rgba(0,0,0,.14);display:none;pointer-events:none;}
+.wl-tip.open{display:block;pointer-events:all;}
+.wl-tip-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:7px;}
+.wl-tip-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:0.5px solid var(--border);}
+.wl-tip-row:last-of-type{border-bottom:none;}
+.wl-tip-formula{font-size:10px;color:var(--muted);margin-top:7px;line-height:1.5;padding-top:7px;border-top:0.5px solid var(--border);}
+.wl-tooltip-wrap{position:relative;display:inline-flex;align-items:center;}
+.wl-tooltip-chip{display:flex;align-items:center;gap:4px;cursor:pointer;border-radius:6px;padding:2px 4px;transition:background .15s;flex-shrink:0;}
+.wl-tooltip-chip:hover{background:var(--card2,rgba(0,0,0,.06));}
+.wl-tooltip-chip .wl-info{font-size:10px;color:var(--muted);margin-left:1px;line-height:1;}
+.wl-tip{position:absolute;top:calc(100% + 7px);right:0;background:var(--surface,var(--card));border:1.5px solid var(--border);border-radius:12px;padding:11px 13px;width:210px;z-index:600;box-shadow:0 4px 20px rgba(0,0,0,.14);display:none;pointer-events:none;}
+.wl-tip.open{display:block;pointer-events:all;}
+.wl-tip-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:7px;}
+.wl-tip-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:0.5px solid var(--border);}
+.wl-tip-row:last-of-type{border-bottom:none;}
+.wl-tip-formula{font-size:10px;color:var(--muted);margin-top:7px;line-height:1.5;padding-top:7px;border-top:0.5px solid var(--border);}
 .insp-progress-pill{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:#EEF2FF;color:var(--indigo);flex-shrink:0;}
 .insp-stat-row{display:flex;gap:0;border-top:1px solid var(--border);margin:0 -16px -14px;border-radius:0 0 var(--r) var(--r);overflow:hidden;}
 .insp-stat{flex:1;padding:9px 6px;text-align:center;border-right:1px solid var(--border);}
@@ -2367,9 +2387,20 @@ function renderDash(){
         return `<div style="${border}padding:12px 14px;cursor:pointer" onclick="${goB}">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
             <span style="font-size:13px;font-weight:700;color:var(--blue)">${s.b.name}</span>
-            <div style="display:flex;align-items:center;gap:5px">
-              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health</span>
-              <span style="font-size:12px;font-weight:800;color:${hc}">${s.health}%</span>
+            <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+              <div class="wl-tooltip-chip">
+                <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Health</span>
+                <span style="font-size:12px;font-weight:800;color:${hc}">${s.health}%</span>
+                <span class="wl-info">ⓘ</span>
+              </div>
+              <div class="wl-tip">
+                <div class="wl-tip-title">${s.b.name} · health score</div>
+                <div class="wl-tip-row"><span style="color:var(--sub)">Open tickets</span><span style="font-weight:700;color:${s.openTix>0?'var(--red)':'var(--text)'}">${s.openTix}</span></div>
+                <div class="wl-tip-row"><span style="color:var(--sub)">Active inspections</span><span style="font-weight:700">${s.activeInsp}</span></div>
+                <div class="wl-tip-row"><span style="color:var(--sub)">Recent log entries</span><span style="font-weight:700">${s.recentLogs}</span></div>
+                <div class="wl-tip-row"><span style="color:var(--sub)">Health score</span><span style="font-weight:700;color:${hc}">${s.health}%</span></div>
+                <div class="wl-tip-formula">Pressure = (tickets×3 + inspections×1.5 + logs×0.5) ÷ size<br>Health = 100 − pressure × 9</div>
+              </div>
             </div>
           </div>
           <div style="font-size:10px;color:var(--muted);margin-bottom:6px">${sqmStr}</div>
@@ -3361,9 +3392,19 @@ function tixItemHTML(t,clickable=true){
     <div style="padding:12px 14px 8px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:2px">
         <div class="ct" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject||'—'}</div>
-        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-          <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Workload</span>
-          <span style="font-size:12px;font-weight:800;color:${hc}">${wPct}%</span>
+        <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+          <div class="wl-tooltip-chip">
+            <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Workload</span>
+            <span style="font-size:12px;font-weight:800;color:${hc}">${wPct}%</span>
+            <span class="wl-info">ⓘ</span>
+          </div>
+          <div class="wl-tip">
+            <div class="wl-tip-title">${t.building||'—'} · ticket workload</div>
+            <div class="wl-tip-row"><span style="color:var(--sub)">Open tickets here</span><span style="font-weight:700">${bldTix}</span></div>
+            <div class="wl-tip-row"><span style="color:var(--sub)">Total open tickets</span><span style="font-weight:700">${totalTix}</span></div>
+            <div class="wl-tip-row"><span style="color:var(--sub)">Workload share</span><span style="font-weight:700;color:${hc}">${wPct}%</span></div>
+            <div class="wl-tip-formula">${bldTix} ÷ ${totalTix} × 100 = ${wPct}%<br>Share of all open tickets across your portfolio.</div>
+          </div>
         </div>
       </div>
       <div class="cm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div>
@@ -5397,11 +5438,31 @@ function inspListCardHTML(r){
   const pct = total ? Math.round(approved / total * 100) : 0;
   const progColor = r.status !== 'Completed' ? 'var(--blue)' : (failed > 0 ? 'var(--red)' : 'var(--green)');
   const pctColor  = r.status !== 'Completed' ? 'var(--sub)'  : (failed > 0 ? 'var(--red)' : 'var(--green)');
+  const totalInspAll = (DB.inspections||[]).length || 1;
+  const bldInspCount = r.buildingId ? (DB.inspections||[]).filter(x=>x.buildingId===r.buildingId).length : 0;
+  const wPct  = Math.round(bldInspCount/totalInspAll*100);
+  const wHc   = wPct>=40?'#dc2626':wPct>=20?'#d97706':'#059669';
   return `<div class="insp-list-card" onclick="openInspDetail('${r.id}')">
     <div style="padding:12px 14px 10px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <div style="font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.building}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
-        <span class="badge" style="background:${stBg};color:${stColor};flex-shrink:0">${stLabel}</span>
+        <div style="font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">${r.building}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+            <div class="wl-tooltip-chip">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Workload</span>
+              <span style="font-size:12px;font-weight:800;color:${wHc}">${wPct}%</span>
+              <span class="wl-info">ⓘ</span>
+            </div>
+            <div class="wl-tip">
+              <div class="wl-tip-title">${r.building||'—'} · inspection workload</div>
+              <div class="wl-tip-row"><span style="color:var(--sub)">Inspections here</span><span style="font-weight:700">${bldInspCount}</span></div>
+              <div class="wl-tip-row"><span style="color:var(--sub)">Total inspections</span><span style="font-weight:700">${totalInspAll}</span></div>
+              <div class="wl-tip-row"><span style="color:var(--sub)">Workload share</span><span style="font-weight:700;color:${wHc}">${wPct}%</span></div>
+              <div class="wl-tip-formula">${bldInspCount} ÷ ${totalInspAll} × 100 = ${wPct}%<br>Share of all inspections across your portfolio.</div>
+            </div>
+          </div>
+          <span class="badge" style="background:${stBg};color:${stColor}">${stLabel}</span>
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;margin-top:10px">
         <div style="text-align:left">
@@ -6575,9 +6636,19 @@ function renderLogbook(){
       <div style="padding:12px 14px 8px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:2px">
           <div class="ct" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.subject||'—'}</div>
-          <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-            <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Workload</span>
-            <span style="font-size:12px;font-weight:800;color:${hc}">${wPct}%</span>
+          <div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)">
+            <div class="wl-tooltip-chip">
+              <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Workload</span>
+              <span style="font-size:12px;font-weight:800;color:${hc}">${wPct}%</span>
+              <span class="wl-info">ⓘ</span>
+            </div>
+            <div class="wl-tip">
+              <div class="wl-tip-title">${r.building||'—'} · logbook workload</div>
+              <div class="wl-tip-row"><span style="color:var(--sub)">Log entries here</span><span style="font-weight:700">${bldLogs}</span></div>
+              <div class="wl-tip-row"><span style="color:var(--sub)">Total log entries</span><span style="font-weight:700">${totalLogs}</span></div>
+              <div class="wl-tip-row"><span style="color:var(--sub)">Workload share</span><span style="font-weight:700;color:${hc}">${wPct}%</span></div>
+              <div class="wl-tip-formula">${bldLogs} ÷ ${totalLogs} × 100 = ${wPct}%<br>Share of all logbook entries across your portfolio.</div>
+            </div>
           </div>
         </div>
         <div class="cm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div>
@@ -6593,6 +6664,17 @@ function renderLogbook(){
 }
 
 function goLogPage(p){ setPage('log',p); renderLogbook(); }
+
+function wlTip(el){
+  const tip = el.querySelector('.wl-tip');
+  if(!tip) return;
+  const isOpen = tip.classList.contains('open');
+  document.querySelectorAll('.wl-tip.open').forEach(t=>t.classList.remove('open'));
+  if(!isOpen) tip.classList.add('open');
+}
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.wl-tooltip-wrap')) document.querySelectorAll('.wl-tip.open').forEach(t=>t.classList.remove('open'));
+});
 
 function clearLogFilters(){
   logActiveBldg = null;
