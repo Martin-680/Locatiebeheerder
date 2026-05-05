@@ -6674,6 +6674,7 @@ function goLogPage(p){ setPage('log',p); renderLogbook(); }
     const chip = e.target.closest('.wl-tooltip-chip');
     if(chip){
       e.stopPropagation();
+      e.preventDefault();
       const src = chip.closest('.wl-tooltip-wrap')?.querySelector('.wl-tip');
       if(!src) return;
       if(G._src === src && G.style.display !== 'none'){ G.style.display='none'; G._src=null; return; }
@@ -6694,7 +6695,7 @@ function goLogPage(p){ setPage('log',p); renderLogbook(); }
       G.style.display = 'none';
       G._src = null;
     }
-  });
+  }, true);
 })();
 
 function clearLogFilters(){
