@@ -4585,7 +4585,6 @@ function openFloorDetail(id){
   const fAssets = DB.assets.filter(a=>a.floorId===f.id);
   const fTix    = DB.tickets.filter(t=>t.floorId===f.id && t.status!=='Closed');
 
-  document.getElementById('floor-detail-title').textContent = f.label;
   const unitsHTML = units.length ? units.sort((a,z)=>a.label.localeCompare(z.label)).map(u=>{
     const uAssets = DB.assets.filter(a=>a.unitId===u.id && a.floorId===u.floorId);
     const uTix    = DB.tickets.filter(t=>t.unitId===u.id && t.status!=='Closed');
@@ -4607,14 +4606,9 @@ function openFloorDetail(id){
   const tabStyle   = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
   const tabActiveS = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
 
+  document.getElementById('floor-detail-title').textContent = f.label;
+  document.getElementById('floor-detail-sub').textContent = f.id + (bld ? '  ·  ' + bld.name : '');
   document.getElementById('floor-detail-body').innerHTML = `
-    <div style="padding:12px 18px 10px">
-      <div style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--teal);margin-bottom:2px">${f.id}</div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between">
-        <div style="font-size:20px;font-weight:700">${f.label}</div>
-        <div style="font-size:12px;color:var(--muted)">${bld?.name||'—'}</div>
-      </div>
-    </div>
     <div style="display:flex;border-bottom:1px solid var(--border);padding:0 18px">
       <button id="fdtab-units"   style="${tabActiveS}" onclick="floorDetailTab('units')">Units (${units.length})</button>
       <button id="fdtab-assets"  style="${tabStyle}"   onclick="floorDetailTab('assets')">Assets (${fAssets.length})</button>
@@ -7127,7 +7121,7 @@ function calDayClick(dateStr){
 <!-- Floor detail modal -->
 <div class="mo" id="mo-floor-detail" onclick="mcClick(event,'mo-floor-detail')" style="justify-content:flex-start;padding-top:env(safe-area-inset-top,0px)">
   <div class="ms" style="max-height:100vh;border-radius:0 0 22px 22px;border-top:none;border-bottom:1.5px solid var(--border)">
-    <div class="mt"><span id="floor-detail-title">Floor</span><button class="mt-close" onclick="closeMo('mo-floor-detail')">✕</button></div>
+    <div class="mt"><div><span id="floor-detail-title" style="display:block">Floor</span><span id="floor-detail-sub" style="font-size:11px;font-weight:500;color:var(--muted);display:block;margin-top:1px"></span></div><button class="mt-close" onclick="closeMo('mo-floor-detail')">✕</button></div>
     <div id="floor-detail-body" style="overflow-y:auto;padding-bottom:24px"></div>
   </div>
 </div>
