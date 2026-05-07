@@ -551,6 +551,11 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="asearch" placeholder="Search assets…" oninput="setPage('ast',1);renderAst()"/></div>
+  <div style="margin:4px 14px 6px;background:var(--card2,rgba(0,0,0,.04));border-radius:var(--rs);padding:3px;display:grid;grid-template-columns:repeat(3,1fr)">
+    <button id="ast-seg-week"    onclick="setAstPeriod('week')"    style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Week</button>
+    <button id="ast-seg-month"   onclick="setAstPeriod('month')"   style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Month</button>
+    <button id="ast-seg-quarter" onclick="setAstPeriod('quarter')" style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)">Quarter</button>
+  </div>
     <!-- hidden selects (drive filtering; values set from modal) -->
     <select id="sel-ast-bldg"       style="display:none" onchange="onAstBldgChange()"><option value="All">All Buildings</option></select>
     <select id="sel-ast-floor"      style="display:none" onchange="onAstFloorChange()"><option value="All">All Floors</option></select>
@@ -765,6 +770,11 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="unit-search" placeholder="Search units…" oninput="renderUnits()"/></div>
+  <div style="margin:4px 14px 6px;background:var(--card2,rgba(0,0,0,.04));border-radius:var(--rs);padding:3px;display:grid;grid-template-columns:repeat(3,1fr)">
+    <button id="unit-seg-week"    onclick="setUnitPeriod('week')"    style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Week</button>
+    <button id="unit-seg-month"   onclick="setUnitPeriod('month')"   style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Month</button>
+    <button id="unit-seg-quarter" onclick="setUnitPeriod('quarter')" style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)">Quarter</button>
+  </div>
     <!-- hidden selects (drive filtering; values set from modal) -->
     <select id="sel-unit-bldg"   style="display:none" onchange="renderUnits()"><option value="All">All Buildings</option></select>
     <select id="sel-unit-floor"  style="display:none" onchange="renderUnits()"><option value="All">All Floors</option></select>
@@ -791,6 +801,11 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="floor-search" placeholder="Search floors…" oninput="renderFloors()"/></div>
+  <div style="margin:4px 14px 6px;background:var(--card2,rgba(0,0,0,.04));border-radius:var(--rs);padding:3px;display:grid;grid-template-columns:repeat(3,1fr)">
+    <button id="flr-seg-week"    onclick="setFlrPeriod('week')"    style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Week</button>
+    <button id="flr-seg-month"   onclick="setFlrPeriod('month')"   style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Month</button>
+    <button id="flr-seg-quarter" onclick="setFlrPeriod('quarter')" style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)">Quarter</button>
+  </div>
     <select id="sel-floor-bldg" style="display:none" onchange="renderFloors()"><option value="All">All Buildings</option></select>
     <div id="floor-bldg-btns" style="display:none;padding:8px 14px 10px;gap:8px"></div>
     <div id="floor-list"></div>
@@ -1415,7 +1430,10 @@ function getUserBuildingIds(){
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
 let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], inspectionItems:[], floors:[], units:[], categories:[], logs:[] };
-let bldPeriod = 'quarter';
+let bldPeriod  = 'quarter';
+let astPeriod  = 'quarter';
+let unitPeriod = 'quarter';
+let flrPeriod  = 'quarter';
 let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null, floor:null, log:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
@@ -3619,12 +3637,16 @@ function astCardHTML(a, onclick){
   const inspCount=(DB.inspectionItems||[]).filter(i=>i.assetId===a.id).length;
   const floorLabel = a.floor ? `<span style="display:inline-block;width:3px;height:3px;border-radius:50%;background:currentColor;vertical-align:middle;margin:0 5px;opacity:.4"></span>${a.floor}` : '';
   const aHcFn  = h=>h>=70?'#059669':h>=40?'#d97706':'#dc2626';
-  const openTixArr   = (DB.tickets||[]).filter(t=>t.assetId===a.id&&t.status!=='Closed');
-  const closedAstTix = (DB.tickets||[]).filter(t=>t.assetId===a.id&&t.status==='Closed').length;
+  const _astDays=astPeriod==='week'?7:astPeriod==='month'?30:90;
+  const _astCut=new Date(today.getTime()-_astDays*24*60*60*1000);
+  const _astInP=d=>d&&new Date(d)>=_astCut;
+  const openTixArr   = (DB.tickets||[]).filter(t=>t.assetId===a.id&&t.status!=='Closed'&&_astInP(t.dateOpened));
+  const closedAstTix = (DB.tickets||[]).filter(t=>t.assetId===a.id&&t.status==='Closed'&&_astInP(t.dateOpened)).length;
   // Open tickets: +2 × age factor (capped ×4 at 90 days)
   const openTixPtsA  = openTixArr.reduce((s,t)=>s + 2*ageMult(t.dateOpened), 0);
   // Inspection items: pending +2×age, approved/failed +1, skipped 0
-  const astInspItems = (DB.inspectionItems||[]).filter(i=>i.assetId===a.id);
+  const _astInspIds = new Set(DB.inspections.filter(i=>_astInP(i.dateStart)).map(i=>i.id));
+  const astInspItems = (DB.inspectionItems||[]).filter(i=>i.assetId===a.id&&_astInspIds.has(i.inspectionId));
   const astInspMap   = {};
   astInspItems.forEach(i=>{ if(!astInspMap[i.inspectionId]) { const insp=DB.inspections.find(x=>x.id===i.inspectionId); astInspMap[i.inspectionId]=insp?.dateStart||null; } });
   const inspItemPtsA = astInspItems.reduce((s,i)=>{ const ds=astInspMap[i.inspectionId]; return s+(i.result==='Skipped'?0:i.result==='Pending'?2*ageMult(ds):1); },0);
@@ -4329,11 +4351,15 @@ function renderUnits(){
     const floorDot = flr?.label ? `<span style="display:inline-block;width:3px;height:3px;border-radius:50%;background:currentColor;vertical-align:middle;margin:0 5px;opacity:.4"></span>${flr.label}` : '';
     const uHcFn  = h=>h>=70?'#059669':h>=40?'#d97706':'#dc2626';
     const inspCount = DB.inspectionItems.filter(i=>i.unitId===u.id).length;
-    const closedUnitTix = DB.tickets.filter(t=>t.unit===u.label&&t.building===(bld?.name||'')&&t.status==='Closed').length;
-    // Open tickets: +2 × age factor
-    const openTixPtsU  = openTix.reduce((s,t)=>s + 2*ageMult(t.dateOpened), 0);
+    const _unitDays=unitPeriod==='week'?7:unitPeriod==='month'?30:90;
+    const _unitCut=new Date(today.getTime()-_unitDays*24*60*60*1000);
+    const _unitInP=d=>d&&new Date(d)>=_unitCut;
+    const closedUnitTix = DB.tickets.filter(t=>t.unit===u.label&&t.building===(bld?.name||'')&&t.status==='Closed'&&_unitInP(t.dateOpened)).length;
+    // Open tickets: +2 × age factor (period-filtered)
+    const openTixPtsU  = openTix.filter(t=>_unitInP(t.dateOpened)).reduce((s,t)=>s + 2*ageMult(t.dateOpened), 0);
     // Inspection items: pending +2×age, approved/failed +1, skipped 0
-    const unitInspItems = DB.inspectionItems.filter(i=>i.unitId===u.id);
+    const _unitInspIds = new Set(DB.inspections.filter(i=>_unitInP(i.dateStart)).map(i=>i.id));
+    const unitInspItems = DB.inspectionItems.filter(i=>i.unitId===u.id&&_unitInspIds.has(i.inspectionId));
     const unitInspMap   = {};
     unitInspItems.forEach(i=>{ if(!unitInspMap[i.inspectionId]){ const insp=DB.inspections.find(x=>x.id===i.inspectionId); unitInspMap[i.inspectionId]=insp?.dateStart||null; } });
     const inspItemPtsU  = unitInspItems.reduce((s,i)=>{ const ds=unitInspMap[i.inspectionId]; return s+(i.result==='Skipped'?0:i.result==='Pending'?2*ageMult(ds):1); },0);
@@ -4619,18 +4645,22 @@ function renderFloors(){
     const effSqm    = sqm>0 ? sqm : unitCount*50;
     const per100    = Math.max(effSqm/100, 0.5);
 
-    // Tickets: open +2×age, closed −1
-    const fTixOpen   = DB.tickets.filter(t=>t.floorId===f.id&&t.status!=='Closed');
-    const fTixClosed = DB.tickets.filter(t=>t.floorId===f.id&&t.status==='Closed');
+    const _flrDays=flrPeriod==='week'?7:flrPeriod==='month'?30:90;
+    const _flrCut=new Date(today.getTime()-_flrDays*24*60*60*1000);
+    const _flrInP=d=>d&&new Date(d)>=_flrCut;
+    // Tickets: open +2×age, closed −1 (period-filtered)
+    const fTixOpen   = DB.tickets.filter(t=>t.floorId===f.id&&t.status!=='Closed'&&_flrInP(t.dateOpened));
+    const fTixClosed = DB.tickets.filter(t=>t.floorId===f.id&&t.status==='Closed'&&_flrInP(t.dateOpened));
     const tixPts     = fTixOpen.reduce((s,t)=>s + 2*ageMult(t.dateOpened), 0) + fTixClosed.length*-1;
 
-    // Inspection items: pending +2×age, approved/failed +1, skipped 0
-    const fInspItems = DB.inspectionItems.filter(floorItems);
+    // Inspection items: pending +2×age, approved/failed +1, skipped 0 (period-filtered)
+    const _flrInspIds = new Set(DB.inspections.filter(i=>_flrInP(i.dateStart)).map(i=>i.id));
+    const fInspItems = DB.inspectionItems.filter(i=>floorItems(i)&&_flrInspIds.has(i.inspectionId));
     const fInspDateMap = {};
     fInspItems.forEach(i=>{ if(!fInspDateMap[i.inspectionId]){ const insp=DB.inspections.find(x=>x.id===i.inspectionId); fInspDateMap[i.inspectionId]=insp?.dateStart||null; } });
     const itemPts    = fInspItems.reduce((s,i)=>{ const ds=fInspDateMap[i.inspectionId]; return s+(i.result==='Skipped'?0:i.result==='Pending'?2*ageMult(ds):1); }, 0);
     // Closed inspections touching this floor
-    const closedInspPts = DB.inspections.filter(i=>i.status==='Completed'&&DB.inspectionItems.some(it=>it.inspectionId===i.id&&floorItems(it))).length * -1;
+    const closedInspPts = DB.inspections.filter(i=>i.status==='Completed'&&_flrInP(i.dateStart)&&DB.inspectionItems.some(it=>it.inspectionId===i.id&&floorItems(it))).length * -1;
 
     const workload = tixPts + itemPts + closedInspPts;
     const pressure = workload / per100;
@@ -4958,38 +4988,68 @@ function setBldPeriod(p){
   });
   renderBlds();
 }
+function setAstPeriod(p){
+  astPeriod=p;
+  ['week','month','quarter'].forEach(k=>{
+    const btn=document.getElementById('ast-seg-'+k);
+    if(!btn) return;
+    if(k===p){btn.style.background='var(--card)';btn.style.color='var(--text)';btn.style.boxShadow='0 1px 3px rgba(0,0,0,.08)';}
+    else{btn.style.background='none';btn.style.color='var(--sub)';btn.style.boxShadow='none';}
+  });
+  setPage('ast',1); renderAst();
+}
+function setUnitPeriod(p){
+  unitPeriod=p;
+  ['week','month','quarter'].forEach(k=>{
+    const btn=document.getElementById('unit-seg-'+k);
+    if(!btn) return;
+    if(k===p){btn.style.background='var(--card)';btn.style.color='var(--text)';btn.style.boxShadow='0 1px 3px rgba(0,0,0,.08)';}
+    else{btn.style.background='none';btn.style.color='var(--sub)';btn.style.boxShadow='none';}
+  });
+  renderUnits();
+}
+function setFlrPeriod(p){
+  flrPeriod=p;
+  ['week','month','quarter'].forEach(k=>{
+    const btn=document.getElementById('flr-seg-'+k);
+    if(!btn) return;
+    if(k===p){btn.style.background='var(--card)';btn.style.color='var(--text)';btn.style.boxShadow='0 1px 3px rgba(0,0,0,.08)';}
+    else{btn.style.background='none';btn.style.color='var(--sub)';btn.style.boxShadow='none';}
+  });
+  renderFloors();
+}
 function calcBldData(b){
-  const units     = DB.units.filter(u=>u.buildingId===b.id).length;
-  const workspace = b.units||0;
-  const assets    = DB.assets.filter(a=>a.buildingId===b.id).length;
   const sqm       = parseFloat(b.size)||0;
-  let sizeIndex, baseVal, unitD, workD, assetD, formulaStr;
-  if(sqm>0){
-    baseVal  = sqm/100;
-    unitD    = (units/sqm)*1000;
-    workD    = (workspace/sqm)*1000;
-    assetD   = (assets/sqm)*1000;
-    sizeIndex= baseVal+unitD+workD+assetD;
-    formulaStr=`m²/100 (${baseVal.toFixed(1)}) + units/1000m² (${unitD.toFixed(1)}) + workspace/1000m² (${workD.toFixed(1)}) + assets/1000m² (${assetD.toFixed(1)})`;
-  } else {
-    const floors=DB.floors.filter(f=>f.buildingId===b.id).length;
-    sizeIndex=floors*3+units*2+workspace*1+assets*0.5;
-    formulaStr=`floors×3 (${floors*3}) + units×2 (${units*2}) + workspace (${workspace}) + assets×0.5 (${(assets*0.5).toFixed(1)})`;
-  }
-  const now=new Date();
-  const days=bldPeriod==='week'?7:bldPeriod==='month'?30:90;
-  const cutoff=new Date(now.getTime()-days*24*60*60*1000);
-  const inPeriod=d=>d&&new Date(d)>=cutoff;
-  const openTix=DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&inPeriod(t.dateCreated||t.date)).length;
-  const activeInsp=DB.inspections.filter(i=>i.buildingId===b.id&&i.status!=='Closed'&&inPeriod(i.dateStart)).length;
-  const fI=new Set(),fT=new Set();
-  DB.inspections.filter(i=>i.buildingId===b.id&&inPeriod(i.dateStart)).forEach(insp=>{(insp.items||[]).forEach(it=>{if(it.result==='Failed'&&it.assetId)fI.add(it.assetId);});});
-  DB.tickets.filter(t=>t.buildingId===b.id&&t.status!=='Closed'&&t.assetId&&inPeriod(t.dateCreated||t.date)).forEach(t=>{const ast=DB.assets.find(a=>a.id===t.assetId);if(ast&&(ast.status==='Under Maintenance'||ast.status==='Decommissioned'))fT.add(t.assetId);});
-  const failedAssets=new Set([...fI,...fT]).size;
-  const issueLoad=(openTix*4)+(failedAssets*5)+(activeInsp*3);
-  const roundedIdx=Math.round(sizeIndex);
-  const score=roundedIdx>0?Math.max(0,Math.min(100,Math.round(100-issueLoad/sizeIndex*50))):100;
-  return{score,sizeIndex:roundedIdx,issueLoad,formulaStr,periodTix:openTix,periodFailed:failedAssets,periodInsp:activeInsp};
+  const unitCount = DB.units.filter(u=>u.buildingId===b.id).length;
+  const effSqm    = sqm>0 ? sqm : unitCount*50;
+  const per100    = Math.max(effSqm/100, 1);
+
+  const now    = new Date();
+  const days   = bldPeriod==='week'?7:bldPeriod==='month'?30:90;
+  const cutoff = new Date(now.getTime()-days*24*60*60*1000);
+  const inPeriod = d => d && new Date(d) >= cutoff;
+
+  // Tickets with dateOpened in period
+  const periodTix  = DB.tickets.filter(t=>t.buildingId===b.id&&inPeriod(t.dateOpened));
+  const openTix    = periodTix.filter(t=>t.status!=='Closed');
+  const openTixPts = openTix.reduce((s,t)=>s + 2*ageMult(t.dateOpened), 0);
+  const closedTixPts = periodTix.filter(t=>t.status==='Closed').length * -1;
+
+  // Inspection items from inspections with dateStart in period
+  const periodInsps   = DB.inspections.filter(i=>i.buildingId===b.id&&inPeriod(i.dateStart));
+  const periodInspIds = new Set(periodInsps.map(i=>i.id));
+  const inspDateMap   = Object.fromEntries(periodInsps.map(i=>[i.id,i.dateStart]));
+  const periodItems   = DB.inspectionItems.filter(i=>periodInspIds.has(i.inspectionId));
+  const inspItemPts   = periodItems.reduce((s,i)=>{
+    const ds=inspDateMap[i.inspectionId];
+    return s+(i.result==='Skipped'?0:i.result==='Pending'?2*ageMult(ds):1);
+  },0);
+  const closedInspPts = periodInsps.filter(i=>i.status==='Completed').length * -1;
+
+  const workload = openTixPts + closedTixPts + inspItemPts + closedInspPts;
+  const pressure = workload / per100;
+  const score    = Math.max(0, Math.min(100, Math.round(100 - pressure)));
+  return {score, periodTix:openTix.length, periodItems:periodItems.length, effSqm};
 }
 function calcBldScore(b){ return calcBldData(b).score; }
 function renderBlds(){
@@ -5022,8 +5082,7 @@ function renderBlds(){
       </div>
       <div class="bc-body">
         <div class="bs"><div class="bs-val">${bldData.periodTix}</div><div class="bs-lbl">Tickets</div></div>
-        <div class="bs"><div class="bs-val">${bldData.periodFailed}</div><div class="bs-lbl">Failed assets</div></div>
-        <div class="bs"><div class="bs-val">${bldData.periodInsp}</div><div class="bs-lbl">Inspections</div></div>
+        <div class="bs"><div class="bs-val">${bldData.periodItems}</div><div class="bs-lbl">Insp. items</div></div>
 
       </div>
     </div>`;
