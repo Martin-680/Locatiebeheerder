@@ -4576,7 +4576,6 @@ function renderFloors(){
   }
 
   const hc=h=>h>=70?'#059669':h>=40?'#d97706':'#dc2626';
-  const hc=h=>h>=70?'#059669':h>=40?'#d97706':'#dc2626';
   const flItemPt = r => r==='Pending'?2:r==='Skipped'?0:1;
   c.innerHTML = '<div style="padding:0 14px 8px">' + list.map(f => {
     const bld     = DB.buildings.find(b=>b.id===f.buildingId);
@@ -4649,6 +4648,8 @@ function renderFloors(){
     </div>`;
   }).join('') + '</div>';
 }
+
+function openFloorDetail(id){
   const f       = DB.floors.find(x=>x.id===id); if(!f) return;
   const bld     = DB.buildings.find(b=>b.id===f.buildingId);
   const units   = DB.units.filter(u=>u.floorId===f.id);
