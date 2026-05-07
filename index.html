@@ -6285,7 +6285,7 @@ function fSupRender(prefix, q){
     `<div onclick="fSupSelect('${prefix}','${s.id}','${s.name.replace(/'/g,"\\'")}');event.stopPropagation()"
       style="padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border)"
       onmousedown="event.preventDefault()">${s.name}</div>`
-  ).join('') || '<div style="padding:10px 14px;font-size:13px;color:var(--muted)">No results</div>';
+  ).join('') || '<div onclick="openNewSupplier();fSupClose(\''+prefix+'\')" style="padding:10px 14px;font-size:13px;color:var(--blue);font-weight:600;cursor:pointer">+ Add Supplier</div>';
 }
 function fSupOpen(prefix){
   const listId = prefix==='af' ? prefix+'-cat-list' : prefix+'-supplier-list';
