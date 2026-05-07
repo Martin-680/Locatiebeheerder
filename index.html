@@ -2247,36 +2247,48 @@ function renderDash(){
     const days   = dashPeriod==='week'?7:dashPeriod==='month'?30:90;
     const cutoff = new Date(now.getTime()-days*24*60*60*1000);
     const inPeriod = d => d && new Date(d) >= cutoff;
-    // Inspection item weight: Approved/Failed=+1, Pending=+2, Skipped=0
-    const itemPt = r => r==='Pending'?2:r==='Skipped'?0:1;
+    // Duration multiplier: capped linear, max ×4 at 90 days
+    // dMult(date) = min(1 + daysOpen/30, 4)
+    const MS_DAY = 86400000;
+    const dMult  = d => d ? Math.min(1 + (now - new Date(d)) / (30 * MS_DAY), 4) : 1;
+
+    // Inspection item base weight: Pending=+2, Approved/Failed=+1, Skipped=0
+    // Duration factor only applies to open (Pending) items — resolved items don't accumulate
+    const itemPt = (result, dateStart) => {
+      if(result === 'Skipped') return 0;
+      if(result === 'Pending') return 2 * dMult(dateStart);
+      return 1; // Approved / Failed — resolved, no duration factor
+    };
 
     const _ubDash = getUserBuildingIds();
     const _bldgs  = _ubDash.size ? DB.buildings.filter(b=>_ubDash.has(b.id)) : DB.buildings;
     const bldgStats = _bldgs.map(b=>{
-      const sqm      = parseFloat(b.size)||0;
+      const sqm       = parseFloat(b.size)||0;
       const unitCount = DB.units.filter(u=>u.buildingId===b.id).length;
       const effSqm    = sqm>0 ? sqm : unitCount*50;
       const per100    = Math.max(effSqm/100, 1);
 
       // Tickets with dateOpened in period
-      const periodTix = DB.tickets.filter(t=>t.buildingId===b.id&&inPeriod(t.dateOpened));
-      const openTixPts   = periodTix.filter(t=>t.status!=='Closed').length * 2;
+      const periodTix    = DB.tickets.filter(t=>t.buildingId===b.id&&inPeriod(t.dateOpened));
+      const openTix      = periodTix.filter(t=>t.status!=='Closed');
+      const openTixPts   = openTix.reduce((s,t)=>s + 2 * dMult(t.dateOpened), 0);
       const closedTixPts = periodTix.filter(t=>t.status==='Closed').length * -1;
 
       // Inspection items from inspections with dateStart in period
-      const periodInspIds = new Set(
-        DB.inspections.filter(i=>i.buildingId===b.id&&inPeriod(i.dateStart)).map(i=>i.id)
-      );
-      const periodItems = DB.inspectionItems.filter(i=>periodInspIds.has(i.inspectionId));
-      const inspItemPts = periodItems.reduce((s,i)=>s+itemPt(i.result),0);
+      const periodInsps   = DB.inspections.filter(i=>i.buildingId===b.id&&inPeriod(i.dateStart));
+      const periodInspIds = new Set(periodInsps.map(i=>i.id));
+      // Build a map of inspectionId → dateStart for duration lookup
+      const inspDateMap   = Object.fromEntries(periodInsps.map(i=>[i.id, i.dateStart]));
+      const periodItems   = DB.inspectionItems.filter(i=>periodInspIds.has(i.inspectionId));
+      const inspItemPts   = periodItems.reduce((s,i)=>s + itemPt(i.result, inspDateMap[i.inspectionId]), 0);
       // Closed inspection rounds in period: -1 pt each
-      const closedInspPts = DB.inspections.filter(i=>i.buildingId===b.id&&i.status==='Completed'&&inPeriod(i.dateStart)).length * -1;
+      const closedInspPts = periodInsps.filter(i=>i.status==='Completed').length * -1;
 
       const workload = openTixPts + closedTixPts + inspItemPts + closedInspPts;
       const pressure = workload / per100;
       const health   = Math.max(0, Math.min(100, Math.round(100 - pressure * 8)));
 
-      const openTixCount  = periodTix.filter(t=>t.status!=='Closed').length;
+      const openTixCount  = openTix.length;
       const inspItemCount = periodItems.length;
       return {b, effSqm, openTixCount, inspItemCount, workload, pressure, health};
     }).filter(s=>s.workload>0).sort((a,z)=>a.health-z.health).slice(0,5);
@@ -2318,7 +2330,7 @@ function renderDash(){
                 <div class="wl-tip-row"><span style="color:var(--sub)">Size (per100)</span><span style="font-weight:700">${Math.round(s.effSqm/100*10)/10}</span></div>
                 <div class="wl-tip-row"><span style="color:var(--sub)">Workload score</span><span style="font-weight:700">${Math.round(s.workload*10)/10}</span></div>
                 <div class="wl-tip-row"><span style="color:var(--sub)">Health score</span><span style="font-weight:700;color:${hc}">${s.health}%</span></div>
-                <div class="wl-tip-formula">Open ticket ×2 · Pending item ×2 · Approved/Failed item ×1 · Skipped ×0 · Closed ticket −1 · Closed inspection −1<br>Pressure = workload ÷ (m² ÷ 100) · Health = 100 − pressure × 8</div>
+                <div class="wl-tip-formula">Open ticket ×2 · Pending item ×2 (both × age factor) · Approved/Failed ×1 · Skipped ×0 · Closed −1<br>Age factor = min(1 + days÷30, 4) — caps at ×4 after 90 days<br>Pressure = workload ÷ (m² ÷ 100) · Health = 100 − pressure × 8</div>
               </div>
             </div>
           </div>
@@ -2345,14 +2357,15 @@ function renderDash(){
       const howCalc = `<div style="margin-top:8px;padding:12px 14px;border-top:1px solid var(--border)">
         <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">How it\'s calculated</div>
         <div style="display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:12px;color:var(--sub)">
-          <span>Open ticket</span><span style="font-weight:700;color:var(--text)">+2 pts</span>
-          <span>Insp. item — Pending</span><span style="font-weight:700;color:var(--text)">+2 pts</span>
+          <span>Open ticket</span><span style="font-weight:700;color:var(--text)">+2 pts × age</span>
+          <span>Insp. item — Pending</span><span style="font-weight:700;color:var(--text)">+2 pts × age</span>
           <span>Insp. item — Approved/Failed</span><span style="font-weight:700;color:var(--text)">+1 pt</span>
           <span>Insp. item — Skipped</span><span style="font-weight:700;color:var(--text)">0 pts</span>
           <span>Closed ticket</span><span style="font-weight:700;color:var(--text)">−1 pt</span>
           <span>Closed inspection</span><span style="font-weight:700;color:var(--text)">−1 pt</span>
+          <span style="color:var(--muted)">Age factor</span><span style="font-weight:700;color:var(--text)">min(1+days÷30, 4)</span>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Counts tickets (dateOpened) and inspection items (inspection dateStart) within the selected period. Pressure = workload ÷ (m² ÷ 100). Health = 100 − pressure × 8. Falls back to unit count × 50 m² if no size is set.</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Counts tickets (dateOpened) and inspection items (inspection dateStart) within the selected period. Open tickets and pending items are weighted by age: min(1 + days÷30, 4), capping at ×4 after 90 days. Resolved items carry no age factor. Pressure = workload ÷ (m² ÷ 100). Health = 100 − pressure × 8. Falls back to unit count × 50 m² if no size is set.</div>
       </div>`;
 
       statsEl.innerHTML = `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}${howCalc}</div>`;
