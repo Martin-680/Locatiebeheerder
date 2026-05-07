@@ -3497,48 +3497,49 @@ function openNewTicket(){
 function editTix(id){
   if(!can('canCreateTickets')) return;
   const t=DB.tickets.find(x=>x.id===id); if(!t) return;
-  editingId.tix=id; closeMo('mo-tix-detail');
-  document.getElementById('tix-modal-title').textContent='Edit Ticket';
-  document.getElementById('btn-dup-tix').style.display='';
-  document.getElementById('tf-subj').value=t.subject;
-  document.getElementById('tf-pri').value=t.priority;
-  document.getElementById('tf-type').value=t.type||'';
-  document.getElementById('tf-date-opened').value=t.dateOpened||'';
-  document.getElementById('tf-date-closed').value=t.dateClosed||'';
-  populateCatSelect('tf-cat','',t.categoryId||t.category);
-  document.getElementById('tf-status').value=t.status;
-  document.getElementById('tf-reporter').value=t.reportedBy||'';
-  document.getElementById('tf-notes').value=t.notes||'';
-  // Cascade: building → floor → unit → asset → supplier
-  populateBldSelect('tf-bldg','— Select —');
-  document.getElementById('tf-bldg').value=t.building;
-  tfOnBldgChange();
-  document.getElementById('tf-sub').value = DB.floors.find(f=>f.id===t.floorId)?.id || DB.floors.find(f=>f.label===t.floor)?.id || '';
-  tfOnFloorChange();
-  // Restore unit value — set after populating
-  const unitSel=document.getElementById('tf-unit');
-  if([...unitSel.options].some(o=>o.value===t.unit)){
-    unitSel.value=t.unit;
-  } else if(t.unit){
-    // unit not in list — add it as an option so it's preserved
-    const opt=document.createElement('option');
-    opt.value=t.unit; opt.textContent=t.unit;
-    unitSel.appendChild(opt);
-    unitSel.value=t.unit;
-  }
-  tfOnUnitChange();
-  // Restore asset
-  const astSel=document.getElementById('tf-asset');
-  if(t.assetId&&![...astSel.options].some(o=>o.value===t.assetId)){
-    const a=DB.assets.find(x=>x.id===t.assetId);
-    if(a){const opt=document.createElement('option');opt.value=a.id;opt.textContent=`${a.name}${a.unit?' · '+a.unit:''}`;astSel.appendChild(opt);}
-  }
-  astSel.value=t.assetId||'';
-  tfOnAssetChange();
-  // Restore supplier — set AFTER tfOnAssetChange which populates the widget
-  setTimeout(()=>fSupSetValue('tf', t.supplierId||''), 0);
-  populateAssignSelect('tf-assign');
-  document.getElementById('tf-assign').value=t.assignedTo||'';
+  editingId.tix=id;
+  closeMo('mo-tix-detail');
+  try {
+    document.getElementById('tix-modal-title').textContent='Edit Ticket';
+    document.getElementById('btn-dup-tix').style.display='';
+    document.getElementById('tf-subj').value=t.subject;
+    document.getElementById('tf-pri').value=t.priority;
+    document.getElementById('tf-type').value=t.type||'';
+    document.getElementById('tf-date-opened').value=t.dateOpened||'';
+    document.getElementById('tf-date-closed').value=t.dateClosed||'';
+    populateCatSelect('tf-cat','',t.categoryId||t.category);
+    document.getElementById('tf-status').value=t.status;
+    document.getElementById('tf-reporter').value=t.reportedBy||'';
+    document.getElementById('tf-notes').value=t.notes||'';
+    // Cascade: building → floor → unit → asset → supplier
+    populateBldSelect('tf-bldg','— Select —');
+    document.getElementById('tf-bldg').value=t.building;
+    tfOnBldgChange();
+    document.getElementById('tf-sub').value = DB.floors.find(f=>f.id===t.floorId)?.id || DB.floors.find(f=>f.label===t.floor)?.id || '';
+    tfOnFloorChange();
+    // Restore unit value — set after populating
+    const unitSel=document.getElementById('tf-unit');
+    if([...unitSel.options].some(o=>o.value===t.unit)){
+      unitSel.value=t.unit;
+    } else if(t.unit){
+      const opt=document.createElement('option');
+      opt.value=t.unit; opt.textContent=t.unit;
+      unitSel.appendChild(opt);
+      unitSel.value=t.unit;
+    }
+    tfOnUnitChange();
+    // Restore asset
+    const astSel=document.getElementById('tf-asset');
+    if(t.assetId&&![...astSel.options].some(o=>o.value===t.assetId)){
+      const a=DB.assets.find(x=>x.id===t.assetId);
+      if(a){const opt=document.createElement('option');opt.value=a.id;opt.textContent=`${a.name}${a.unit?' · '+a.unit:''}`;astSel.appendChild(opt);}
+    }
+    astSel.value=t.assetId||'';
+    tfOnAssetChange();
+    setTimeout(()=>fSupSetValue('tf', t.supplierId||''), 0);
+    populateAssignSelect('tf-assign');
+    document.getElementById('tf-assign').value=t.assignedTo||'';
+  } catch(e){ console.error('editTix setup error:', e); }
   openMo('mo-tix');
 }
 async function saveTix(){
