@@ -5367,7 +5367,10 @@ function renderSuppliers(){
       <div class="sup-hdr">
         <div style="flex:1;min-width:0">
           <div class="sup-name">${s.name}</div>
-          ${exp.length?`<div style="font-size:11px;color:var(--sub);margin-top:2px;line-height:1.4">${exp.join(', ')}</div>`:''}
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap">
+            ${exp.length?`<span style="font-size:11px;color:var(--sub);line-height:1.4">${exp.join(', ')}</span>`:''}
+            ${actBadge}
+          </div>
           <div style="display:flex;gap:16px;margin:6px 0 4px;align-items:flex-end">
             <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Rate/hr</div><div class="sup-rate">€ ${s.ratePerHour||0}</div></div>
             <div style="width:1px;height:32px;background:var(--border);flex-shrink:0"></div>
@@ -5380,7 +5383,6 @@ function renderSuppliers(){
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
           <span class="badge" style="background:${stCol[s.status]||'var(--green)'}18;color:${stCol[s.status]||'var(--green)'}">${s.status}</span>
-          ${actBadge}
         </div>
       </div>
       ${s.phone?`<div style="display:flex;margin:10px -16px 0;border-top:1px solid var(--border);overflow:hidden;border-radius:0 0 var(--r) var(--r)" onclick="event.stopPropagation()">
