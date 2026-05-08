@@ -917,6 +917,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="info-row" onclick="openInfoSub('buildings')">
       <div style="display:flex;align-items:center;gap:12px"><div class="info-icon-wrap" style="background:#F0FDF4"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6E46" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><div><div style="font-size:14px;font-weight:600;color:var(--text)">Buildings</div><div style="font-size:11px;color:var(--sub)">Health score, size &amp; workload</div></div></div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
+    <div class="info-row" onclick="openInfoSub('dashboard')">
+      <div style="display:flex;align-items:center;gap:12px"><div class="info-icon-wrap" style="background:#FFF7ED"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#92400E" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div><div style="font-size:14px;font-weight:600;color:var(--text)">How it's calculated</div><div style="font-size:11px;color:var(--sub)">Workload score &amp; health formula</div></div></div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
   </div>
 
   <!-- SUB: Stats -->
@@ -1061,6 +1064,36 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="info-formula">(Open tickets × 4) + (Failed assets × 5) + (Active inspections × 3)</div>
       <div class="info-section-lbl" style="padding:14px 0 6px">Health score</div>
       <div class="info-formula">Score = 100 − (Workload ÷ Size Index × 50)<br><br>100% = no active issues. Lower = more pressure relative to building size.</div>
+    </div>
+  </div>
+
+  <!-- SUB: How it's calculated (Dashboard) -->
+  <div class="info-subscreen" id="info-sub-dashboard">
+    <div class="topbar"><div class="topbar-inner"><button class="info-back-btn" onclick="closeInfoSub('dashboard')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="15 18 9 12 15 6"/></svg> Info</button><div style="font-size:14px;font-weight:600;color:var(--text)">How it's calculated</div><div style="width:60px"></div></div></div>
+    <div style="padding:14px 18px">
+      <div class="info-desc">The dashboard statistics give each building a <strong>workload score</strong> based on active work pressure — not just size. All numbers recalculate live from your Google Sheets data.</div>
+
+      <div class="info-section-lbl" style="padding:14px 0 6px">Point values</div>
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:0 14px;margin-bottom:14px">
+        <div class="info-field-row"><span style="color:var(--sub)">Open ticket</span><span style="font-weight:700;color:var(--text)">+2 pts × age factor</span></div>
+        <div class="info-field-row"><span style="color:var(--sub)">Insp. item — Pending</span><span style="font-weight:700;color:var(--text)">+2 pts × age factor</span></div>
+        <div class="info-field-row"><span style="color:var(--sub)">Insp. item — Approved / Failed</span><span style="font-weight:700;color:var(--text)">+1 pt</span></div>
+        <div class="info-field-row"><span style="color:var(--sub)">Insp. item — Skipped</span><span style="font-weight:700;color:var(--text)">0 pts</span></div>
+        <div class="info-field-row"><span style="color:var(--sub)">Closed ticket</span><span style="font-weight:700;color:var(--text)">−1 pt</span></div>
+        <div class="info-field-row"><span style="color:var(--sub)">Completed inspection</span><span style="font-weight:700;color:var(--text)">−1 pt</span></div>
+      </div>
+
+      <div class="info-section-lbl" style="padding:0 0 6px">Age factor</div>
+      <div class="info-formula">age = min(1 + days ÷ 30, 4)<br><br>An item open for 0 days counts ×1. After 30 days ×2, after 60 days ×3, after 90+ days it caps at ×4. This means long-standing open tickets weigh four times heavier than new ones.</div>
+
+      <div class="info-section-lbl" style="padding:14px 0 6px">Pressure &amp; health</div>
+      <div class="info-formula">Pressure = Workload ÷ (m² ÷ 100)<br>Health % = 100 − Pressure<br><br>If no m² is set for a building, it falls back to unit count × 50 m².</div>
+
+      <div class="info-section-lbl" style="padding:14px 0 6px">Period filter</div>
+      <div class="info-desc">Only tickets with <code>dateOpened</code> and inspection items with their round's <code>dateStart</code> within the selected period (Week / Month / Quarter) are counted. The period selector on the dashboard controls this window.</div>
+
+      <div class="info-section-lbl" style="padding:14px 0 6px">Trend chart</div>
+      <div class="info-desc">Monthly ticket volume for the last 8 weeks, calculated from <code>dateOpened</code> on each ticket row. Bars show opened (blue), in progress (amber), and other statuses (gray) side by side per week.</div>
     </div>
   </div>
 
@@ -2373,19 +2406,9 @@ function renderDash(){
         </div>`;
       }).join('');
 
-      // "How it's calculated" explanation
-      const howCalc = `<div style="margin-top:8px;padding:12px 14px;border-top:1px solid var(--border)">
-        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">How it\'s calculated</div>
-        <div style="display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:12px;color:var(--sub)">
-          <span>Open ticket</span><span style="font-weight:700;color:var(--text)">+2 pts × age</span>
-          <span>Insp. item — Pending</span><span style="font-weight:700;color:var(--text)">+2 pts × age</span>
-          <span>Insp. item — Approved/Failed</span><span style="font-weight:700;color:var(--text)">+1 pt</span>
-          <span>Insp. item — Skipped</span><span style="font-weight:700;color:var(--text)">0 pts</span>
-          <span>Closed ticket</span><span style="font-weight:700;color:var(--text)">−1 pt</span>
-          <span>Closed inspection</span><span style="font-weight:700;color:var(--text)">−1 pt</span>
-          <span style="color:var(--muted)">Age factor</span><span style="font-weight:700;color:var(--text)">min(1+days÷30, 4)</span>
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Counts tickets (dateOpened) and inspection items (inspection dateStart) within the selected period. Open tickets and pending items are weighted by age: min(1 + days÷30, 4), capping at ×4 after 90 days. Resolved items carry no age factor. Pressure = workload ÷ (m² ÷ 100). Health = 100 − pressure. Falls back to unit count × 50 m² if no size is set.</div>
+      // Link to Info screen "How it's calculated" sub-screen
+      const howCalc = `<div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end">
+        <button onclick="navTo('info');setTimeout(()=>openInfoSub('dashboard'),80)" style="font-size:12px;color:var(--blue);font-weight:600;display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer">How it\'s calculated <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
       </div>`;
 
       statsEl.innerHTML = `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">${rows}${howCalc}</div>`;
@@ -6756,6 +6779,19 @@ function calDayClick(dateStr){
   const d = new Date(dateStr+'T00:00:00');
   const label = d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   document.getElementById('cal-day-title').textContent = label;
+  const todayStr = new Date().toISOString().slice(0,10);
+  const isFuture = dateStr > todayStr;
+  const planBtns = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 18px 18px">
+      <button onclick="closeMo('mo-cal-day');calPlanInsp('${dateStr}')" style="padding:13px 8px;background:#F5F3FF;border:1.5px solid #7C3AED;border-radius:var(--rs);font-size:13px;font-weight:700;color:#7C3AED;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span>New Inspect</span>
+      </button>
+      <button onclick="closeMo('mo-cal-day');calPlanTicket('${dateStr}')" style="padding:13px 8px;background:#EBF2FF;border:1.5px solid #2563EB;border-radius:var(--rs);font-size:13px;font-weight:700;color:#2563EB;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M2 9a2 2 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2 2 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/><line x1="9" y1="9" x2="9" y2="15"/></svg>
+        <span>New Ticket</span>
+      </button>
+    </div>`;
   let html = '';
   if(entries.length){
     entries.forEach(e=>{
@@ -6773,21 +6809,13 @@ function calDayClick(dateStr){
         <div style="font-size:12px;color:var(--sub)">${supName} · ${e.id}</div>
       </div>`;
     });
+    if(isFuture){
+      html += `<div style="padding:14px 18px 6px;font-size:13px;color:var(--sub)">Plan another appointment:</div>${planBtns}`;
+    }
   } else {
-    const todayStr = new Date().toISOString().slice(0,10);
     html = `<div style="padding:20px 18px 8px;text-align:center;color:var(--sub);font-size:13px;line-height:1.6">
       Nothing available yet.<br>Plan your appointment:
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 18px 18px">
-      <button onclick="closeMo('mo-cal-day');calPlanInsp('${dateStr}')" style="padding:13px 8px;background:#F5F3FF;border:1.5px solid #7C3AED;border-radius:var(--rs);font-size:13px;font-weight:700;color:#7C3AED;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        <span>New Inspect</span>
-      </button>
-      <button onclick="closeMo('mo-cal-day');calPlanTicket('${dateStr}')" style="padding:13px 8px;background:#EBF2FF;border:1.5px solid #2563EB;border-radius:var(--rs);font-size:13px;font-weight:700;color:#2563EB;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M2 9a2 2 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2 2 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/><line x1="9" y1="9" x2="9" y2="15"/></svg>
-        <span>New Ticket</span>
-      </button>
-    </div>`;
+    </div>${planBtns}`;
   }
   document.getElementById('cal-day-body').innerHTML = html;
   openMo('mo-cal-day');
