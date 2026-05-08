@@ -1335,6 +1335,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fg"><label>Manager</label><select class="fs2" id="bf-mgr"></select></div>
       <div class="fg"><label>Phone</label><input class="fi2" id="bf-phone" placeholder="555-XXXX"/></div>
     </div>
+    <div class="fg"><label>Email</label><input class="fi2" type="email" id="bf-email" placeholder="info@building.nl"/></div>
     <button class="btn-p" onclick="saveBld()">Save Building</button>
     <button class="btn-s" onclick="closeMo('mo-bld')">Cancel</button>
   </div>
@@ -1415,7 +1416,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
-  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone','size'],
+  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone','email','size'],
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type'],
   suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
@@ -5018,6 +5019,7 @@ function openBldDetail(id){
         ${b.address?`<div class="bc-addr">${b.address}</div>`:''}
         ${b.daysOpen||b.timeOpen?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')}</div>`:''}
         ${b.phone?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px"><a href="tel:${b.phone}" onclick="event.stopPropagation()" style="color:var(--blue);font-weight:700;text-decoration:none">${b.phone}</a></div>`:''}
+        ${b.email?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:2px"><a href="mailto:${b.email}" onclick="event.stopPropagation()" style="color:var(--blue);font-weight:700;text-decoration:none">${b.email}</a></div>`:''}
         ${b.manager?`<div style="font-size:13px;color:var(--sub);font-weight:500;margin-top:3px">Manager: <strong>${b.manager}</strong></div>`:''}
       </div>
     </div>
@@ -5180,27 +5182,57 @@ function renderBlds(){
   document.getElementById('bld-lbl').textContent=`${list.length} building${list.length!==1?'s':''}`;
   const c=document.getElementById('bld-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><div style="font-size:13px">No buildings yet</div></div>';return;}
+  const totalTix  = list.reduce((a,b)=>a+DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length,0)||1;
+  const totalInsp = list.reduce((a,b)=>{
+    const ids=new Set(DB.inspections.filter(i=>i.buildingId===b.id).map(i=>i.id));
+    return a+DB.inspectionItems.filter(i=>ids.has(i.inspectionId)).length;
+  },0)||1;
+  const hCol = s => s>=70?'var(--green)':s>=40?'var(--amber)':'var(--red)';
   c.innerHTML=list.map(b=>{
-    const floorCount=DB.floors.filter(f=>f.buildingId===b.id).length;
-    const unitCount=DB.units.filter(u=>u.buildingId===b.id).length;
-    const openTix=DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length;
-    const bldData=calcBldData(b);
-    const displayScore=bldData.score;
-    const displayColor=displayScore>=70?'var(--green)':displayScore>=40?'var(--amber)':'var(--red)';
-    const sqm=b.size?Number(b.size).toLocaleString('nl-NL')+' m²':'—';
-    return`<div class="bc-wrap" onclick="openBldDetail('${b.id}')">
-      <div style="padding:14px 16px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px">
-        <div style="font-size:15px;font-weight:500;color:var(--text)">${b.name}</div>
-        <div style="text-align:right;font-size:12px;color:${displayColor}">${displayScore}% health</div>
-        <div style="font-size:12px;color:var(--sub)">${[b.daysOpen,b.timeOpen].filter(Boolean).join(' · ')||'—'}</div>
-        <div style="text-align:right;font-size:12px;color:var(--sub)">${sqm}</div>
-        <div style="font-size:12px;color:var(--sub)">${b.phone||'—'}</div>
-        <div></div>
+    const bldData    = calcBldData(b);
+    const score      = bldData.score;
+    const col        = hCol(score);
+    const sqm        = b.size ? Number(b.size).toLocaleString('nl-NL')+' m²' : '—';
+    const openTix    = bldData.periodTix;
+    const inspItems  = bldData.periodItems;
+    const pTix       = Math.round(openTix/totalTix*100);
+    const pInsp      = Math.round(inspItems/totalInsp*100);
+    const safeId     = b.id.replace(/'/g,"\\'");
+    const safeName   = b.name.replace(/'/g,"\\'");
+    const goTix      = `event.stopPropagation();navTo('tickets');setTimeout(()=>{const e=document.getElementById('sel-tix-bldg');if(e){e.value='${safeName}';setPage('tix',1);renderTix();}},150)`;
+    const goInsp     = `event.stopPropagation();navTo('inspections');setTimeout(()=>{const e=document.getElementById('sel-insp-bldg');if(e){e.value='${safeId}';setPage('insp',1);renderInspections();}},150)`;
+    const cellBase   = 'text-align:center;background:var(--card2,rgba(0,0,0,.03));border-radius:8px;padding:6px 3px;cursor:pointer;';
+    const iconCol    = col;
+    const waBtn      = b.phone ? `<a href="https://wa.me/${(b.phone||'').replace(/\D/g,'')}" target="_blank" title="WhatsApp" onclick="event.stopPropagation()" style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;text-decoration:none;border-right:1px solid var(--border)"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="${iconCol}"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>` : `<span style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);opacity:.25"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="var(--muted)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span>`;
+    const smsBtn     = b.phone ? `<a href="sms:${b.phone}" title="SMS" onclick="event.stopPropagation()" style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;text-decoration:none;border-right:1px solid var(--border)"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${iconCol}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></a>` : `<span style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);opacity:.25"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>`;
+    const telBtn     = b.phone ? `<a href="tel:${b.phone}" title="Call" onclick="event.stopPropagation()" style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;text-decoration:none;border-right:1px solid var(--border)"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${iconCol}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12 19.79 19.79 0 0 1 1.97 3.34a2 2 0 0 1 1.94-2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>` : `<span style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);opacity:.25"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12 19.79 19.79 0 0 1 1.97 3.34a2 2 0 0 1 1.94-2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>`;
+    const mailBtn    = b.email ? `<a href="mailto:${b.email}" title="Email" onclick="event.stopPropagation()" style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;text-decoration:none"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${iconCol}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></a>` : `<span style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;opacity:.25"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>`;
+    const wlTooltip  = `<div class="wl-tooltip-wrap"><div class="wl-tooltip-chip"><span style="font-size:12px;font-weight:700;color:${col}">${score}% health</span><span class="wl-info">ⓘ</span></div><div class="wl-tip"><div class="wl-tip-title">${b.name} · health score</div><div class="wl-tip-row"><span style="color:var(--sub)">Open tickets (×2)</span><span style="font-weight:700;color:${openTix>0?'var(--red)':'var(--text)'}">${openTix}</span></div><div class="wl-tip-row"><span style="color:var(--sub)">Insp. items in period</span><span style="font-weight:700">${inspItems}</span></div><div class="wl-tip-row"><span style="color:var(--sub)">Workload score</span><span style="font-weight:700">${Math.round(bldData.score*10)/10}</span></div><div class="wl-tip-row"><span style="color:var(--sub)">Health score</span><span style="font-weight:700;color:${col}">${score}%</span></div><div class="wl-tip-formula">Open ticket ×2 · Pending item ×2 (both × age factor) · Closed −1<br>Pressure = workload ÷ (m² ÷ 100) · Health = 100 − pressure</div></div></div>`;
+    return`<div class="bc-wrap" onclick="openBldDetail('${safeId}')">
+      <div style="padding:14px 16px 12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:15px;font-weight:700;color:var(--blue)">${b.name}</span>
+          ${wlTooltip}
+        </div>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:10px">${sqm}</div>
+        <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:10px">
+          <div style="height:100%;width:${score}%;background:${col};border-radius:3px"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px">
+          <div style="${cellBase}" onclick="${goTix}">
+            <div style="font-size:13px;font-weight:800;color:${openTix>0?'var(--red)':'var(--text)'}">${openTix}</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Open tickets</div>
+            <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">${pTix}% of total</div>
+          </div>
+          <div style="${cellBase}" onclick="${goInsp}">
+            <div style="font-size:13px;font-weight:800;color:var(--text)">${inspItems}</div>
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-top:1px">Insp. items</div>
+            <div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:2px">${pInsp}% of total</div>
+          </div>
+        </div>
       </div>
-      <div class="bc-body">
-        <div class="bs"><div class="bs-val">${bldData.periodTix}</div><div class="bs-lbl">Tickets</div></div>
-        <div class="bs"><div class="bs-val">${bldData.periodItems}</div><div class="bs-lbl">Insp. items</div></div>
-
+      <div style="display:flex;border-top:1px solid var(--border);border-radius:0 0 var(--r) var(--r);overflow:hidden" onclick="event.stopPropagation()">
+        ${waBtn}${smsBtn}${telBtn}${mailBtn}
       </div>
     </div>`;
   }).join('');
@@ -5209,7 +5241,7 @@ function openNewBuilding(){
   if(!can('canManageBuildings')) return;
   editingId.bld=null;
   document.getElementById('bld-modal-title').textContent='Add Building';
-  ['bf-name','bf-addr','bf-size','bf-daysopen','bf-timeopen','bf-units','bf-year','bf-phone'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['bf-name','bf-addr','bf-size','bf-daysopen','bf-timeopen','bf-units','bf-year','bf-phone','bf-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   populateMgrSelect('bf-mgr');
   openMo('mo-bld');
 }
@@ -5226,13 +5258,14 @@ function editBld(id){
   document.getElementById('bf-units').value=b.units||'';
   document.getElementById('bf-year').value=b.yearBuilt||'';
   document.getElementById('bf-phone').value=b.phone||'';
+  document.getElementById('bf-email').value=b.email||'';
   populateMgrSelect('bf-mgr'); document.getElementById('bf-mgr').value=b.manager||'';
   openMo('mo-bld');
 }
 async function saveBld(){
   const name=document.getElementById('bf-name').value.trim();
   if(!name){toast('Building name required','err');return;}
-  const data={name,address:document.getElementById('bf-addr').value,size:parseInt(document.getElementById('bf-size').value)||'',daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,yearBuilt:parseInt(document.getElementById('bf-year').value)||'',manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value};
+  const data={name,address:document.getElementById('bf-addr').value,size:parseInt(document.getElementById('bf-size').value)||'',daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,yearBuilt:parseInt(document.getElementById('bf-year').value)||'',manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value,email:document.getElementById('bf-email').value};
   if(editingId.bld){ Object.assign(DB.buildings.find(x=>x.id===editingId.bld),data); }
   else { DB.buildings.push({id:nextId(DB.buildings,'BLD'),...data}); }
   closeMo('mo-bld');
