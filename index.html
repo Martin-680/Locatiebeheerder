@@ -197,7 +197,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);padding:5px 6px 2px}
 .cal-dow span{font-size:10px;color:var(--muted);text-align:center;font-weight:600}
 .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:2px 6px 7px}
-.cal-day{height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:12px;color:var(--text);cursor:default}
+.cal-day{height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:12px;color:var(--text);cursor:default;position:relative;overflow:hidden}
 .cal-day.cal-match{background:#EAF3DE;color:#27500A;font-weight:700;cursor:pointer}
 .cal-day.cal-insp{background:#EEEDFE;color:#534AB7;font-weight:700;cursor:pointer}
 .cal-day.cal-selected{background:#3B6D11;color:#fff;font-weight:700;cursor:pointer}
@@ -205,6 +205,10 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .cal-day.cal-empty{color:var(--muted);}
 .cal-day.cal-pad{pointer-events:none;}
 .cal-day.cal-holiday{background:#FEF3C7;color:#92400E;font-weight:700;cursor:pointer}
+.cal-day.cal-tri-start-match::after{content:'';position:absolute;bottom:0;left:0;width:0;height:0;border-style:solid;border-width:0 0 8px 8px;border-color:transparent transparent #27500A transparent}
+.cal-day.cal-tri-end-match::after{content:'';position:absolute;bottom:0;right:0;width:0;height:0;border-style:solid;border-width:8px 8px 0 0;border-color:#27500A transparent transparent transparent}
+.cal-day.cal-tri-start-insp::after{content:'';position:absolute;bottom:0;left:0;width:0;height:0;border-style:solid;border-width:0 0 8px 8px;border-color:transparent transparent #534AB7 transparent}
+.cal-day.cal-tri-end-insp::after{content:'';position:absolute;bottom:0;right:0;width:0;height:0;border-style:solid;border-width:8px 8px 0 0;border-color:#534AB7 transparent transparent transparent}
 /* ── TICKET LIST ── */
 .tlist{display:flex;flex-direction:column;gap:8px;padding:0 14px 8px;}
 .ti{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;display:flex;align-items:flex-start;gap:11px;cursor:pointer;transition:border-color .15s;}
@@ -6844,12 +6848,19 @@ function calGetMatched(){
   const entries = [];
   DB.tickets.forEach(t=>{
     if(!t.dateOpened) return;
-    entries.push({ date:t.dateOpened, supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—' });
+    entries.push({ date:t.dateOpened, supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—', marker: t.dateClosed && t.dateClosed!==t.dateOpened ? 'start' : '' });
+    if(t.dateClosed && t.dateClosed!==t.dateOpened){
+      entries.push({ date:t.dateClosed, supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—', marker:'end' });
+    }
   });
   if(showInsp){
     DB.inspections.forEach(r=>{
       if(!r.dateStart) return;
-      entries.push({ date:r.dateStart, supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:`${r.building||''}${r.floor?' · '+r.floor:''}` });
+      const sub=`${r.building||''}${r.floor?' · '+r.floor:''}`;
+      entries.push({ date:r.dateStart, supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub, marker: r.dateEnd && r.dateEnd!==r.dateStart ? 'start' : '' });
+      if(r.dateEnd && r.dateEnd!==r.dateStart){
+        entries.push({ date:r.dateEnd, supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub, marker:'end' });
+      }
     });
   }
   const map = {};
@@ -6914,6 +6925,11 @@ function renderCalendar(){
       const hasInsp  = dayEntries.some(e=>e.source==='insp');
       const isToday  = ds===todayStr;
       const holiday  = holidays[ds];
+      // determine triangle markers
+      const matchStart = dayEntries.some(e=>e.source!=='insp'&&e.marker==='start');
+      const matchEnd   = dayEntries.some(e=>e.source!=='insp'&&e.marker==='end');
+      const inspStart  = dayEntries.some(e=>e.source==='insp'&&e.marker==='start');
+      const inspEnd    = dayEntries.some(e=>e.source==='insp'&&e.marker==='end');
       let dayStyle = '', cls = ['cal-day'], title = holiday ? `title="${holiday}"` : '';
       if(holiday && hasMatch && hasInsp){
         dayStyle='background:linear-gradient(135deg,#EAF3DE 33%,#EEEDFE 33% 66%,#FEF3C7 66%);color:#27500A;';
@@ -6928,6 +6944,10 @@ function renderCalendar(){
       else if(hasMatch){ cls.push('cal-match'); }
       else { cls.push('cal-empty'); }
       if(isToday) cls.push('cal-today');
+      if(matchStart) cls.push('cal-tri-start-match');
+      if(matchEnd)   cls.push('cal-tri-end-match');
+      if(inspStart)  cls.push('cal-tri-start-insp');
+      if(inspEnd)    cls.push('cal-tri-end-insp');
       const clickable = hasMatch||hasInsp||holiday;
       html+=`<div class="${cls.join(' ')}" style="${dayStyle}${clickable?'cursor:pointer;':''}" data-date="${ds}" ${title} onclick="calDayClick('${ds}')">${day}</div>`;
     }
@@ -6988,10 +7008,15 @@ function calDayClick(dateStr){
         : `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(37,99,235,.12);color:var(--blue)">Ticket</span>`;
       const typBadge = e.type && e.source!=='insp' ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(100,116,139,.12);color:var(--sub)">${e.type}</span>` : '';
       const editFn = e.source==='insp' ? `openInspDetail('${e.id}')` : `calOpenEntry('tix','${e.id}')`;
+      const markerBadge = e.marker==='start'
+        ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#EAF3DE;color:#27500A">start</span>`
+        : e.marker==='end'
+        ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#FEF3C7;color:#92400E">end</span>`
+        : '';
       html += `<div onclick="${editFn}" style="padding:11px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">
           <div style="font-size:14px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.subject}</div>
-          <div style="display:flex;gap:4px;flex-shrink:0">${srcBadge}${typBadge}<span style="font-size:16px;color:var(--muted);line-height:1">›</span></div>
+          <div style="display:flex;gap:4px;flex-shrink:0;align-items:center">${markerBadge}${srcBadge}${typBadge}<span style="font-size:16px;color:var(--muted);line-height:1">›</span></div>
         </div>
         <div style="font-size:12px;color:var(--sub)">${supName} · ${e.id}</div>
       </div>`;
