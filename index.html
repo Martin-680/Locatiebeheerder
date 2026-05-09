@@ -724,8 +724,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <select id="sel-sup-expertise" style="display:none" onchange="setPage('sup',1);renderSuppliers()"><option value="All">All Expertise</option></select>
     <select id="sel-sup-sort"      style="display:none" onchange="renderSuppliers()">
       <option value="none">Default</option>
-      <option value="asc">Rate ↑ Low → High</option>
-      <option value="desc">Rate ↓ High → Low</option>
+      <option value="asc">Activity ↑ Low → High</option>
+      <option value="desc">Activity ↓ High → Low</option>
     </select>
 
     <div id="sup-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
@@ -1359,10 +1359,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fg"><label>Email</label><input class="fi2" type="email" id="sf-email" placeholder="contact@…"/></div>
     </div>
     <div class="fg"><label>Address</label><input class="fi2" id="sf-address" placeholder="Physical address"/></div>
-    <div class="frow2">
-      <div class="fg"><label>Status</label><select class="fs2" id="sf-status"><option>Active</option><option>Inactive</option><option>Preferred</option></select></div>
-      <div class="fg"><label>Rating</label><select class="fs2" id="sf-rating"><option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="3" selected>⭐⭐⭐</option><option value="2">⭐⭐</option><option value="1">⭐</option></select></div>
-    </div>
+    <div class="fg"><label>Status</label><select class="fs2" id="sf-status"><option>Active</option><option>Inactive</option><option>Preferred</option></select></div>
     <button class="btn-p" onclick="saveSupplier()">Save Supplier</button>
     <button class="btn-s" onclick="closeMo('mo-sup')">Cancel</button>
   </div>
@@ -2688,7 +2685,7 @@ function updateSupFilterBadge(){
   const labels={
     'sel-sup-status'   : v=>v,
     'sel-sup-expertise': v=>v,
-    'sel-sup-sort'     : v=>v==='asc'?'Rate: Low\u2192High':'Rate: High\u2192Low',
+    'sel-sup-sort'     : v=>v==='asc'?'Activity: Low\u2192High':'Activity: High\u2192Low',
   };
   chipsEl.innerHTML = ids
     .filter(id=>{ const v=document.getElementById(id)?.value||'All'; return v!==(defaults[id]||'All'); })
@@ -4277,14 +4274,13 @@ function openFloorView(buildingName, buildingId, floorEnc){
   // ── Suppliers linked via tickets on this floor ──
   const linkedSupIds = [...new Set(tickets.filter(t=>t.supplierId).map(t=>t.supplierId))];
   const linkedSups = DB.suppliers.filter(s=>linkedSupIds.includes(s.id));
-  const stCol={Active:'var(--green)',Preferred:'var(--amber)',Inactive:'var(--muted)'};
   html += `<div class="sh"><span class="sh-title">Suppliers (${linkedSups.length})</span><span class="sh-link" onclick="navTo('suppliers')">All →</span></div>`;
   if(linkedSups.length){
+    const exp=s=>Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
     html += linkedSups.map(s=>`
       <div class="sup-card" onclick="openSupDetail('${s.id}')">
         <div class="sup-hdr">
-          <div><div class="sup-name">${s.name}</div><div class="sup-contact">${s.contact||'—'}</div></div>
-          <div style="text-align:right"><div class="sup-rate">€ ${s.ratePerHour}/hr</div><span class="badge" style="background:${stCol[s.status]||'var(--green)'}18;color:${stCol[s.status]||'var(--green)'};margin-top:4px">${s.status}</span></div>
+          <div style="flex:1;min-width:0"><div class="sup-name">${s.name}</div>${exp(s).length?`<div style="font-size:11px;color:var(--sub);margin-top:3px">${exp(s).join(', ')}</div>`:''}</div>
         </div>
       </div>`).join('');
   } else {
@@ -5349,69 +5345,45 @@ function renderSuppliers(){
     });
   }
   if(q) list=list.filter(s=>s.name.toLowerCase().includes(q)||(Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',')).join(' ').toLowerCase().includes(q));
-  if(sortVal==='asc') list.sort((a,b)=>(a.ratePerHour||0)-(b.ratePerHour||0));
-  else if(sortVal==='desc') list.sort((a,b)=>(b.ratePerHour||0)-(a.ratePerHour||0));
+  if(sortVal==='asc') list.sort((a,b)=>(actPct(a.id)??-1)-(actPct(b.id)??-1));
+  else if(sortVal==='desc') list.sort((a,b)=>(actPct(b.id)??-1)-(actPct(a.id)??-1));
   else list.sort((a,b)=>a.name.localeCompare(b.name));
   document.getElementById('sup-lbl').textContent=`${list.length} supplier${list.length!==1?'s':''}`;
   const c=document.getElementById('sup-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-6-7 6v3l-4-3v12z"/><path d="M17 20v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/></svg></div><div style="font-size:13px">No suppliers found</div></div>';return;}
   const page=pages.sup;
   const slice=list.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
-  const stCol={Active:'var(--green)',Preferred:'var(--amber)',Inactive:'var(--muted)'};
   c.innerHTML=slice.map(s=>{
     const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
-    const activeExp=expertiseVal!=='All'?expertiseVal:null;
     const pct=actPct(s.id);
-    const actBadge = pct===null ? '' : `<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;background:${actCol(pct)}18;color:${actCol(pct)};margin-top:4px;display:inline-block">${pct}% activity</span>`;
-    return`<div class="sup-card" style="padding-bottom:${s.phone?'0':'14px'}" onclick="openSupDetail('${s.id}')">
+    const actColor = pct===null ? 'var(--muted)' : actCol(pct);
+    const actLabel = pct===null ? '—' : `${pct}%`;
+    return`<div class="sup-card" onclick="openSupDetail('${s.id}')">
       <div class="sup-hdr">
         <div style="flex:1;min-width:0">
           <div class="sup-name">${s.name}</div>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap">
-            ${exp.length?`<span style="font-size:11px;color:var(--sub);line-height:1.4">${exp.join(', ')}</span>`:''}
-            ${actBadge}
-          </div>
-          <div style="display:flex;gap:16px;margin:6px 0 4px;align-items:flex-end">
-            <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Rate/hr</div><div class="sup-rate">€ ${s.ratePerHour||0}</div></div>
-            <div style="width:1px;height:32px;background:var(--border);flex-shrink:0"></div>
-            <div><div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Transport</div><div style="font-size:13px;font-weight:700;color:var(--sub)">€ ${s.transportCost||0}</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-            ${s.phone?`<span style="font-size:12px;color:var(--sub)">${s.phone}</span><span style="color:var(--border2);font-size:12px">·</span>`:''}
-            <span class="sup-contact" style="margin:0">${s.contact||'—'}</span>
-          </div>
+          ${exp.length?`<div style="font-size:11px;color:var(--sub);margin-top:4px;line-height:1.4">${exp.join(', ')}</div>`:''}
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
-          <span class="badge" style="background:${stCol[s.status]||'var(--green)'}18;color:${stCol[s.status]||'var(--green)'}">${s.status}</span>
+        <div style="text-align:right;flex-shrink:0;margin-left:12px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Activity</div>
+          <div style="font-size:15px;font-weight:700;color:${actColor}">${actLabel}</div>
         </div>
       </div>
-      ${s.phone?`<div style="display:flex;margin:10px -16px 0;border-top:1px solid var(--border);overflow:hidden;border-radius:0 0 var(--r) var(--r)" onclick="event.stopPropagation()">
-        <a href="https://wa.me/${s.phone.replace(/\D/g,'')}" target="_blank" title="WhatsApp" style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;text-decoration:none;border-right:1px solid var(--border)"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="${stCol[s.status]||'var(--green)'}"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
-        <a href="sms:${s.phone}" title="SMS" style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;text-decoration:none;border-right:1px solid var(--border)"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${stCol[s.status]||'var(--green)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></a>
-        <a href="tel:${s.phone}" title="Call" style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;text-decoration:none${s.email?';border-right:1px solid var(--border)':''}"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${stCol[s.status]||'var(--green)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12 19.79 19.79 0 0 1 1.97 3.34a2 2 0 0 1 1.94-2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>
-        ${s.email?`<a href="mailto:${s.email}" title="Email" style="flex:1;height:38px;display:flex;align-items:center;justify-content:center;text-decoration:none"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${stCol[s.status]||'var(--green)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></a>`:''}
-      </div>`:''
-    }
     </div>`;
   }).join('')+renderPagination('sup',list.length,'goSupPage');
 }
 function openSupDetail(id){
   const s=DB.suppliers.find(x=>x.id===id); if(!s) return;
-  const stCol={Active:'var(--green)',Preferred:'var(--amber)',Inactive:'var(--muted)'};
   const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
   document.getElementById('sup-detail-body').innerHTML=`
     <div style="padding:0 18px 8px">
       <div style="font-size:20px;font-weight:700;margin-bottom:4px">${s.name}</div>
-      <span class="badge" style="background:${stCol[s.status]||'var(--green)'}18;color:${stCol[s.status]||'var(--green)'}">${s.status}</span>
+      ${exp.length?`<div style="font-size:12px;color:var(--sub);margin-top:2px">${exp.join(', ')}</div>`:''}
     </div>
     <div style="padding:0 18px">
-      <div class="dr"><span class="dk">Contact</span><span class="dv">${s.contact||'—'}</span></div>
-      <div class="dr"><span class="dk">Rate</span><span class="dv" style="color:var(--green)">€ ${s.ratePerHour}/hr + € ${s.transportCost} transport</span></div>
-      <div class="dr"><span class="dk">Phone</span><span class="dv">${s.phone||'—'}</span></div>
       <div class="dr"><span class="dk">Email</span><span class="dv">${s.email||'—'}</span></div>
       <div class="dr"><span class="dk">Address</span><span class="dv">${s.address||'—'}</span></div>
-      <div class="dr"><span class="dk">Rating</span><span class="dv">${Array.from({length:parseInt(s.rating)||0}).map(()=>'<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>').join('')}</span></div>
-      <div class="dr"><span class="dk">Expertise</span><span class="dv">${exp.join(', ')||'—'}</span></div>
+      <div class="dr"><span class="dk">Rating</span><span class="dv">${(()=>{const all=DB.tickets.filter(t=>t.supplierId===s.id);if(!all.length)return'<span style="color:var(--muted);font-size:12px">No tickets yet</span>';const closed=all.filter(t=>t.status==='Closed').length;const ratio=closed/all.length;const stars=ratio>=.9?5:ratio>=.7?4:ratio>=.5?3:ratio>=.3?2:1;return Array.from({length:5}).map((_,i)=>`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${i<stars?'#F59E0B':'none'}" stroke="#F59E0B" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`).join('')+`<span style="font-size:11px;color:var(--muted);margin-left:4px">${closed}/${all.length} closed</span>`;})()}</span></div>
     </div>
     <div style="padding:12px 18px 0;display:flex;gap:9px">
       ${can('canManageSuppliers')?`<button onclick="editSupplier('${s.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>`:''}
@@ -5426,7 +5398,6 @@ function openNewSupplier(){
   document.getElementById('sup-modal-title').textContent='Add Supplier';
   ['sf-name','sf-contact','sf-expertise','sf-rate','sf-transport','sf-phone','sf-email','sf-address'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('sf-status').value='Active';
-  document.getElementById('sf-rating').value='3';
   openMo('mo-sup');
 }
 function editSupplier(id){
@@ -5444,7 +5415,6 @@ function editSupplier(id){
   document.getElementById('sf-email').value=s.email||'';
   document.getElementById('sf-address').value=s.address||'';
   document.getElementById('sf-status').value=s.status||'Active';
-  document.getElementById('sf-rating').value=s.rating||3;
   openMo('mo-sup');
 }
 async function saveSupplier(){
@@ -5452,7 +5422,7 @@ async function saveSupplier(){
   if(!name){toast('Company name required','err');return;}
   const expRaw=document.getElementById('sf-expertise').value;
   const expertise=expRaw?expRaw.split(',').map(s=>s.trim()).filter(Boolean):[];
-  const data={name,contact:document.getElementById('sf-contact').value,expertise,ratePerHour:parseFloat(document.getElementById('sf-rate').value)||0,transportCost:parseFloat(document.getElementById('sf-transport').value)||0,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,address:document.getElementById('sf-address').value,status:document.getElementById('sf-status').value,rating:parseInt(document.getElementById('sf-rating').value)||3};
+  const data={name,contact:document.getElementById('sf-contact').value,expertise,ratePerHour:parseFloat(document.getElementById('sf-rate').value)||0,transportCost:parseFloat(document.getElementById('sf-transport').value)||0,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,address:document.getElementById('sf-address').value,status:document.getElementById('sf-status').value};
   if(editingId.sup){ Object.assign(DB.suppliers.find(x=>x.id===editingId.sup),data); }
   else { DB.suppliers.push({id:nextId(DB.suppliers,'SUP'),...data}); }
   closeMo('mo-sup');
@@ -6694,7 +6664,7 @@ function exportCSV(type){
     rows=DB.assets.map(a=>[a.id,a.label||a.name,a.building,a.floor||'',a.unit||'',a.supplierName||'',a.category||'',a.status,a.manufacturer||'',a.model||'',a.warrantyExpiry||'']);
   } else if(type==='suppliers'){
     headers=['ID','Name','Contact','Status','Rating','Rate/Hr','Phone','Email'];
-    rows=DB.suppliers.map(s=>[s.id,s.name,s.contact||'',s.status,s.rating||'',s.ratePerHour||0,s.phone||'',s.email||'']);
+    rows=DB.suppliers.map(s=>{const all=DB.tickets.filter(t=>t.supplierId===s.id);const ratio=all.length?all.filter(t=>t.status==='Closed').length/all.length:null;const stars=ratio===null?'—':ratio>=.9?5:ratio>=.7?4:ratio>=.5?3:ratio>=.3?2:1;return[s.id,s.name,s.contact||'',s.status,stars,s.ratePerHour||0,s.phone||'',s.email||''];});
   } else if(type==='inspections'){
     headers=['ID','Building','Floor','Category','Date Started','Date Completed','Inspector','Status','Total Items','Approved','Failed','Pending'];
     rows=DB.inspections.map(r=>{
