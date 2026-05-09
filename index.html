@@ -1326,10 +1326,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="fg"><label>Size (m²)</label><input class="fi2" type="number" id="bf-size" placeholder="e.g. 1250"/></div>
     <div class="fg"><label>Days Open</label><input class="fi2" id="bf-daysopen" placeholder="e.g. Mon–Fri 8:00–18:00"/></div>
     <div class="fg"><label>Time Open</label><input class="fi2" id="bf-timeopen" placeholder="e.g. 08:00–18:00"/></div>
-    <div class="frow2">
-      <div class="fg"><label>Workspace</label><input class="fi2" type="number" id="bf-units" placeholder="0"/></div>
-      <div class="fg"><label>Assets</label><input class="fi2" type="number" id="bf-year" placeholder="0"/></div>
-    </div>
+    <div class="fg"><label>Workspace</label><input class="fi2" type="number" id="bf-units" placeholder="0"/></div>
     <div class="frow2">
       <div class="fg"><label>Manager</label><select class="fs2" id="bf-mgr"></select></div>
       <div class="fg"><label>Phone</label><input class="fi2" id="bf-phone" placeholder="555-XXXX"/></div>
@@ -1412,10 +1409,10 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','active'],
-  buildings: ['id','name','address','daysOpen','timeOpen','units','yearBuilt','manager','phone','email','size'],
+  buildings: ['id','name','address','daysOpen','timeOpen','units','manager','phone','email','size'],
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type'],
-  suppliers: ['id','name','contact','expertise','desc','ratePerHour','transportCost','phone','email','website','address','status','rating'],
+  suppliers: ['id','name','contact','expertise','ratePerHour','transportCost','phone','email','address','status'],
   inspections:      ['id','buildingId','floorId','categoryId','dateStart','dateEnd','inspector','status','notes'],
   inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note'],
   floors:    ['id','buildingId','label','sortOrder'],
@@ -1672,7 +1669,7 @@ function rowsToObjects(rows, cols){
         else { val=val.split(',').map(s=>s.trim()).filter(Boolean); }
       }
       if(col==='active') val = val!=='false'&&val!=='FALSE'&&val!=='0'&&val!=='';
-      if(col==='ratePerHour'||col==='transportCost'||col==='rating'||col==='units') val=parseFloat(val)||0;
+      if(col==='ratePerHour'||col==='transportCost'||col==='units') val=parseFloat(val)||0;
       obj[col]=val;
     });
     return obj;
@@ -5247,7 +5244,7 @@ function openNewBuilding(){
   if(!can('canManageBuildings')) return;
   editingId.bld=null;
   document.getElementById('bld-modal-title').textContent='Add Building';
-  ['bf-name','bf-addr','bf-size','bf-daysopen','bf-timeopen','bf-units','bf-year','bf-phone','bf-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['bf-name','bf-addr','bf-size','bf-daysopen','bf-timeopen','bf-units','bf-phone','bf-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   populateMgrSelect('bf-mgr');
   openMo('mo-bld');
 }
@@ -5262,7 +5259,7 @@ function editBld(id){
   document.getElementById('bf-daysopen').value=b.daysOpen||'';
   document.getElementById('bf-timeopen').value=b.timeOpen||'';
   document.getElementById('bf-units').value=b.units||'';
-  document.getElementById('bf-year').value=b.yearBuilt||'';
+
   document.getElementById('bf-phone').value=b.phone||'';
   document.getElementById('bf-email').value=b.email||'';
   populateMgrSelect('bf-mgr'); document.getElementById('bf-mgr').value=b.manager||'';
@@ -5271,7 +5268,7 @@ function editBld(id){
 async function saveBld(){
   const name=document.getElementById('bf-name').value.trim();
   if(!name){toast('Building name required','err');return;}
-  const data={name,address:document.getElementById('bf-addr').value,size:parseInt(document.getElementById('bf-size').value)||'',daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,yearBuilt:parseInt(document.getElementById('bf-year').value)||'',manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value,email:document.getElementById('bf-email').value};
+  const data={name,address:document.getElementById('bf-addr').value,size:parseInt(document.getElementById('bf-size').value)||'',daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value,email:document.getElementById('bf-email').value};
   if(editingId.bld){ Object.assign(DB.buildings.find(x=>x.id===editingId.bld),data); }
   else { DB.buildings.push({id:nextId(DB.buildings,'BLD'),...data}); }
   closeMo('mo-bld');
@@ -5381,6 +5378,8 @@ function openSupDetail(id){
       ${exp.length?`<div style="font-size:12px;color:var(--sub);margin-top:2px">${exp.join(', ')}</div>`:''}
     </div>
     <div style="padding:0 18px">
+      <div class="dr"><span class="dk">Contact</span><span class="dv">${s.contact||'—'}</span></div>
+      <div class="dr"><span class="dk">Phone</span><span class="dv">${s.phone||'—'}</span></div>
       <div class="dr"><span class="dk">Email</span><span class="dv">${s.email||'—'}</span></div>
       <div class="dr"><span class="dk">Address</span><span class="dv">${s.address||'—'}</span></div>
       <div class="dr"><span class="dk">Rating</span><span class="dv">${(()=>{const all=DB.tickets.filter(t=>t.supplierId===s.id);if(!all.length)return'<span style="color:var(--muted);font-size:12px">No tickets yet</span>';const closed=all.filter(t=>t.status==='Closed').length;const ratio=closed/all.length;const stars=ratio>=.9?5:ratio>=.7?4:ratio>=.5?3:ratio>=.3?2:1;return Array.from({length:5}).map((_,i)=>`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${i<stars?'#F59E0B':'none'}" stroke="#F59E0B" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`).join('')+`<span style="font-size:11px;color:var(--muted);margin-left:4px">${closed}/${all.length} closed</span>`;})()}</span></div>
