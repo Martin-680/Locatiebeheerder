@@ -4585,6 +4585,21 @@ function openUnitDetail(id){
   openMo('mo-unit-detail');
 }
 
+function openNewUnitForFloor(floorId){
+  if(!can('canManageBuildings')) return;
+  const f=DB.floors.find(x=>x.id===floorId); if(!f) return;
+  const bld=DB.buildings.find(b=>b.id===f.buildingId);
+  closeMo('mo-floor-detail');
+  setTimeout(()=>{
+    openNewUnit();
+    const bldEl=document.getElementById('uf2-bldg');
+    if(bldEl&&bld){ bldEl.value=bld.name; uf2OnBldgChange(); }
+    setTimeout(()=>{
+      const flrEl=document.getElementById('uf2-floor');
+      if(flrEl&&floorId) flrEl.value=floorId;
+    },80);
+  },220);
+}
 function openNewUnit(){
   if(!can('canManageBuildings')) return;
   editingId.unit=null;
@@ -4895,6 +4910,9 @@ function openFloorDetail(id){
     ${can('canManageBuildings') ? `
     <div style="padding:8px 18px 0;display:flex;gap:9px">
       <button onclick="editFloor('${f.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>
+    </div>
+    <div style="padding:8px 18px 0">
+      <button onclick="openNewUnitForFloor('${f.id}')" style="width:100%;padding:13px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--green)"> Add Unit</button>
     </div>` : ''}
     <div style="height:24px"></div>`;
 
