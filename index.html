@@ -1364,7 +1364,21 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 
 <!-- Supplier detail -->
 <div class="mo" id="mo-sup-detail" onclick="mcClick(event,'mo-sup-detail')">
-  <div class="ms"><div class="mt"><span>Supplier Detail</span><button class="mt-close" onclick="closeMo('mo-sup-detail')">✕</button></div><div id="sup-detail-body"></div></div>
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt"><span id="sup-detail-title" style="font-size:15px;font-weight:700;color:var(--blue)"></span><button class="mt-close" onclick="closeMo('mo-sup-detail')">✕</button></div>
+    <div id="sup-detail-expertise" style="font-size:11px;color:var(--sub);padding:0 16px 12px;border-bottom:1px solid var(--border)"></div>
+    <div class="sh" style="padding-bottom:8px">
+      <span id="sup-detail-tix-count" class="sh-title">Tickets</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:var(--sub)">Show closed</span>
+        <div id="sup-closed-tog" onclick="toggleSupClosed()" style="width:36px;height:20px;border-radius:10px;background:var(--border2,#cbd5e1);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0"><div id="sup-closed-knob" style="width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s"></div></div>
+      </div>
+    </div>
+    <div id="sup-detail-tix"></div>
+    <div id="sup-detail-actions" style="padding:14px 14px 0;display:flex;gap:9px"></div>
+    <div style="height:8px"></div>
+  </div>
 </div>
 
 <!-- Quick Ticket -->
@@ -1459,6 +1473,7 @@ let astPeriod  = 'quarter';
 let unitPeriod = 'quarter';
 let flrPeriod  = 'quarter';
 let supPeriod  = 'quarter';
+let supDetailShowClosed = false;
 let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null, floor:null, log:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
@@ -5388,26 +5403,58 @@ function renderSuppliers(){
     </div>`;
   }).join('')+renderPagination('sup',list.length,'goSupPage');
 }
+function renderSupDetailTix(supId){
+  const s=DB.suppliers.find(x=>x.id===supId); if(!s) return;
+  let tix=DB.tickets.filter(t=>t.supplierId===supId);
+  if(!supDetailShowClosed) tix=tix.filter(t=>t.status!=='Closed');
+  tix.sort((a,b)=>new Date(b.dateOpened)-new Date(a.dateOpened));
+  const count=DB.tickets.filter(t=>t.supplierId===supId&&t.status!=='Closed').length;
+  const total=DB.tickets.filter(t=>t.supplierId===supId).length;
+  document.getElementById('sup-detail-tix-count').textContent=`Tickets (${supDetailShowClosed?tix.length:count}${supDetailShowClosed&&total>count?' incl. closed':''})`;
+  if(!tix.length){
+    document.getElementById('sup-detail-tix').innerHTML=`<div style="padding:20px 16px;text-align:center;font-size:12px;color:var(--muted)">${supDetailShowClosed?'No tickets for this supplier':'No open tickets'}</div>`;
+    return;
+  }
+  document.getElementById('sup-detail-tix').innerHTML='<div style="padding:0 14px">'+tix.map(t=>{
+    const tixAge=t.status==='Closed'?0:2*ageMult(t.dateOpened);
+    const score=Math.round(tixAge*10)/10;
+    const hc=score>=6?'#dc2626':score>=3?'#d97706':'#059669';
+    const clsMap={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'};
+    const sub=[t.building,DB.floors.find(f=>f.id===t.floorId||f.label===t.floor)?.label||t.floor||'',t.unit||''].filter(Boolean).join(' · ');
+    return`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;padding:12px 14px 8px;cursor:pointer;${t.status==='Closed'?'opacity:.6':''}" onclick="closeMo('mo-sup-detail');setTimeout(()=>openTixDetail('${t.id}'),220)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:3px">
+        <div class="ct" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject||'—'}</div>
+        <span class="badge ${clsMap[t.status]||'b-open'}" style="flex-shrink:0;font-size:10px;padding:2px 7px">${t.status}</span>
+      </div>
+      <div class="cm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div>
+      <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px"><div style="height:100%;width:${Math.min(score/8*100,100)}%;background:${hc};border-radius:3px"></div></div>
+    </div>`;
+  }).join('')+'</div>';
+}
+function toggleSupClosed(){
+  supDetailShowClosed=!supDetailShowClosed;
+  const tog=document.getElementById('sup-closed-tog');
+  const knob=document.getElementById('sup-closed-knob');
+  if(tog&&knob){tog.style.background=supDetailShowClosed?'var(--green)':'var(--border2,#cbd5e1)';knob.style.left=supDetailShowClosed?'18px':'2px';}
+  const id=document.getElementById('sup-detail-title')?.dataset.supId;
+  if(id) renderSupDetailTix(id);
+}
 function openSupDetail(id){
   const s=DB.suppliers.find(x=>x.id===id); if(!s) return;
+  supDetailShowClosed=false;
+  const tog=document.getElementById('sup-closed-tog');
+  const knob=document.getElementById('sup-closed-knob');
+  if(tog&&knob){tog.style.background='var(--border2,#cbd5e1)';knob.style.left='2px';}
   const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
-  document.getElementById('sup-detail-body').innerHTML=`
-    <div style="padding:0 18px 8px">
-      <div style="font-size:20px;font-weight:700;margin-bottom:4px">${s.name}</div>
-      ${exp.length?`<div style="font-size:12px;color:var(--sub);margin-top:2px">${exp.join(', ')}</div>`:''}
-    </div>
-    <div style="padding:0 18px">
-      <div class="dr"><span class="dk">Contact</span><span class="dv">${s.contact||'—'}</span></div>
-      <div class="dr"><span class="dk">Phone</span><span class="dv">${s.phone||'—'}</span></div>
-      <div class="dr"><span class="dk">Email</span><span class="dv">${s.email||'—'}</span></div>
-      <div class="dr"><span class="dk">Address</span><span class="dv">${s.address||'—'}</span></div>
-      <div class="dr"><span class="dk">Rating</span><span class="dv">${(()=>{const all=DB.tickets.filter(t=>t.supplierId===s.id);if(!all.length)return'<span style="color:var(--muted);font-size:12px">No tickets yet</span>';const closed=all.filter(t=>t.status==='Closed').length;const ratio=closed/all.length;const stars=ratio>=.9?5:ratio>=.7?4:ratio>=.5?3:ratio>=.3?2:1;return Array.from({length:5}).map((_,i)=>`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${i<stars?'#F59E0B':'none'}" stroke="#F59E0B" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`).join('')+`<span style="font-size:11px;color:var(--muted);margin-left:4px">${closed}/${all.length} closed</span>`;})()}</span></div>
-    </div>
-    <div style="padding:12px 18px 0;display:flex;gap:9px">
-      ${can('canManageSuppliers')?`<button onclick="editSupplier('${s.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>`:''}
-      ${can('canEditAll')?`<button onclick="confirmDelete('supplier','${s.id}')" style="flex:1;padding:13px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--red)"> Delete</button>`:''}
-    </div>
-    <div style="height:20px"></div>`;
+  const titleEl=document.getElementById('sup-detail-title');
+  if(titleEl){titleEl.textContent=s.name;titleEl.dataset.supId=id;}
+  const expEl=document.getElementById('sup-detail-expertise');
+  if(expEl) expEl.textContent=exp.join(', ')||'';
+  renderSupDetailTix(id);
+  const actionsEl=document.getElementById('sup-detail-actions');
+  if(actionsEl) actionsEl.innerHTML=`
+    ${can('canManageSuppliers')?`<button onclick="editSupplier('${id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>`:''}
+    ${can('canEditAll')?`<button onclick="confirmDelete('supplier','${id}')" style="flex:1;padding:13px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--red)"> Delete</button>`:''}`;
   openMo('mo-sup-detail');
 }
 function openNewSupplier(){
