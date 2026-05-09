@@ -289,7 +289,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .sub-tag{display:inline-flex;align-items:center;gap:5px;background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:8px;padding:4px 10px;font-size:12px;margin:3px 3px 3px 0;}
 
 /* ── SUPPLIER ── */
-.sup-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);margin:0 14px 8px;padding:14px 16px;cursor:pointer;}
+.sup-card{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);margin:0 14px 8px;overflow:hidden;cursor:pointer;}
 .sup-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
 .sup-contact{font-size:12px;color:var(--muted);margin-top:2px;}
 .sup-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
@@ -5350,21 +5350,40 @@ function renderSuppliers(){
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-6-7 6v3l-4-3v12z"/><path d="M17 20v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/></svg></div><div style="font-size:13px">No suppliers found</div></div>';return;}
   const page=pages.sup;
   const slice=list.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
+  const iconSVG = {
+    wa:  `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="ICOL"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`,
+    sms: `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="ICOL" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+    tel: `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="ICOL" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12 19.79 19.79 0 0 1 1.97 3.34a2 2 0 0 1 1.94-2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
+    mail:`<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="ICOL" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`
+  };
+  const iBtn = (href, svg, last) => `<a href="${href}" target="${href.startsWith('https')?'_blank':'_self'}" onclick="event.stopPropagation()" style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;text-decoration:none;${last?'':'border-right:1px solid var(--border)'}">${svg}</a>`;
+  const iDim = (svg, last) => `<span style="flex:1;height:40px;display:flex;align-items:center;justify-content:center;opacity:.25;${last?'':'border-right:1px solid var(--border)'}">${svg}</span>`;
   c.innerHTML=slice.map(s=>{
     const exp=Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
     const pct=actPct(s.id);
-    const actColor = pct===null ? 'var(--muted)' : actCol(pct);
-    const actLabel = pct===null ? '—' : `${pct}%`;
-    return`<div class="sup-card" onclick="openSupDetail('${s.id}')">
-      <div class="sup-hdr">
-        <div style="flex:1;min-width:0">
-          <div class="sup-name">${s.name}</div>
-          ${exp.length?`<div style="font-size:11px;color:var(--sub);margin-top:4px;line-height:1.4">${exp.join(', ')}</div>`:''}
+    const col = pct===null ? 'var(--muted)' : actCol(pct);
+    const chip = pct===null
+      ? `<span style="font-size:15px;font-weight:700;color:var(--muted)">—</span>`
+      : `<div class="wl-tooltip-wrap" onclick="event.stopPropagation();wlTip(this)"><div class="wl-tooltip-chip"><span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Activity</span><span style="font-size:12px;font-weight:800;color:${col}">${pct}%</span><span class="wl-info">ⓘ</span></div><div class="wl-tip"><div class="wl-tip-title">${s.name} · activity</div><div class="wl-tip-row"><span style="color:var(--sub)">Open assigned tickets</span><span style="font-weight:700;color:${col}">${supTixCount[s.id]||0}</span></div><div class="wl-tip-row"><span style="color:var(--sub)">Total assigned (period)</span><span style="font-weight:700">${totalAssigned}</span></div><div class="wl-tip-formula">Activity = this supplier's open tickets ÷ all assigned open tickets in period</div></div></div>`;
+    const gc = 'var(--green)';
+    const waS  = iconSVG.wa.replace('ICOL', gc);
+    const smsS = iconSVG.sms.replace('ICOL', gc);
+    const telS = iconSVG.tel.replace('ICOL', gc);
+    const mailS= iconSVG.mail.replace('ICOL', gc);
+    const waBtn   = s.phone ? iBtn(`https://wa.me/${s.phone.replace(/\D/g,'')}`, waS, false)  : iDim(iconSVG.wa.replace('ICOL','var(--muted)'), false);
+    const smsBtn  = s.phone ? iBtn(`sms:${s.phone}`, smsS, false) : iDim(iconSVG.sms.replace('ICOL','var(--muted)'), false);
+    const telBtn  = s.phone ? iBtn(`tel:${s.phone}`, telS, false)  : iDim(iconSVG.tel.replace('ICOL','var(--muted)'), false);
+    const mailBtn = s.email ? iBtn(`mailto:${s.email}`, mailS, true) : iDim(iconSVG.mail.replace('ICOL','var(--muted)'), true);
+    return`<div class="sup-card" style="padding:0;overflow:hidden" onclick="openSupDetail('${s.id}')">
+      <div style="padding:13px 15px 11px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <span class="sup-name" style="color:var(--blue)">${s.name}</span>
+          ${chip}
         </div>
-        <div style="text-align:right;flex-shrink:0;margin-left:12px">
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">Activity</div>
-          <div style="font-size:15px;font-weight:700;color:${actColor}">${actLabel}</div>
-        </div>
+        ${exp.length?`<div style="font-size:12px;color:var(--sub)">${exp.join(', ')}</div>`:''}
+      </div>
+      <div style="display:flex;border-top:1px solid var(--border);border-radius:0 0 var(--r) var(--r);overflow:hidden" onclick="event.stopPropagation()">
+        ${waBtn}${smsBtn}${telBtn}${mailBtn}
       </div>
     </div>`;
   }).join('')+renderPagination('sup',list.length,'goSupPage');
