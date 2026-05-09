@@ -1482,7 +1482,7 @@ const COLS = {
   tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type','timeSpent'],
   suppliers: ['id','name','contact','expertise','ratePerHour','transportCost','phone','email','address','status'],
   inspections:      ['id','buildingId','floorId','categoryId','dateStart','dateEnd','inspector','status','notes'],
-  inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note'],
+  inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note','timeSpent'],
   floors:    ['id','buildingId','label','sortOrder'],
   units:     ['id','floorId','buildingId','label','sortOrder'],
   categories:['id','category','notes'],
@@ -6245,6 +6245,14 @@ function inspRoundItemHTML(item, idx){
         <div class="insp-note-wrap${(isFail||isSkip)?' show':''}" id="insp-note-wrap-${idx}">
           <textarea class="insp-note-inp" id="insp-note-${idx}" placeholder="${isFail?'Describe the issue (required for failures)…':'Reason for skipping (optional)…'}" oninput="onInspNoteInput(${idx})">${item.note||''}</textarea>
         </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 14px 10px">
+          <span style="font-size:12px;color:var(--muted);flex-shrink:0">Time spent</span>
+          <input type="number" id="insp-time-${idx}" min="0" placeholder="0" value="${item.timeSpent||''}" oninput="onInspTimeInput(${idx})" style="flex:1;padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text);background:var(--surface);text-align:center;max-width:70px"/>
+          <select id="insp-time-unit-${idx}" onchange="onInspTimeInput(${idx})" style="padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text);background:var(--surface)">
+            <option value="min"${(!item.timeSpent||item.timeSpent<60||item.timeSpent%60!==0)?' selected':''}>min</option>
+            <option value="hr"${(item.timeSpent&&item.timeSpent>=60&&item.timeSpent%60===0)?' selected':''}>hr</option>
+          </select>
+        </div>
       </div>
     </div>`;
 
@@ -6311,6 +6319,12 @@ function onInspNoteInput(idx){
   const el = document.getElementById('insp-note-' + idx);
   if(el) activeRound.items[idx].note = el.value;
 }
+function onInspTimeInput(idx){
+  if(!activeRound) return;
+  const val=parseFloat(document.getElementById('insp-time-'+idx)?.value)||0;
+  const unit=document.getElementById('insp-time-unit-'+idx)?.value||'min';
+  activeRound.items[idx].timeSpent = unit==='hr' ? Math.round(val*60) : Math.round(val);
+}
 
 /* ── Finish button → summary modal ── */
 function finishInspectionRound(){
@@ -6320,6 +6334,9 @@ function finishInspectionRound(){
   activeRound.items.forEach((item, idx) => {
     const el = document.getElementById('insp-note-' + idx);
     if(el) item.note = el.value;
+    const val=parseFloat(document.getElementById('insp-time-'+idx)?.value)||0;
+    const unit=document.getElementById('insp-time-unit-'+idx)?.value||'min';
+    item.timeSpent = unit==='hr' ? Math.round(val*60) : Math.round(val);
   });
 
   // Validate: any Failed items must have a note (only block if trying to complete)
@@ -6437,6 +6454,9 @@ async function saveInspectionRound(){
   activeRound.items.forEach((item, idx) => {
     const el = document.getElementById('insp-note-' + idx);
     if(el) item.note = el.value;
+    const val=parseFloat(document.getElementById('insp-time-'+idx)?.value)||0;
+    const unit=document.getElementById('insp-time-unit-'+idx)?.value||'min';
+    item.timeSpent = unit==='hr' ? Math.round(val*60) : Math.round(val);
   });
 
   const allApproved = activeRound.items.every(i => i.result === 'Approved');
@@ -6476,6 +6496,7 @@ async function saveInspectionRound(){
     label        : item.label   || '',
     result       : item.result  || 'Open',
     note         : item.note    || '',
+    timeSpent    : item.timeSpent || 0,
   }));
   // Assign sequential IDs (nextId uses current array state, so push one-by-one)
   const numbered = [];
