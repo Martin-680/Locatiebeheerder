@@ -1321,6 +1321,40 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <input type="hidden" id="uf-bldgs"/>
       <div id="uf-bldgs-dd" style="display:none;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface);margin-top:4px;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
     </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block;margin-bottom:6px">Building buckets</label>
+      <div style="display:flex;flex-direction:column;gap:6px">
+
+        <div style="border:1.5px solid var(--border);border-radius:var(--rs);overflow:hidden">
+          <div onclick="ufAccToggle('owned')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;user-select:none;background:var(--surface)">
+            <div style="width:9px;height:9px;border-radius:2px;background:#3B6D11;flex-shrink:0"></div>
+            <span style="font-size:13px;font-weight:600;color:var(--text);flex:1">Owned external</span>
+            <span id="uf-owned-count" style="font-size:11px;color:var(--muted);margin-right:6px">0</span>
+            <span id="uf-owned-chev" style="font-size:12px;color:var(--muted);transition:transform .2s;display:inline-block">▾</span>
+          </div>
+          <div id="uf-owned-body" style="display:none;border-top:1px solid var(--border)">
+            <div id="uf-owned-pills" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;min-height:36px;cursor:pointer" onclick="toggleUfOwnedDropdown()"></div>
+            <input type="hidden" id="uf-bldgs-owned"/>
+            <div id="uf-owned-dd" style="display:none;border-top:1px solid var(--border);max-height:160px;overflow-y:auto"></div>
+          </div>
+        </div>
+
+        <div style="border:1.5px solid var(--border);border-radius:var(--rs);overflow:hidden">
+          <div onclick="ufAccToggle('ext')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;user-select:none;background:var(--surface)">
+            <div style="width:9px;height:9px;border-radius:2px;background:#dc2626;flex-shrink:0"></div>
+            <span style="font-size:13px;font-weight:600;color:var(--text);flex:1">Third-party external</span>
+            <span id="uf-ext-count" style="font-size:11px;color:var(--muted);margin-right:6px">0</span>
+            <span id="uf-ext-chev" style="font-size:12px;color:var(--muted);transition:transform .2s;display:inline-block">▾</span>
+          </div>
+          <div id="uf-ext-body" style="display:none;border-top:1px solid var(--border)">
+            <div id="uf-ext-pills" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;min-height:36px;cursor:pointer" onclick="toggleUfExtDropdown()"></div>
+            <input type="hidden" id="uf-bldgs-external"/>
+            <div id="uf-ext-dd" style="display:none;border-top:1px solid var(--border);max-height:160px;overflow-y:auto"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
     <div class="fg"><label>Active</label><select class="fs2" id="uf-active"><option value="true">Yes</option><option value="false">No</option></select></div>
     <button class="btn-p" onclick="saveUser()">Save User</button>
     <button class="btn-s" onclick="closeMo('mo-usr')">Cancel</button>
@@ -1433,7 +1467,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
-  users:     ['id','name','role','email','phone','buildings','active'],
+  users:     ['id','name','role','email','phone','buildings','buildingsOwned','buildingsExternal','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','manager','phone','email','size'],
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
   tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type'],
@@ -4200,14 +4234,56 @@ function renderUsers(){
     </div>`;
   }).join('')+renderPagination('usr',list.length,'goUsrPage');
 }
+function ufAccToggle(key){
+  const body=document.getElementById(`uf-${key}-body`);
+  const chev=document.getElementById(`uf-${key}-chev`);
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  chev.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+  if(!open){ key==='owned'?populateUfOwnedDropdown():populateUfExtDropdown(); }
+}
+function populateUfBucket(hiddenId, pillsId, ddId, accentColor, toggleFn){
+  const hidden=document.getElementById(hiddenId);
+  const pills=document.getElementById(pillsId);
+  const dd=document.getElementById(ddId);
+  if(!hidden||!pills||!dd) return;
+  const selected=new Set((hidden.value||'').split(',').map(s=>s.trim()).filter(Boolean));
+  pills.innerHTML=selected.size
+    ? [...selected].map(n=>`<span style="display:inline-flex;align-items:center;gap:4px;background:${accentColor}18;color:${accentColor};border:1px solid ${accentColor}33;border-radius:20px;font-size:11px;font-weight:600;padding:2px 8px">${n}<span onclick="${toggleFn}('${n.replace(/'/g,"\\'")}',false,event)" style="cursor:pointer;font-size:13px;line-height:1;margin-left:1px">×</span></span>`).join('')
+    : `<span style="font-size:13px;color:var(--muted)">None assigned</span>`;
+  const key=hiddenId==='uf-bldgs-owned'?'owned':'ext';
+  const countEl=document.getElementById(`uf-${key}-count`);
+  if(countEl) countEl.textContent=selected.size||'0';
+  dd.innerHTML=[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>{
+    const chk=selected.has(b.name)?'checked':'';
+    return`<label style="display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)"><input type="checkbox" ${chk} onchange="${toggleFn}('${b.name.replace(/'/g,"\\'")}',this.checked,null)" style="accent-color:${accentColor};width:15px;height:15px">${b.name}</label>`;
+  }).join('');
+}
+function populateUfOwnedDropdown(){ populateUfBucket('uf-bldgs-owned','uf-owned-pills','uf-owned-dd','#3B6D11','ufOwnedToggle'); }
+function populateUfExtDropdown(){ populateUfBucket('uf-bldgs-external','uf-ext-pills','uf-ext-dd','#dc2626','ufExtToggle'); }
+function toggleUfOwnedDropdown(){ const dd=document.getElementById('uf-owned-dd'); dd.style.display=dd.style.display==='none'?'block':'none'; if(dd.style.display==='block') populateUfOwnedDropdown(); }
+function toggleUfExtDropdown(){ const dd=document.getElementById('uf-ext-dd'); dd.style.display=dd.style.display==='none'?'block':'none'; if(dd.style.display==='block') populateUfExtDropdown(); }
+function ufBucketToggle(hiddenId, name, checked, e, refreshFn){
+  if(e) e.stopPropagation();
+  const hidden=document.getElementById(hiddenId);
+  if(!hidden) return;
+  const selected=new Set((hidden.value||'').split(',').map(s=>s.trim()).filter(Boolean));
+  checked ? selected.add(name) : selected.delete(name);
+  hidden.value=[...selected].join(', ');
+  refreshFn();
+}
+function ufOwnedToggle(name,checked,e){ ufBucketToggle('uf-bldgs-owned',name,checked,e,populateUfOwnedDropdown); }
+function ufExtToggle(name,checked,e){ ufBucketToggle('uf-bldgs-external',name,checked,e,populateUfExtDropdown); }
 function openNewUser(){
   if(!can('canManageUsers')) return;
   editingId.usr=null;
   document.getElementById('usr-modal-title').textContent='Add User';
-  ['uf-name','uf-email','uf-phone','uf-bldgs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['uf-name','uf-email','uf-phone','uf-bldgs','uf-bldgs-owned','uf-bldgs-external'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('uf-role').value='Maintenance Tech';
   document.getElementById('uf-active').value='true';
-  populateUfBldgDropdown();
+  ['uf-owned-body','uf-ext-body'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  ['uf-owned-chev','uf-ext-chev'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.transform='rotate(0deg)';});
+  populateUfBldgDropdown(); populateUfOwnedDropdown(); populateUfExtDropdown();
   openMo('mo-usr');
 }
 function editUser(id){
@@ -4220,7 +4296,11 @@ function editUser(id){
   document.getElementById('uf-role').value=u.role;
   document.getElementById('uf-phone').value=u.phone||'';
   document.getElementById('uf-bldgs').value=u.buildings||'';
-  populateUfBldgDropdown();
+  document.getElementById('uf-bldgs-owned').value=u.buildingsOwned||'';
+  document.getElementById('uf-bldgs-external').value=u.buildingsExternal||'';
+  ['uf-owned-body','uf-ext-body'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  ['uf-owned-chev','uf-ext-chev'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.transform='rotate(0deg)';});
+  populateUfBldgDropdown(); populateUfOwnedDropdown(); populateUfExtDropdown();
   document.getElementById('uf-active').value=u.active?'true':'false';
   openMo('mo-usr');
 }
@@ -4262,7 +4342,7 @@ async function saveUser(){
   const name=document.getElementById('uf-name').value.trim();
   const email=document.getElementById('uf-email').value.trim().toLowerCase();
   if(!name||!email){toast('Name and email required','err');return;}
-  const data={name,role:document.getElementById('uf-role').value,email,phone:document.getElementById('uf-phone').value,buildings:document.getElementById('uf-bldgs').value.split(',').map(s=>s.trim()).filter(Boolean).join(', '),active:document.getElementById('uf-active').value==='true'};
+  const data={name,role:document.getElementById('uf-role').value,email,phone:document.getElementById('uf-phone').value,buildings:document.getElementById('uf-bldgs').value.split(',').map(s=>s.trim()).filter(Boolean).join(', '),buildingsOwned:document.getElementById('uf-bldgs-owned').value.split(',').map(s=>s.trim()).filter(Boolean).join(', '),buildingsExternal:document.getElementById('uf-bldgs-external').value.split(',').map(s=>s.trim()).filter(Boolean).join(', '),active:document.getElementById('uf-active').value==='true'};
   if(editingId.usr){ Object.assign(DB.users.find(x=>x.id===editingId.usr),data); }
   else { DB.users.push({id:nextId(DB.users,'USR'),...data}); }
   // Keep currentUser in sync if the signed-in user edited their own record
