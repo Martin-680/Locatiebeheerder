@@ -688,6 +688,17 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
+    <div id="insp-round-time-strip" style="display:none;margin:0 14px 8px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Verwacht</div>
+        <div id="insp-round-expected" style="font-size:16px;font-weight:700;color:var(--text)">—</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Werkelijk</div>
+        <div id="insp-round-actual" style="font-size:16px;font-weight:700;color:var(--green)">—</div>
+        <div id="insp-round-actual-sub" style="font-size:10px;color:var(--muted)"></div>
+      </div>
+    </div>
     <div class="insp-progress-bar-wrap"><div class="insp-progress-bar-fill" id="insp-round-progbar" style="width:0%"></div></div>
     <div class="insp-counter" id="insp-round-counter"></div>
     <div style="display:flex;gap:6px;padding:8px 14px 4px;flex-shrink:0">
@@ -1296,6 +1307,10 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fg"><label>Purchase Date</label><input class="fi2" type="date" id="af-pdate"/></div>
       <div class="fg"><label>Last Serviced</label><input class="fi2" type="date" id="af-lsvc"/></div>
     </div>
+    <div class="frow2">
+      <div class="fg"><label>Inspection time (min)</label><input class="fi2" type="number" min="0" id="af-insptime" placeholder="e.g. 45"/></div>
+      <div class="fg"></div>
+    </div>
     <button class="btn-p" onclick="saveAst()">Save Asset</button>
     <button class="btn-p" id="ast-dup-btn" onclick="duplicateAst()" style="background:#EEF2FF;color:var(--indigo);">Duplicate</button>
     <button class="btn-s" onclick="closeMo('mo-ast')">Cancel</button>
@@ -1479,7 +1494,7 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','buildingsOwned','buildingsExternal','active'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','manager','phone','email','size'],
-  assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced'],
+  assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced','inspectionTime'],
   tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type','timeSpent'],
   suppliers: ['id','name','contact','expertise','ratePerHour','transportCost','phone','email','address','status'],
   inspections:      ['id','buildingId','floorId','categoryId','dateStart','dateEnd','inspector','status','notes'],
@@ -4245,7 +4260,7 @@ function openNewAsset(){
   editingId.ast=null;
   document.getElementById('ast-modal-title').textContent='New Asset';
   document.getElementById('ast-dup-btn').style.display='none';
-  ['af-name','af-mfr','af-model','af-warr','af-pdate','af-lsvc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['af-name','af-mfr','af-model','af-warr','af-pdate','af-lsvc','af-insptime'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('af-status').value='Active';
   document.getElementById('af-loc').innerHTML='<option value="">— Select unit —</option>';
   populateBldSelect('af-bldg');
@@ -4286,6 +4301,7 @@ function editAst(id){
   document.getElementById('af-warr').value=a.warrantyExpiry||'';
   document.getElementById('af-pdate').value=a.purchaseDate||'';
   document.getElementById('af-lsvc').value=a.lastServiced||'';
+  document.getElementById('af-insptime').value=a.inspectionTime||'';
   openMo('mo-ast');
 }
 async function saveAst(){
@@ -4318,6 +4334,7 @@ async function saveAst(){
     warrantyExpiry: document.getElementById('af-warr').value,
     purchaseDate: document.getElementById('af-pdate').value,
     lastServiced: document.getElementById('af-lsvc').value,
+    inspectionTime: parseInt(document.getElementById('af-insptime').value)||0,
   };
   // Resolved display fields merged on top for in-memory use
   const data = {
@@ -6270,7 +6287,7 @@ function launchInspectionRound(){
       if(inspType === 'category' && cat && cat !== 'All' && a.category !== cat) return false;
       return true;
     });
-    items = assets.map(a => ({ type:'asset', assetId:a.id, label:a.label||a.name, category:a.category, unit:a.unit||'', floor:a.floor||'', result:'Open', note:'' }));
+    items = assets.map(a => ({ type:'asset', assetId:a.id, label:a.label||a.name, category:a.category, unit:a.unit||'', floor:a.floor||'', result:'Open', note:'', expectedTime: parseInt(a.inspectionTime)||0 }));
   }
 
   if(!items.length){ toast('No items match this selection','err'); return; }
@@ -6316,6 +6333,8 @@ function setRoundToggle(val){
 }
 
 /* ── Render the full checklist ── */
+function fmtRoundMins(m){ if(!m) return '—'; const h=Math.floor(m/60); const min=m%60; return h>0?(min>0?`${h}u ${min}m`:`${h}u`):`${m}m`; }
+
 function renderRound(){
   if(!activeRound) return;
   const items  = activeRound.items;
@@ -6325,6 +6344,21 @@ function renderRound(){
 
   document.getElementById('insp-round-progbar').style.width = pct + '%';
   document.getElementById('insp-round-counter').textContent = `${checked} of ${total} checked · ${pct}%`;
+
+  // Time totals strip
+  const expectedTotal = items.reduce((s,i) => s + (parseInt(i.expectedTime)||0), 0);
+  const actualItems   = items.filter(i => parseInt(i.timeSpent) > 0);
+  const actualTotal   = actualItems.reduce((s,i) => s + (parseInt(i.timeSpent)||0), 0);
+  const strip = document.getElementById('insp-round-time-strip');
+  const expEl = document.getElementById('insp-round-expected');
+  const actEl = document.getElementById('insp-round-actual');
+  const actSub= document.getElementById('insp-round-actual-sub');
+  if(strip){
+    strip.style.display = expectedTotal > 0 ? 'grid' : 'none';
+    if(expEl) expEl.textContent = fmtRoundMins(expectedTotal);
+    if(actEl) actEl.textContent = actualTotal > 0 ? fmtRoundMins(actualTotal) : '—';
+    if(actSub) actSub.textContent = actualItems.length > 0 ? `${actualItems.length} van ${total} ingevuld` : '';
+  }
 
   const filtered = roundToggle === 'failpend' ? items.filter(i => i.result === 'Failed' || i.result === 'Open')
                  : roundToggle === 'assets'   ? items.filter(i => i.type !== 'unit')
@@ -6411,11 +6445,12 @@ function inspRoundItemHTML(item, idx){
         </div>
         <div style="display:flex;align-items:center;gap:8px;padding:8px 14px 10px">
           <span style="font-size:12px;color:var(--muted);flex-shrink:0">Time spent</span>
-          <input type="number" id="insp-time-${idx}" min="0" placeholder="0" value="${item.timeSpent||''}" oninput="onInspTimeInput(${idx})" style="flex:1;padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text);background:var(--surface);text-align:center;max-width:70px"/>
+          <input type="number" id="insp-time-${idx}" min="0" placeholder="${item.expectedTime||0}" value="${item.timeSpent||''}" oninput="onInspTimeInput(${idx})" style="flex:1;padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text);background:var(--surface);text-align:center;max-width:70px"/>
           <select id="insp-time-unit-${idx}" onchange="onInspTimeInput(${idx})" style="padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text);background:var(--surface)">
             <option value="min"${(!item.timeSpent||item.timeSpent<60||item.timeSpent%60!==0)?' selected':''}>min</option>
             <option value="hr"${(item.timeSpent&&item.timeSpent>=60&&item.timeSpent%60===0)?' selected':''}>hr</option>
           </select>
+          ${item.expectedTime ? `<span style="font-size:11px;color:var(--muted);white-space:nowrap">(verwacht ${item.expectedTime}m)</span>` : ''}
         </div>
       </div>
     </div>`;
