@@ -688,7 +688,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
-    <div id="insp-round-time-strip" style="display:none;margin:0 14px 8px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div id="insp-round-time-strip" style="margin:0 14px 8px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px">
         <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Verwacht</div>
         <div id="insp-round-expected" style="font-size:16px;font-weight:700;color:var(--text)">—</div>
@@ -6354,8 +6354,7 @@ function renderRound(){
   const actEl = document.getElementById('insp-round-actual');
   const actSub= document.getElementById('insp-round-actual-sub');
   if(strip){
-    strip.style.display = expectedTotal > 0 ? 'grid' : 'none';
-    if(expEl) expEl.textContent = fmtRoundMins(expectedTotal);
+    if(expEl) expEl.textContent = expectedTotal > 0 ? fmtRoundMins(expectedTotal) : '—';
     if(actEl) actEl.textContent = actualTotal > 0 ? fmtRoundMins(actualTotal) : '—';
     if(actSub) actSub.textContent = actualItems.length > 0 ? `${actualItems.length} van ${total} ingevuld` : '';
   }
