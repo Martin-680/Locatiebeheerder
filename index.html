@@ -3218,7 +3218,7 @@ function applyTixFilterModal(){
   renderTix();
 }
 function updateTixFilterBadge(){
-  const filterIds = ['sel-tix-status','sel-tix-cat','sel-tix-sup','sel-tix-type'];
+  const filterIds = ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-sup','sel-tix-type','sel-tix-bldg','sel-tix-floor'];
   const sortDefault = 'newest';
   const dateFrom = document.getElementById('sel-tix-date-from')?.value || '';
   const dateTo   = document.getElementById('sel-tix-date-to')?.value   || '';
@@ -3319,7 +3319,7 @@ function applyInspFilterModal(){
   renderInspections();
 }
 function updateInspFilterBadge(){
-  const ids=['sel-insp-status','sel-insp-inspector','sel-insp-result','sel-insp-cat'];
+  const ids=['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-inspector','sel-insp-result','sel-insp-cat'];
   const inspDateFrom = document.getElementById('sel-insp-date-from')?.value || '';
   const inspDateTo   = document.getElementById('sel-insp-date-to')?.value   || '';
   const active=ids.filter(id=>(document.getElementById(id)?.value||'All')!=='All').length
