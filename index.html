@@ -1531,7 +1531,7 @@ const COLS = {
   users:     ['id','name','role','email','phone','buildings','buildingsOwned','buildingsExternal','active','daysOff'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','manager','phone','email','size'],
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced','inspectionTime'],
-  tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type','timeSpent'],
+  tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type','timeSpent','dueDate'],
   suppliers: ['id','name','contact','expertise','ratePerHour','transportCost','phone','email','address','status'],
   inspections:      ['id','buildingId','floorId','categoryId','dateStart','dateEnd','inspector','status','notes'],
   inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note','timeSpent'],
@@ -2379,7 +2379,7 @@ function openAlerts(){
   const tixRow = (t, onclick) => `<div onclick="${onclick}" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:10px 13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px">
     <div style="min-width:0;flex:1">
       <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.subject}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px">${t.building||'—'} &middot; ${daysSince(t.dateOpened)}d open</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">${t.building||'—'} &middot; ${daysSince(t.dateOpened)}d open${t.dueDate&&t.status!=='Closed'?(t.dueDate<today.toISOString().split('T')[0]?' · <span style="color:var(--red);font-weight:600">⚠️ Overdue</span>':' · Due '+df(t.dueDate)):''}</div>
     </div>
     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--muted)"><polyline points="9 18 15 12 9 6"/></svg>
   </div>`;
@@ -3793,6 +3793,7 @@ function openTixDetail(id){
       <div class="dr"><span class="dk">Assigned To</span><span class="dv">${t.assignedTo||'—'}</span></div>
       <div class="dr"><span class="dk">Opened</span><span class="dv">${df(t.dateOpened)}</span></div>
       ${t.status==='Closed'?`<div class="dr"><span class="dk">Closed</span><span class="dv">${df(t.dateClosed)}</span></div>`:`<div class="dr"><span class="dk">Days Open</span><span class="dv" style="color:var(--amber)">${daysSince(t.dateOpened)} days</span></div>`}
+      ${t.dueDate?`<div class="dr"><span class="dk">Due date</span><span class="dv" style="color:${t.status!=='Closed'&&t.dueDate<today.toISOString().split('T')[0]?'var(--red)':'var(--text)'}">${df(t.dueDate)}${t.status!=='Closed'&&t.dueDate<today.toISOString().split('T')[0]?' ⚠️ Overdue':''}</span></div>`:''}
       <div class="dr"><span class="dk">Asset</span><span class="dv">${ast?ast.id+' – '+ast.name:'None'}</span></div>
       <div class="dr"><span class="dk">Supplier</span><span class="dv">${sup?`<span style="color:var(--pink)">${sup.name}</span> <span style="font-size:11px;color:var(--muted)">(€ ${sup.ratePerHour}/hr)</span>`:'None'}</span></div>
       ${sup?`<div class="dr"><span class="dk">Sup. Phone</span><span class="dv">${sup.phone?`<a href="tel:${sup.phone}" style="color:var(--blue)">${sup.phone}</a>`:'—'}</span></div>`:''}
@@ -6883,15 +6884,34 @@ function finishInspectionRound(){
   if(saveBtn){
     if(canComplete){
       saveBtn.textContent = 'Complete Round';
-      saveBtn.style.opacity = '';
-      saveBtn.style.pointerEvents = '';
-      saveBtn.onclick = saveInspectionRound;
     } else {
       saveBtn.textContent = 'Save as In Progress';
-      saveBtn.style.opacity = '';
-      saveBtn.style.pointerEvents = '';
-      saveBtn.onclick = saveInspectionRound;
     }
+    saveBtn.style.opacity = '';
+    saveBtn.style.pointerEvents = '';
+    saveBtn.onclick = saveInspectionRound;
+  }
+
+  // Populate failed items checklist
+  const tixSection = document.getElementById('insp-ticket-section');
+  const checklist  = document.getElementById('insp-fail-checklist');
+  const dueLabel   = document.getElementById('insp-due-label');
+  if(tixSection && checklist && failedItems.length && can('canCreateTickets')){
+    const dueDate = new Date(today); dueDate.setDate(dueDate.getDate()+14);
+    const dueFmt  = dueDate.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+    if(dueLabel) dueLabel.textContent = dueFmt;
+    checklist.innerHTML = failedItems.map((item,i)=>`
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-bottom:0.5px solid var(--border);cursor:pointer" ${i===failedItems.length-1?'style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;cursor:pointer"':''}>
+        <input type="checkbox" class="insp-fail-chk" data-idx="${i}" checked style="width:15px;height:15px;margin-top:2px;accent-color:var(--blue);flex-shrink:0">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${item.label}</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:1px">${item.floor?item.floor+' · ':''}${item.category||''}</div>
+          ${item.note?`<div style="font-size:11px;color:#92400e;background:#FEF3C7;border-radius:4px;padding:2px 6px;margin-top:4px;display:inline-block">${item.note}</div>`:''}
+        </div>
+      </label>`).join('');
+    tixSection.style.display = '';
+  } else if(tixSection){
+    tixSection.style.display = 'none';
   }
 
   openMo('mo-insp-summary');
@@ -7014,6 +7034,66 @@ async function saveInspectionRound(){
   } catch(e){
     toast('Save failed – check Sheets permissions','err');
     return;
+  }
+
+  // Create tickets for checked failed items
+  const chks = document.querySelectorAll('.insp-fail-chk:checked');
+  if(chks.length && can('canCreateTickets')){
+    const failedItems = (activeRound?.items||[]).filter(i=>i.result==='Failed');
+    const dueDate = new Date(today); dueDate.setDate(dueDate.getDate()+14);
+    const dueDateStr = dueDate.toISOString().split('T')[0];
+    const todayStr2 = today.toISOString().split('T')[0];
+    const inspBld2 = DB.buildings.find(b=>b.name===(activeRound?.building||''));
+    const createdTickets = [];
+    chks.forEach(chk=>{
+      const idx = parseInt(chk.dataset.idx);
+      const item = failedItems[idx]; if(!item) return;
+      const asset = item.assetId ? DB.assets.find(a=>a.id===item.assetId) : null;
+      const unit  = item.unitId  ? DB.units.find(u=>u.id===item.unitId)   : null;
+      const flr   = asset ? DB.floors.find(f=>f.id===asset.floorId) : unit ? DB.floors.find(f=>f.id===unit.floorId) : null;
+      const cat   = DB.categories.find(c=>c.category===item.category);
+      const tix = {
+        id         : nextId(DB.tickets,'TIX'),
+        buildingId : inspBld2?.id || '',
+        floorId    : flr?.id || '',
+        unitId     : unit?.id || '',
+        assetId    : asset?.id || '',
+        subject    : `${item.label} — Failed inspection`,
+        status     : 'Open',
+        priority   : 'High',
+        categoryId : cat?.id || '',
+        assignedTo : '',
+        dateOpened : todayStr2,
+        dateClosed : '',
+        supplierId : '',
+        reportedBy : currentUser?.name || '',
+        notes      : item.note || '',
+        createdBy  : currentUser?.name || '',
+        activity   : JSON.stringify([{date:todayStr2,user:currentUser?.name||'',text:'Ticket created from failed inspection item.'}]),
+        type       : 'Inspection',
+        timeSpent  : '',
+        dueDate    : dueDateStr,
+      };
+      DB.tickets.unshift(tix);
+      createdTickets.push(tix);
+    });
+    if(createdTickets.length){
+      try {
+        await writeSheet('tickets');
+      } catch(e){ toast('Tickets save failed','err'); }
+      // Show confirmation modal
+      const body = document.getElementById('insp-tickets-created-body');
+      if(body){
+        body.innerHTML = `<div style="font-size:13px;color:var(--sub);padding:8px 0 12px">${createdTickets.length} ticket${createdTickets.length!==1?'s':''} created from inspection round and added to ${activeRound?.building||''}:</div>`
+          + createdTickets.map(t=>`<div style="background:#EFF6FF;border:0.5px solid #BFDBFE;border-radius:var(--rs);padding:10px 12px;margin-bottom:8px">
+            <div style="font-size:12px;font-weight:600;color:var(--text)">${t.subject}</div>
+            <div style="font-size:11px;color:var(--sub);margin-top:2px">Open · Due ${new Date(t.dueDate+'T00:00:00').toLocaleDateString('nl-NL',{day:'numeric',month:'long'})} · ${DB.categories.find(c=>c.id===t.categoryId)?.category||''}</div>
+          </div>`).join('');
+      }
+      activeRound = null;
+      openMo('mo-insp-tickets-created');
+      return;
+    }
   }
 
   activeRound = null;
@@ -7812,12 +7892,29 @@ function calPlanTicket(dateStr){
 
 <!-- Inspection Round Summary -->
 <div class="mo" id="mo-insp-summary" onclick="mcClick(event,'mo-insp-summary')">
-  <div class="ms">
+  <div class="ms" style="max-height:90vh;overflow-y:auto">
     <div class="mh"></div>
     <div class="mt"><span>Round Complete</span><button class="mt-close" onclick="closeMo('mo-insp-summary')">✕</button></div>
     <div id="insp-summary-body" style="padding:0 18px 12px"></div>
+    <div id="insp-ticket-section" style="display:none;padding:0 18px 0">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Create tickets for failed items</div>
+      <div id="insp-fail-checklist" style="border:1.5px solid var(--border);border-radius:var(--rs);overflow:hidden;margin-bottom:10px"></div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:12px">🗓 Due date automatically set to <strong id="insp-due-label"></strong> (today + 14 days)</div>
+    </div>
     <button class="btn-p" id="insp-save-btn" onclick="saveInspectionRound()">Save Round</button>
     <button class="btn-s" onclick="closeMo('mo-insp-summary')">Keep Reviewing</button>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+<!-- Ticket created confirmation modal -->
+<div class="mo" id="mo-insp-tickets-created" onclick="mcClick(event,'mo-insp-tickets-created')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt"><span>Tickets Created</span><button class="mt-close" onclick="closeMo('mo-insp-tickets-created')">✕</button></div>
+    <div id="insp-tickets-created-body" style="padding:0 18px 12px"></div>
+    <button class="btn-p" onclick="closeMo('mo-insp-tickets-created');navTo('tickets')">Go to tickets →</button>
+    <button class="btn-s" onclick="closeMo('mo-insp-tickets-created')">Close</button>
     <div style="height:8px"></div>
   </div>
 </div>
