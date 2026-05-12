@@ -1362,8 +1362,8 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <input type="hidden" id="uf-bldgs"/>
       <div id="uf-bldgs-dd" style="display:none;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface);margin-top:4px;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
     </div>
-    <div style="margin-bottom:12px">
-      <label style="display:block;margin-bottom:6px">Building buckets</label>
+    <div class="fg">
+      <label>Building buckets</label>
       <div style="display:flex;flex-direction:column;gap:6px">
 
         <div style="border:1.5px solid var(--border);border-radius:var(--rs);overflow:hidden">
@@ -1397,14 +1397,16 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="fg"><label>Active</label><select class="fs2" id="uf-active"><option value="true">Yes</option><option value="false">No</option></select></div>
-    <div id="uf-daysoff-section" style="display:none;border-top:1px solid var(--border);margin-top:10px;padding-top:14px;">
-      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">Vrije dagen</div>
-      <div id="uf-daysoff-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+    <div id="uf-daysoff-section" style="display:none;border-top:1px solid var(--border);">
+    <div class="fg" style="padding-top:14px;">
+      <label>Vrije dagen</label>
+      <div id="uf-daysoff-list" style="display:flex;flex-direction:column;gap:6px;"></div>
       <div style="display:flex;gap:8px;align-items:center;">
         <input type="date" id="uf-dayoff-input" style="flex:1;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);color:var(--text);">
         <button onclick="addDayOff()" style="padding:6px 12px;font-size:12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;">+ Toevoegen</button>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px;">Vrije dagen op feestdagen tellen al niet mee.</div>
+      <div style="font-size:11px;color:var(--muted);">Vrije dagen op feestdagen tellen al niet mee.</div>
+    </div>
     </div>
     <button class="btn-p" onclick="saveUser()">Save User</button>
     <button class="btn-s" onclick="closeMo('mo-usr')">Cancel</button>
