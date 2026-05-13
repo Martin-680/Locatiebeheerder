@@ -643,7 +643,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
   <div id="screen-inspections" class="screen">
     <div class="topbar">
       <div class="topbar-inner">
-        <div class="topbar-left"><div class="topbar-title">Inspect.</div><div class="topbar-sub" id="insp-lbl"></div></div>
+        <div class="topbar-left"><div class="topbar-title">Inspecties</div><div class="topbar-sub" id="insp-lbl"></div></div>
         <div class="topbar-actions">
           <button class="ib" id="insp-clear-btn" onclick="clearInspFilters()" title="Clear filters" style="opacity:.35;pointer-events:none;transition:opacity .2s" style="background:#E6F1FB;border:1px solid #B5D4F4;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <button class="ib" id="insp-filter-btn" onclick="openInspFilterModal()" title="Filters" style="position:relative"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg><span id="insp-filter-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:1px 4px;border-radius:20px;pointer-events:none"></span></button>
@@ -693,7 +693,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="topbar">
       <div class="topbar-inner">
         <div class="topbar-left">
-          <div class="topbar-title" id="insp-round-title">Inspection Round</div>
+          <div class="topbar-title" id="insp-round-title">Inspectieronde</div>
           <div class="topbar-sub" id="insp-round-sub"></div>
         </div>
         <div class="topbar-actions">
@@ -4378,7 +4378,7 @@ function renderAst(){
   });
   if(q) list=list.filter(a=>a.name.toLowerCase().includes(q)||a.building.toLowerCase().includes(q)||a.id.toLowerCase().includes(q));
   list.sort((a,z)=>{ const c=a.name.localeCompare(z.name); return astSort==='asc'?c:-c; });
-  document.getElementById('ast-lbl').textContent=`${list.length} asset${list.length!==1?'s':''}`;
+  document.getElementById('ast-lbl').textContent=`${list.length} middel${list.length!==1?'en':''}`;
   const c=document.getElementById('ast-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div style="font-size:13px">No assets found</div></div>';return;}
   const page=pages.ast;
@@ -4955,7 +4955,7 @@ function renderUnits(){
     return unitSort === 'asc' ? cmp : -cmp;
   });
 
-  document.getElementById('unit-lbl').textContent = `${list.length} unit${list.length!==1?'s':''}`;
+  document.getElementById('unit-lbl').textContent = `${list.length} eenheid${list.length!==1?'en':''}`;
   const c = document.getElementById('unit-list');
 
   if(!list.length){
@@ -5304,7 +5304,7 @@ function renderFloors(){
     return floorSort === 'asc' ? cmp : -cmp;
   });
 
-  document.getElementById('floor-lbl').textContent = `${list.length} floor${list.length!==1?'s':''}`;
+  document.getElementById('floor-lbl').textContent = `${list.length} verdieping${list.length!==1?'en':''}`;
   const c = document.getElementById('floor-list');
 
   if(!list.length){
@@ -5794,7 +5794,7 @@ function renderBlds(){
   const _bldBldIds=getUserBuildingIds(); if(_bldBldIds.size) list=list.filter(b=>_bldBldIds.has(b.id));
   if(statusVal==='Active')  list=list.filter(b=>!DB.tickets.some(t=>t.building===b.name&&t.status!=='Closed'));
   if(statusVal==='Issues')  list=list.filter(b=> DB.tickets.some(t=>t.building===b.name&&t.status!=='Closed'));
-  document.getElementById('bld-lbl').textContent=`${list.length} building${list.length!==1?'s':''}`;
+  document.getElementById('bld-lbl').textContent=`${list.length} gebouw${list.length!==1?'en':''}`;
   const c=document.getElementById('bld-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div><div style="font-size:13px">No buildings yet</div></div>';return;}
   const totalTix  = list.reduce((a,b)=>a+DB.tickets.filter(t=>t.building===b.name&&t.status!=='Closed').length,0)||1;
@@ -5968,7 +5968,7 @@ function renderSuppliers(){
   if(sortVal==='asc') list.sort((a,b)=>(actPct(a.id)??-1)-(actPct(b.id)??-1));
   else if(sortVal==='desc') list.sort((a,b)=>(actPct(b.id)??-1)-(actPct(a.id)??-1));
   else list.sort((a,b)=>a.name.localeCompare(b.name));
-  document.getElementById('sup-lbl').textContent=`${list.length} supplier${list.length!==1?'s':''}`;
+  document.getElementById('sup-lbl').textContent=`${list.length} leverancier${list.length!==1?'s':''}`;
   const c=document.getElementById('sup-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-6-7 6v3l-4-3v12z"/><path d="M17 20v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/></svg></div><div style="font-size:13px">No suppliers found</div></div>';return;}
   const page=pages.sup;
@@ -6252,7 +6252,7 @@ function renderInspections(){
           <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
         </svg>
       </div>
-      <div style="font-size:13px">Geen inspectieroonden gevonden</div>
+      <div style="font-size:13px">Geen inspectieronden gevonden</div>
       ${can('canStartInspection') ? `<button onclick="openStartInspection()" style="margin-top:8px;padding:10px 20px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:13px;font-weight:700;color:#fff"> Eerste ronde starten</button>` : ''}
     </div>`;
     return;
@@ -7508,7 +7508,7 @@ function renderCategoryList(){
 
 function openAddCategory(){
   editingCatId = null;
-  document.getElementById('cat-form-title').textContent = 'Add Category';
+  document.getElementById('cat-form-title').textContent = 'Categorie toevoegen';
   document.getElementById('cat-inp').value = '';
   document.getElementById('cat-notes').value = '';
   document.getElementById('cat-form-section').style.display = 'block';
@@ -7518,7 +7518,7 @@ function openAddCategory(){
 function openEditCategory(id){
   const c = DB.categories.find(x=>x.id===id); if(!c) return;
   editingCatId = id;
-  document.getElementById('cat-form-title').textContent = 'Edit Category';
+  document.getElementById('cat-form-title').textContent = 'Categorie bewerken';
   document.getElementById('cat-inp').value = c.category;
   document.getElementById('cat-notes').value = c.notes || '';
   document.getElementById('cat-form-section').style.display = 'block';
@@ -7853,11 +7853,11 @@ function calDayClick(dateStr){
       </div>`;
     });
     if(isFuture){
-      html += `<div style="padding:14px 18px 6px;font-size:13px;color:var(--sub)">Plan another appointment:</div>${planBtns}`;
+      html += `<div style="padding:14px 18px 6px;font-size:13px;color:var(--sub)">Nog een afspraak plannen:</div>${planBtns}`;
     }
   } else {
     html = `<div style="padding:20px 18px 8px;text-align:center;color:var(--sub);font-size:13px;line-height:1.6">
-      Nothing available yet.<br>Plan uw afspraak:
+      Nog geen afspraken.<br>Plan uw afspraak:
     </div>${planBtns}`;
   }
   document.getElementById('cal-day-body').innerHTML = html;
@@ -8046,7 +8046,7 @@ function calPlanTicket(dateStr){
     <div class="mt">
       <span style="display:flex;align-items:center;gap:8px">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--indigo)"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-        Manage Categories
+        Categorieën beheren
       </span>
       <button class="mt-close" onclick="closeMo('mo-categories')">✕</button>
     </div>
@@ -8058,18 +8058,18 @@ function calPlanTicket(dateStr){
     <div style="padding:14px 18px 4px">
       <button onclick="openAddCategory()" style="width:100%;padding:12px;background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:var(--rs);font-size:14px;font-weight:700;color:var(--indigo);display:flex;align-items:center;justify-content:center;gap:8px">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Category
+        Categorie toevoegen
       </button>
     </div>
 
     <!-- Inline add/edit form (hidden by default) -->
     <div id="cat-form-section" style="display:none;padding:0 18px 4px;border-top:1px solid var(--border);margin-top:8px">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:14px 0 8px" id="cat-form-title">Add Category</div>
-      <input class="fi2" id="cat-inp" placeholder="e.g. Fire Safety" onkeydown="if(event.key==='Enter'){event.preventDefault();saveCategory();}" style="margin-bottom:10px"/>
-      <input class="fi2" id="cat-notes" placeholder="Helper text (optional)…" style="margin-bottom:10px;font-size:12px"/>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:14px 0 8px" id="cat-form-title">Categorie toevoegen</div>
+      <input class="fi2" id="cat-inp" placeholder="bijv. Brandveiligheid" onkeydown="if(event.key==='Enter'){event.preventDefault();saveCategory();}" style="margin-bottom:10px"/>
+      <input class="fi2" id="cat-notes" placeholder="Helptext (optioneel)…" style="margin-bottom:10px;font-size:12px"/>
       <div style="display:flex;gap:9px">
-        <button onclick="saveCategory()" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:14px;font-weight:700;color:#fff">Save</button>
-        <button onclick="cancelCategoryForm()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Cancel</button>
+        <button onclick="saveCategory()" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:14px;font-weight:700;color:#fff">Opslaan</button>
+        <button onclick="cancelCategoryForm()" style="flex:1;padding:13px;background:#F8FAFF;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:600;color:var(--sub)">Annuleren</button>
       </div>
     </div>
 
