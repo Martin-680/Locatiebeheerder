@@ -2630,11 +2630,11 @@ function renderDash(){
       const capH   = (capMins/60).toFixed(1).replace('.',',');
       const remH   = (remMins/60).toFixed(1).replace('.',',');
       const holidayHtml = wpFull.holidays.length
-        ? `<div style="margin-top:6px;font-size:11px;color:var(--muted)">🇳🇱 ${[...new Set(wpFull.holidays)].join(', ')}</div>`
+        ? `<div style="display:flex;align-items:flex-start;gap:5px;margin-top:6px"><span style="flex-shrink:0;line-height:1.5">🇳🇱</span><span style="font-size:11px;color:var(--muted);line-height:1.5">${[...new Set(wpFull.holidays)].join(', ')}</span></div>`
         : '';
       const daysOffInPeriod = wpFull.daysOff||[];
       const daysOffHtml = daysOffInPeriod.length
-        ? `<div style="margin-top:4px;font-size:11px;color:var(--muted)">🌴 ${daysOffInPeriod.map(ds=>{const d=new Date(ds+'T00:00:00');return d.toLocaleDateString('nl-NL',{day:'numeric',month:'short'});}).join(', ')}</div>`
+        ? `<div style="display:flex;align-items:flex-start;gap:5px;margin-top:4px"><span style="flex-shrink:0;line-height:1.5">🌴</span><span style="font-size:11px;color:var(--muted);line-height:1.5">${daysOffInPeriod.map(ds=>{const d=new Date(ds+'T00:00:00');return d.toLocaleDateString('nl-NL',{day:'numeric',month:'short'});}).join(', ')}</span></div>`
         : '';
       capEl.innerHTML = `
         <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:14px">
