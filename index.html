@@ -1455,7 +1455,7 @@ const SHEET_ID    = '1UkjXu3yOwPWlb1bKjMnXuCrYkxsvzC6wBZ48nPr1P4A';
 const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email openid';
 
 /* Sheet tab names — must match exactly what you created */
-const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', inspectionItems:'InspectionItems', floors:'Floors', units:'Units', categories:'Categories', logs:'Logs', inspectionTemplates:'InspectionTemplates' };
+const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', inspectionItems:'InspectionItems', floors:'Floors', units:'Units', categories:'Categories', inspectionTemplates:'InspectionTemplates' };
 
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
@@ -1469,7 +1469,6 @@ const COLS = {
   floors:    ['id','buildingId','label','sortOrder','inspectionTime'],
   units:     ['id','floorId','buildingId','label','sortOrder','inspectionTime'],
   categories:['id','category','notes'],
-  logs:      ['id','date','subject','supplierId','buildingId','floorId','unitId','assetId','note','type','status','categoryId'],
   inspectionTemplates: ['id','name','buildingId','types','floors','categories','units','assets'],
 };
 
@@ -1505,7 +1504,7 @@ function getUserBuildingIds(){
    STATE
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
-let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], inspectionItems:[], floors:[], units:[], categories:[], logs:[], inspectionTemplates:[] };
+let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], inspectionItems:[], floors:[], units:[], categories:[], inspectionTemplates:[] };
 let bldPeriod  = 'quarter';
 let astPeriod  = 'quarter';
 let unitPeriod = 'quarter';
@@ -1776,7 +1775,7 @@ function rowsToObjects(rows, cols){
 }
 
 async function loadAllData(){
-  const [users,buildings,assets,tickets,suppliers,inspections,inspectionItems,floors,units,categories,logs,inspectionTemplates] = await Promise.all([
+  const [users,buildings,assets,tickets,suppliers,inspections,inspectionItems,floors,units,categories,inspectionTemplates] = await Promise.all([
     sheetsGet(`${TABS.users}!A:Z`),
     sheetsGet(`${TABS.buildings}!A:Z`),
     sheetsGet(`${TABS.assets}!A:Z`),
@@ -1787,7 +1786,6 @@ async function loadAllData(){
     sheetsGet(`${TABS.floors}!A:Z`),
     sheetsGet(`${TABS.units}!A:Z`),
     sheetsGet(`${TABS.categories}!A:Z`),
-    sheetsGet(`${TABS.logs}!A:Z`),
     sheetsGet(`${TABS.inspectionTemplates}!A:Z`),
   ]);
   DB.users      = rowsToObjects(users,     COLS.users);
