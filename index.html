@@ -6984,7 +6984,7 @@ function finishInspectionRound(){
 
   const failedItems = items.filter(i => i.result === 'Failed');
 
-  const canComplete = pending === 0 && failed === 0;
+  const canComplete = pending === 0;
 
   const summaryEl = document.getElementById('insp-summary-body');
   summaryEl.innerHTML = `
@@ -7016,7 +7016,7 @@ function finishInspectionRound(){
       <div style="font-size:12px;color:var(--sub);margin-top:4px">No failures in this round.</div>
     </div>`}
     <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px">${total} item${total!==1?'s':''} · ${activeRound.building} · ${df(today.toISOString().split('T')[0])}</div>
-    ${!canComplete ? `<div style="margin-top:10px;padding:10px 14px;background:rgba(217,119,6,.1);border:1.5px solid rgba(217,119,6,.25);border-radius:var(--rs);font-size:12px;color:var(--amber);font-weight:600;text-align:center">Round cannot be completed while items are pending or failed. It will be saved as In Progress.</div>` : ''}
+    ${!canComplete ? `<div style="margin-top:10px;padding:10px 14px;background:rgba(217,119,6,.1);border:1.5px solid rgba(217,119,6,.25);border-radius:var(--rs);font-size:12px;color:var(--amber);font-weight:600;text-align:center">Round has pending items. It will be saved as In Progress.</div>` : ''}
   `;
 
   const saveBtn = document.getElementById('insp-save-btn');
@@ -7186,13 +7186,9 @@ async function saveInspectionRound(){
   // Attach items back onto the inspRecord for in-memory use
   inspRecord.items = numbered;
 
-  if(activeRound.resuming){
-    const idx = DB.inspections.findIndex(x => x.id === activeRound.inspId);
-    if(idx >= 0) DB.inspections[idx] = inspRecord;
-    else DB.inspections.unshift(inspRecord);
-  } else {
-    DB.inspections.unshift(inspRecord);
-  }
+  const _existIdx = DB.inspections.findIndex(x => x.id === activeRound.inspId);
+  if(_existIdx >= 0) DB.inspections[_existIdx] = inspRecord;
+  else DB.inspections.unshift(inspRecord);
 
   closeMo('mo-insp-summary');
 
