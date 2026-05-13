@@ -6846,9 +6846,8 @@ function inspRoundItemHTML(item, idx){
           <div class="bs"><div class="bs-val">${activeRound.building}</div><div class="bs-lbl">Building</div></div>
           <div class="bs"><div class="bs-val">${item.floor||'—'}</div><div class="bs-lbl">Floor</div></div>
           ${isUnit
-            ? `<div class="bs"><div class="bs-val">—</div><div class="bs-lbl">Category</div></div>`
-            : `<div class="bs"><div class="bs-val">${item.unit||'—'}</div><div class="bs-lbl">Unit</div></div>
-               <div class="bs"><div class="bs-val">${item.category}</div><div class="bs-lbl">Category</div></div>`
+            ? ``
+            : `<div class="bs"><div class="bs-val">${item.unit||'—'}</div><div class="bs-lbl">Unit</div></div>`
           }
         </div>
       </div>`;
@@ -7219,7 +7218,7 @@ async function saveInspectionRound(){
       const idx = parseInt(chk.dataset.idx);
       const item = failedItems[idx]; if(!item) return;
       const asset = item.assetId ? DB.assets.find(a=>a.id===item.assetId) : null;
-      const unit  = item.unitId  ? DB.units.find(u=>u.id===item.unitId)   : null;
+      const unit  = item.unitId  ? DB.units.find(u=>u.id===item.unitId)   : (asset?.unitId ? DB.units.find(u=>u.id===asset.unitId) : null);
       const flr   = asset ? DB.floors.find(f=>f.id===asset.floorId) : unit ? DB.floors.find(f=>f.id===unit.floorId) : null;
       const cat   = DB.categories.find(c=>c.category===item.category);
       const tix = {
@@ -7228,6 +7227,9 @@ async function saveInspectionRound(){
         floorId    : flr?.id || '',
         unitId     : unit?.id || '',
         assetId    : asset?.id || '',
+        building   : activeRound?.building || '',
+        floor      : flr?.label || item.floor || '',
+        unit       : unit?.label || item.unit || '',
         subject    : `${item.label} — Failed inspection`,
         status     : 'Open',
         priority   : 'High',
