@@ -511,10 +511,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <option value="Planned">Planned</option><option value="Requested">Requested</option>
       <option value="Ordered">Ordered</option><option value="mine">Assigned to Me</option>
     </select>
-    <select id="sel-tix-pri"   style="display:none" onchange="setPage('tix',1);renderTix()">
-      <option value="All">All Priorities</option><option value="Critical">Critical</option>
-      <option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option>
-    </select>
+
     <select id="sel-tix-cat"   style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Categories</option></select>
     <select id="sel-tix-bldg"  style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Buildings</option></select>
     <select id="sel-tix-floor" style="display:none" onchange="setPage('tix',1);renderTix()"><option value="All">All Floors</option></select>
@@ -973,37 +970,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
   <div class="info-subscreen" id="info-sub-stats">
     <div class="topbar"><div class="topbar-inner"><button class="info-back-btn" onclick="closeInfoSub('stats')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><polyline points="15 18 9 12 15 6"/></svg> Info</button><div style="font-size:14px;font-weight:600;color:var(--text)">Stats</div><div style="width:60px"></div></div></div>
     <div style="padding:14px 18px">
-      <div class="info-desc">Stats gives a portfolio-wide view of your buildings’ workload. Each building gets a <strong>workload score</strong> based on how much active work it currently demands — not simply how big it is. All numbers recalculate live from your Google Sheets data.</div>
-      <div class="info-section-lbl" style="padding:14px 0 6px">What drives the score</div>
-      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px">
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <span style="font-size:15px;flex-shrink:0">🎫</span>
-          <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Open tickets</strong> carry the most weight. Every ticket that is not yet closed counts as active work that still needs to be handled.</div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <span style="font-size:15px;flex-shrink:0">🔍</span>
-          <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Active inspections</strong> (not yet completed) add to the load because they require planning and follow-up.</div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <span style="font-size:15px;flex-shrink:0">📋</span>
-          <div style="font-size:12px;color:var(--sub);line-height:1.55"></div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <span style="font-size:15px;flex-shrink:0">🔴</span>
-          <div style="font-size:12px;color:var(--sub);line-height:1.55"><strong style="color:var(--text)">Failed assets</strong> — assets marked failed during an inspection, or assets with status Under Maintenance / Decommissioned linked to an open ticket — carry the highest weight.</div>
-        </div>
-      </div>
-      <div class="info-section-lbl" style="padding:0 0 6px">Key calculations</div>
-      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:0 14px;margin-bottom:14px">
-        <div class="info-field-row"><span style="color:var(--sub)">Occupancy rate</span><span style="font-weight:600;color:var(--green)">Occupied ÷ Total units</span></div>
-        <div class="info-field-row"><span style="color:var(--sub)">Open ticket rate</span><span style="font-weight:600;color:var(--red)">Open ÷ All tickets</span></div>
-        <div class="info-field-row"><span style="color:var(--sub)">Asset health</span><span style="font-weight:600;color:var(--blue)">Active ÷ Total assets</span></div>
-        <div class="info-field-row"><span style="color:var(--sub)">Avg days open</span><span style="font-weight:600">Sum(days) ÷ Open count</span></div>
-      </div>
-      <div class="info-section-lbl" style="padding:0 0 6px">Size adjustment</div>
-      <div class="info-desc" style="margin-bottom:14px">The raw score is adjusted for building size. A small building with 5 open tickets is proportionally under more pressure than a large building with the same 5 tickets — so the small building ranks higher. Each item is weighted by urgency: <strong>open ticket ×3</strong>, <strong>active inspection ×2</strong>, <strong>log entry ×1</strong>, <strong>closed / completed ×0.5</strong>. Resolved work still counts but at half weight, so a building that clears its backlog improves its score. The health % reflects real workload pressure, not just building size.</div>
-      <div class="info-section-lbl" style="padding:0 0 6px">Trend chart</div>
-      <div class="info-desc">Monthly ticket volume for the last 6 months, calculated from <code>dateOpened</code> on each ticket row in the Tickets sheet.</div>
+      <div class="info-desc">Stats gives a portfolio-wide view of your buildings' workload. All numbers recalculate live from your Google Sheets data.</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Time spent</div>
+      <div class="info-desc">Time Spent shows the total hours logged across all tickets and inspection items within the selected period (Week, Month, or Quarter). Hours are entered manually on each ticket or inspection item in the Time Spent field.<br><br>Below the logged total you see the <strong>period capacity</strong> — the number of available working hours in the same period, based on Monday to Friday, 09:00–16:30 (7.5 hours per working day), excluding Dutch public holidays and any personal days off set in your profile.<br><br>The <strong>utilisation bar</strong> shows logged hours as a percentage of total capacity. A low bar does not mean little work was done — only that less time was formally logged.</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">By priority</div>
+      <div class="info-desc">This section breaks down all open assets and units by their automated priority band: Critical, High, Medium, and Low. The priority band is calculated automatically based on signals such as failed inspections, open tickets, asset status, and warranty alerts — it is never set manually.<br><br>Use this view to quickly judge whether the current workload is manageable — a high number of Critical or High items signals things that need immediate attention before lower-priority work.</div>
+      <div class="info-section-lbl" style="padding:14px 0 6px">Last 8 weeks</div>
+      <div class="info-desc">The bar chart shows ticket activity week by week for the last 8 weeks. Each week runs Monday to Sunday. Three bars are shown side by side per week:<br><br><strong>Blue</strong> — tickets opened that week (based on <code>dateOpened</code>).<br><strong>Amber</strong> — tickets that were In Progress at any point during that week.<br><strong>Grey</strong> — tickets in any other status (Planned, Ordered, Requested) active in that week.<br><br>The chart gives a sense of how busy each week has been and whether your open backlog is growing or shrinking over time.</div>
     </div>
   </div>
 
@@ -1064,7 +1037,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="info-section-lbl" style="padding:14px 0 6px">Dashboard score</div>
       <div class="info-formula">Score = weighted pressure across your accessible buildings:<br><br>Open ticket ×3 · Active inspection ×2 · Log entry ×1 · Closed / completed ×0.5<br><br>A higher score means more active, unresolved work in your portfolio.</div>
       <div class="info-section-lbl" style="padding:14px 0 6px">Key fields</div>
-      <div class="info-desc" style="font-size:11px;line-height:1.8">Building · Floor · Unit · Assigned to · Supplier · Category · Priority · Date opened · Due date · Activity log</div>
+      <div class="info-desc" style="font-size:11px;line-height:1.8">Building · Floor · Unit · Assigned to · Supplier · Category · Date opened · Due date · Activity log</div>
       <div class="info-section-lbl" style="padding:14px 0 6px">How are Ticket entries' workload calculated</div>
       <div class="info-desc">Each ticket card shows a Workload % that reflects how much pressure its building is currently under — not the individual ticket itself.</div>
       <div class="info-formula">Workload % = Open tickets in this building ÷ Total open tickets across your accessible buildings × 100</div>
@@ -1240,14 +1213,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <select class="fs2" id="tf-cat"><option value="">— Select —</option></select>
       </div>
     </div>
-    <div class="frow2">
-      <div class="fg"><label>Priority</label>
-        <select class="fs2" id="tf-pri"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
-      </div>
-      <div class="fg"><label>Status</label>
+    <div class="fg"><label>Status</label>
         <select class="fs2" id="tf-status"><option>Open</option><option>In Progress</option><option>Planned</option><option>Requested</option><option>Ordered</option><option>Closed</option></select>
       </div>
-    </div>
     <div class="frow2">
       <div class="fg"><label>Assign To</label><select class="fs2" id="tf-assign"><option value="">Unassigned</option></select></div>
     </div>
@@ -3489,7 +3457,7 @@ function applyTixFilterModal(){
   renderTix();
 }
 function updateTixFilterBadge(){
-  const filterIds = ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-sup','sel-tix-type','sel-tix-bldg','sel-tix-floor'];
+  const filterIds = ['sel-tix-status','sel-tix-cat','sel-tix-sup','sel-tix-type','sel-tix-bldg','sel-tix-floor'];
   const sortDefault = 'newest';
   const dateFrom = document.getElementById('sel-tix-date-from')?.value || '';
   const dateTo   = document.getElementById('sel-tix-date-to')?.value   || '';
@@ -3506,7 +3474,7 @@ function updateTixFilterBadge(){
   if(!chipsEl) return;
   if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
   chipsEl.style.display='flex';
-  const sortLabels={newest:'\u2193 Newest',oldest:'\u2191 Oldest',priority:'By priority',days:'\u23f1 Overdue'};
+  const sortLabels={newest:'\u2193 Newest',oldest:'\u2191 Oldest',days:'\u23f1 Overdue'};
   const allIds=[...filterIds,'sel-tix-sort'];
   let chips = allIds.filter(id=>{
     const v=document.getElementById(id)?.value||'All';
@@ -3742,7 +3710,7 @@ function toggleTixBldgBtn(name){
 function clearTixFilters(){
   tixActiveBldg=null; tixSort='date';
   const _sb=document.getElementById('tix-sort-btn'); if(_sb){_sb.textContent='A–Z';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';}
-  ['sel-tix-status','sel-tix-pri','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup','sel-tix-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
+  ['sel-tix-status','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup','sel-tix-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const sort=document.getElementById('sel-tix-sort');if(sort)sort.value='newest';
   const search=document.getElementById('tsearch');if(search)search.value='';
   const dfrom=document.getElementById('sel-tix-date-from');if(dfrom)dfrom.value='';
@@ -3764,7 +3732,6 @@ function goTixPage(p){setPage('tix',p);renderTix();}
 function renderTix(){
   const q=(document.getElementById('tsearch')?.value||'').toLowerCase();
   const statusVal=document.getElementById('sel-tix-status')?.value||'All';
-  const priVal=document.getElementById('sel-tix-pri')?.value||'All';
   const sortVal=document.getElementById('sel-tix-sort')?.value||'newest';
   // Populate building filter, preserving selection
   const bldgSel=document.getElementById('sel-tix-bldg');
@@ -3797,7 +3764,7 @@ function renderTix(){
   const catVal=tixCatSel?.value||'All';
   const supVal=document.getElementById('sel-tix-sup')?.value||'All';
   const typeVal=document.getElementById('sel-tix-type')?.value||'All';
-  syncSelActive('sel-tix-status'); syncSelActive('sel-tix-pri'); syncSelActive('sel-tix-cat'); syncSelActive('sel-tix-bldg'); syncSelActive('sel-tix-floor');
+  syncSelActive('sel-tix-status'); syncSelActive('sel-tix-cat'); syncSelActive('sel-tix-bldg'); syncSelActive('sel-tix-floor');
   updateTixFilterBadge();
   renderTixBldgBtns();
   let list=DB.tickets;
@@ -3806,7 +3773,6 @@ function renderTix(){
   if(statusVal==='mine') list=list.filter(t=>t.assignedTo===currentUser?.name||t.createdBy===currentUser?.name);
   else if(statusVal==='notclosed') list=list.filter(t=>t.status!=='Closed');
   else if(statusVal!=='All') list=list.filter(t=>t.status===statusVal);
-  if(priVal!=='All') list=list.filter(t=>t.priority===priVal);
   if(catVal!=='All') list=list.filter(t=>t.category===catVal);
   if(supVal!=='All') list=list.filter(t=>t.supplierId===supVal);
   if(typeVal!=='All') list=list.filter(t=>t.type===typeVal);
@@ -3832,10 +3798,8 @@ function renderTix(){
     if(tixTrack) tixTrack.classList.toggle('on', showClosedTix);
   }
   // Sort
-  const priOrder={Critical:0,High:1,Medium:2,Low:3};
   if(tixSort==='alpha') list=[...list].sort((a,b)=>(a.subject||'').localeCompare(b.subject||''));
   else if(sortVal==='oldest') list=[...list].sort((a,b)=>new Date(a.dateOpened)-new Date(b.dateOpened));
-  else if(sortVal==='priority') list=[...list].sort((a,b)=>(priOrder[a.priority]??9)-(priOrder[b.priority]??9));
   else if(sortVal==='days') list=[...list].sort((a,b)=>daysSince(b.dateOpened)-daysSince(a.dateOpened));
   else list=[...list].sort((a,b)=>new Date(b.dateOpened)-new Date(a.dateOpened));
   const _tixDays = _tixCutoff ? Math.max(1, Math.ceil((new Date() - _tixCutoff) / _MS_DAY)) : null;
@@ -3891,7 +3855,6 @@ function openTixDetail(id){
   const t=DB.tickets.find(x=>x.id===id); if(!t) return;
   const ast=DB.assets.find(a=>a.id===t.assetId);
   const sup=DB.suppliers.find(s=>s.id===t.supplierId);
-  const priC={Critical:'#EF4444',High:'#F59E0B',Medium:'#60A5FA',Low:'#10B981'}[t.priority]||'#60A5FA';
   const stCls={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
   const acts=Array.isArray(t.activity)?t.activity:[];
   const actHTML=acts.length?acts.map(a=>{
@@ -3910,7 +3873,6 @@ function openTixDetail(id){
       </div>
       <div style="font-size:18px;font-weight:700;margin-bottom:8px;line-height:1.3">${t.subject}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <span class="badge" style="background:${priC}20;color:${priC}">${t.priority}</span>
         <span class="badge" style="background:rgba(99,102,241,.15);color:#818CF8">${t.category}</span>
       </div>
     </div>
@@ -4010,7 +3972,6 @@ function openNewTicket(){
   ['tf-subj','tf-reporter','tf-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   tfSetTimeMinutes(0);;
   document.getElementById('tf-status').value='Open';
-  document.getElementById('tf-pri').value='Medium';
   document.getElementById('tf-type').value='';
   document.getElementById('tf-date-opened').value=today.toISOString().split('T')[0];
   document.getElementById('tf-date-closed').value='';
@@ -4054,7 +4015,6 @@ function editTix(id){
     document.getElementById('tix-modal-title').textContent='Edit Ticket';
     document.getElementById('btn-dup-tix').style.display='';
     document.getElementById('tf-subj').value=t.subject;
-    document.getElementById('tf-pri').value=t.priority;
     document.getElementById('tf-type').value=t.type||'';
     document.getElementById('tf-date-opened').value=t.dateOpened||'';
     document.getElementById('tf-date-closed').value=t.dateClosed||'';
@@ -4119,7 +4079,7 @@ async function saveTix(){
       t.floor=_flr?_flr.label:_flrId;
       t.unit=_untLabel;
       t.category=_cat?_cat.category:_catId;
-      t.subject=subj; t.priority=document.getElementById('tf-pri').value; t.type=document.getElementById('tf-type').value;
+      t.subject=subj; t.type=document.getElementById('tf-type').value;
       t.assignedTo=document.getElementById('tf-assign').value;
       t.status=status;
       t.dateOpened=document.getElementById('tf-date-opened').value||t.dateOpened;
@@ -4145,7 +4105,7 @@ async function saveTix(){
     const _nflr=DB.floors.find(f=>f.id===_nfId);
     const _nunt=DB.units.find(u=>u.label===_nu&&(_nflr?u.floorId===_nflr.id:true));
     const _ncat=DB.categories.find(x=>x.id===_nc);
-    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nb,floorId:_nflr?_nflr.id:_nfId,unitId:_nunt?_nunt.id:_nu,subject:subj,status,priority:document.getElementById('tf-pri').value,type:document.getElementById('tf-type').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:document.getElementById('tf-date-opened').value||today.toISOString().split('T')[0],dateClosed:document.getElementById('tf-date-closed').value||'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,timeSpent:tfGetTimeMinutes(),photos:window._tfPhotos||'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}]),building:_nb,floor:_nflr?_nflr.label:_nfId,unit:_nu,category:_ncat?_ncat.category:_nc});
+    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nb,floorId:_nflr?_nflr.id:_nfId,unitId:_nunt?_nunt.id:_nu,subject:subj,status,type:document.getElementById('tf-type').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:document.getElementById('tf-date-opened').value||today.toISOString().split('T')[0],dateClosed:document.getElementById('tf-date-closed').value||'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,timeSpent:tfGetTimeMinutes(),photos:window._tfPhotos||'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}]),building:_nb,floor:_nflr?_nflr.label:_nfId,unit:_nu,category:_ncat?_ncat.category:_nc});
   }
   closeMo('mo-tix');
   await writeSheet('tickets');
@@ -7233,7 +7193,6 @@ async function saveInspectionRound(){
         unit       : unit?.label || item.unit || '',
         subject    : `${item.label} — Failed inspection`,
         status     : 'Open',
-        priority   : 'High',
         categoryId : cat?.id || '',
         assignedTo : '',
         dateOpened : todayStr2,
@@ -7300,7 +7259,6 @@ function _prefillTicketFromFailure(item){
   document.getElementById('tf-subj').value    = `[Inspection Failure] ${item.label}`;
   document.getElementById('tf-notes').value   = item.note;
   document.getElementById('tf-status').value  = 'Open';
-  document.getElementById('tf-pri').value     = 'High';
 
   // Set category to match asset/unit category if it exists in the sheet categories
   const catForTicket = item.type === 'unit' ? '' : item.category;
@@ -7642,8 +7600,8 @@ function openExportModal(){ openMo('mo-export'); }
 function exportCSV(type){
   let rows=[],headers=[];
   if(type==='tickets'){
-    headers=['ID','Subject','Status','Priority','Category','Building','Unit','Assigned To','Reported By','Date Opened','Date Closed','Notes'];
-    rows=DB.tickets.map(t=>[t.id,t.subject,t.status,t.priority,t.category,t.building,t.unit,t.assignedTo||'',t.reportedBy||'',t.dateOpened||'',t.dateClosed||'',t.notes||'']);
+    headers=['ID','Subject','Status','Category','Building','Unit','Assigned To','Reported By','Date Opened','Date Closed','Notes'];
+    rows=DB.tickets.map(t=>[t.id,t.subject,t.status,t.category,t.building,t.unit,t.assignedTo||'',t.reportedBy||'',t.dateOpened||'',t.dateClosed||'',t.notes||'']);
   } else if(type==='assets'){
     headers=['ID','Name','Building','Floor','Unit','Supplier','Category','Status','Manufacturer','Model','Warranty Expiry'];
     rows=DB.assets.map(a=>[a.id,a.label||a.name,a.building,a.floor||'',a.unit||'',a.supplierName||'',a.category||'',a.status,a.manufacturer||'',a.model||'',a.warrantyExpiry||'']);
