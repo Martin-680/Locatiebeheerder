@@ -1535,7 +1535,7 @@ const COLS = {
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced','inspectionTime','photos'],
   tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type','timeSpent','dueDate','photos'],
   suppliers: ['id','name','contact','expertise','ratePerHour','transportCost','phone','email','address','status'],
-  inspections:      ['id','buildingId','floorId','categoryId','dateStart','dateEnd','inspector','status','notes'],
+  inspections:      ['id','buildingId','floorId','unitId','categoryId','dateStart','dateEnd','inspector','status','notes'],
   inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note','timeSpent'],
   floors:    ['id','buildingId','label','sortOrder','inspectionTime'],
   units:     ['id','floorId','buildingId','label','sortOrder','inspectionTime'],
@@ -1888,8 +1888,10 @@ async function loadAllData(){
     const bld = DB.buildings.find(b=>b.id===r.buildingId);
     const flr = DB.floors.find(f=>f.id===r.floorId);
     const cat = DB.categories.find(x=>x.id===r.categoryId);
+    const unt = DB.units.find(u=>u.id===r.unitId);
     r.building = bld ? bld.name     : r.buildingId;
     r.floor    = flr ? flr.label    : r.floorId;
+    r.unit     = unt ? unt.label    : (r.unitId||'');
     r.category = cat ? cat.category : r.categoryId;
     // Attach items from InspectionItems tab, re-joining expectedTime from asset
     r.items = DB.inspectionItems.filter(i => i.inspectionId === r.id).map(i => {
@@ -2000,6 +2002,7 @@ async function writeSheet(key){
         ...r,
         buildingId : bld ? bld.id : (r.buildingId || r.building),
         floorId    : flr ? flr.id : (r.floorId    || r.floor),
+        unitId     : r.unitId || '',
         categoryId : cat ? cat.id : (r.categoryId || r.category),
       };
     });
@@ -6381,7 +6384,7 @@ function inspListCardHTML(r){
   return `<div class="insp-list-card" onclick="openInspDetail('${r.id}')">
     <div style="padding:12px 14px 10px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <div style="font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">${r.building}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
+        <div style="font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">${r.building}${r.floor?' · '+r.floor:''}${r.unit?' · '+r.unit:''}${r.category && r.category !== 'All' ? ' · ' + r.category : ''}</div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
           <div class="wl-tooltip-wrap">
             <div class="wl-tooltip-chip">
@@ -6731,10 +6734,14 @@ async function launchInspectionRound(){
   const todayStr=today.toISOString().split('T')[0];
   const chosenDate=document.getElementById('insp-start-date')?.value||todayStr;
   const isFuture=chosenDate>todayStr;
-  const inspId=nextId(DB.inspections,'INS');
   const bldObj=DB.buildings.find(b=>b.name===bldgName);
+  // Reuse existing In Progress round for this building instead of creating a duplicate
+  const _existingRound = DB.inspections.find(r=>r.buildingId===(bldObj?.id||bldgName) && r.status==='In Progress');
+  const inspId = _existingRound ? _existingRound.id : nextId(DB.inspections,'INS');
+  const _unitId = inspSelUnits.length===1 ? (DB.units.find(u=>u.label===inspSelUnits[0])?.id||'') : '';
   activeRound={
-    inspId, building:bldgName,
+    inspId, building:bldgName, resuming: !!_existingRound,
+    unitId: _unitId,
     floor:inspSelFloors.join(', '),
     category:[...inspTypes].join('+')+( inspSelCats.length? ' · '+inspSelCats.join(','):''),
     dateStart:chosenDate, status:isFuture?'Planned':'In Progress', items,
@@ -7059,10 +7066,10 @@ function finishInspectionRound(){
         </div>
       </div>`).join('');
     tixSection.style.display = '';
-    // Update create tickets button label with count
+    // Update create tickets button label with count and show it
     const ctBtn = document.getElementById('insp-create-tix-btn');
-    if(ctBtn) ctBtn.textContent = `🎫 Create ${failedItems.length} Ticket${failedItems.length!==1?'s':''} & Complete Round`;
-    // Hide the plain save button when there are failed items — use the combined button instead
+    if(ctBtn){ ctBtn.style.display=''; ctBtn.textContent = `🎫 Create ${failedItems.length} Ticket${failedItems.length!==1?'s':''} & Complete Round`; }
+    // Hide the plain save button — replaced by the combined button
     const saveBtn2 = document.getElementById('insp-save-btn');
     if(saveBtn2) saveBtn2.style.display = 'none';
     window._inspPhotoAdd = async (e, idx) => {
@@ -7081,6 +7088,15 @@ function finishInspectionRound(){
     };
   } else if(tixSection){
     tixSection.style.display = 'none';
+    // Ensure save btn is visible when no ticket section
+    const saveBtn3 = document.getElementById('insp-save-btn');
+    if(saveBtn3) saveBtn3.style.display = '';
+  }
+
+  // If failed items exist but user can't create tickets, keep save btn visible as Complete Round
+  if(failedItems.length && !can('canCreateTickets')){
+    const saveBtn4 = document.getElementById('insp-save-btn');
+    if(saveBtn4){ saveBtn4.style.display = ''; saveBtn4.textContent = canComplete ? 'Complete Round' : 'Save as In Progress'; }
   }
 
   openMo('mo-insp-summary');
@@ -7151,6 +7167,7 @@ async function saveInspectionRound(){
     id         : activeRound.inspId,
     buildingId : inspBld ? inspBld.id : activeRound.building,
     floorId    : inspFlr ? inspFlr.id : activeRound.floor,
+    unitId     : activeRound.unitId || '',
     categoryId : inspCat ? inspCat.id : activeRound.category,
     building   : activeRound.building,
     floor      : activeRound.floor,
@@ -7361,7 +7378,7 @@ function openInspDetail(id){
   document.getElementById('insp-detail-body').innerHTML = `
     <div style="padding:0 18px 8px">
       <div style="font-size:11px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--teal);margin-bottom:4px">${r.id}</div>
-      <div style="font-size:19px;font-weight:700;margin-bottom:6px">${r.building}${r.floor?' · '+r.floor:''}</div>
+      <div style="font-size:19px;font-weight:700;margin-bottom:6px">${r.building}${r.floor?' · '+r.floor:''}${r.unit?' · '+r.unit:''}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
         <span class="badge" style="background:${stBg};color:${stColor}">${r.status}</span>
         ${r.category && r.category !== 'All' ? `<span class="badge" style="background:rgba(99,102,241,.12);color:#818CF8">${r.category}</span>` : ''}
@@ -7371,6 +7388,7 @@ function openInspDetail(id){
       <div class="dr"><span class="dk">Started</span><span class="dv">${df(r.dateStart)}</span></div>
       ${r.dateEnd ? `<div class="dr"><span class="dk">Completed</span><span class="dv">${df(r.dateEnd)}</span></div>` : ''}
       <div class="dr"><span class="dk">Inspector</span><span class="dv">${r.inspector}</span></div>
+      ${r.unit ? `<div class="dr"><span class="dk">Unit</span><span class="dv">${r.unit}</span></div>` : ''}
       <div class="dr"><span class="dk">Items</span><span class="dv">${items.length}</span></div>
       <div class="dr"><span class="dk">Approved</span><span class="dv" style="color:var(--green);font-weight:700">${approved}</span></div>
       <div class="dr"><span class="dk">Failed</span><span class="dv" style="color:var(--red);font-weight:700">${failed}</span></div>
@@ -8069,10 +8087,12 @@ function calPlanTicket(dateStr){
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Create tickets for failed items</div>
       <div id="insp-fail-checklist" style="border:1.5px solid var(--border);border-radius:var(--rs);overflow:hidden;margin-bottom:10px"></div>
       <div style="font-size:11px;color:var(--sub);margin-bottom:12px">🗓 Due date automatically set to <strong id="insp-due-label"></strong> (today + 14 days)</div>
-      <button id="insp-create-tix-btn" onclick="saveInspectionRound()" style="width:100%;padding:13px;background:linear-gradient(135deg,#EF4444,#F59E0B);border:none;border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff;cursor:pointer;margin-bottom:10px">🎫 Create Tickets &amp; Complete Round</button>
     </div>
-    <button class="btn-p" id="insp-save-btn" onclick="saveInspectionRound()">Save Round</button>
-    <button class="btn-s" onclick="closeMo('mo-insp-summary')">Keep Reviewing</button>
+    <div style="padding:0 18px">
+      <button id="insp-create-tix-btn" onclick="saveInspectionRound()" style="display:none;width:100%;padding:13px;background:#E24B4A;border:none;border-radius:var(--rs);font-weight:700;font-size:14px;color:#FCEBEB;cursor:pointer;margin-bottom:8px">🎫 Create Tickets & Complete Round</button>
+      <button class="btn-p" id="insp-save-btn" onclick="saveInspectionRound()" style="width:100%;margin-bottom:8px">Save Round</button>
+      <button class="btn-s" onclick="closeMo('mo-insp-summary')" style="width:100%">Keep Reviewing</button>
+    </div>
     <div style="height:8px"></div>
   </div>
 </div>
