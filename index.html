@@ -1270,6 +1270,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
     <div class="fg"><label>Reported By</label><input class="fi2" id="tf-reporter" placeholder="Name of reporter"/></div>
     <div class="fg"><label>Notes</label><textarea class="ft2" id="tf-notes" placeholder="Additional details…"></textarea></div>
+    <div class="fg"><div id="tf-photos-editor"></div></div>
     <div class="fg"><label>Time Spent</label>
       <div style="display:flex;gap:8px;align-items:center">
         <input class="fi2" type="number" id="tf-time-val" placeholder="0" min="0" style="flex:1;text-align:center"/>
@@ -1334,6 +1335,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     </div>
     <div class="frow2">
       <div class="fg"><label>Inspection time (min)</label><input class="fi2" type="number" min="0" id="af-insptime" placeholder="e.g. 45"/></div>
+      <div class="fg"><div id="af-photos-editor"></div></div>
       <div class="fg"></div>
     </div>
     <button class="btn-p" onclick="saveAst()">Save Asset</button>
@@ -1521,7 +1523,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 ══════════════════════════════════════════════════════════ */
 const CLIENT_ID   = '806872056167-d9r8u2mq154725634o1nbpu93mdpt5ff.apps.googleusercontent.com';
 const SHEET_ID    = '1UkjXu3yOwPWlb1bKjMnXuCrYkxsvzC6wBZ48nPr1P4A';
-const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email openid';
+const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email openid';
 
 /* Sheet tab names — must match exactly what you created */
 const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', inspectionItems:'InspectionItems', floors:'Floors', units:'Units', categories:'Categories', logs:'Logs', inspectionTemplates:'InspectionTemplates' };
@@ -1530,8 +1532,8 @@ const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'T
 const COLS = {
   users:     ['id','name','role','email','phone','buildings','buildingsOwned','buildingsExternal','active','daysOff'],
   buildings: ['id','name','address','daysOpen','timeOpen','units','manager','phone','email','size'],
-  assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced','inspectionTime'],
-  tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type','timeSpent','dueDate'],
+  assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced','inspectionTime','photos'],
+  tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type','timeSpent','dueDate','photos'],
   suppliers: ['id','name','contact','expertise','ratePerHour','transportCost','phone','email','address','status'],
   inspections:      ['id','buildingId','floorId','categoryId','dateStart','dateEnd','inspector','status','notes'],
   inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note','timeSpent'],
@@ -2025,6 +2027,122 @@ async function writeSheet(key){
     console.error('writeSheet ['+key+'] error:', JSON.stringify(e));
     throw e;
   }
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   DRIVE PHOTO UPLOAD
+══════════════════════════════════════════════════════════ */
+let _driveFolderId = null;
+
+async function getDriveFolder(){
+  if(_driveFolderId) return _driveFolderId;
+  // Search for existing PropManager Photos folder
+  const res = await fetch(
+    "https://www.googleapis.com/drive/v3/files?q=name%3D'PropManager%20Photos'%20and%20mimeType%3D'application%2Fvnd.google-apps.folder'%20and%20trashed%3Dfalse&fields=files(id)",
+    { headers: { Authorization: 'Bearer ' + gapi.client.getToken().access_token } }
+  );
+  const data = await res.json();
+  if(data.files && data.files.length){
+    _driveFolderId = data.files[0].id;
+    return _driveFolderId;
+  }
+  // Create folder
+  const cr = await fetch('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + gapi.client.getToken().access_token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'PropManager Photos', mimeType: 'application/vnd.google-apps.folder' })
+  });
+  const cf = await cr.json();
+  _driveFolderId = cf.id;
+  return _driveFolderId;
+}
+
+async function uploadPhotoToDrive(file){
+  const folderId = await getDriveFolder();
+  const meta = JSON.stringify({ name: file.name, parents: [folderId] });
+  const form = new FormData();
+  form.append('metadata', new Blob([meta], { type: 'application/json' }));
+  form.append('file', file);
+  const res = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink,webContentLink',
+    { method: 'POST', headers: { Authorization: 'Bearer ' + gapi.client.getToken().access_token }, body: form }
+  );
+  const data = await res.json();
+  if(!data.id) throw new Error(data.error?.message || 'Upload failed');
+  // Make file publicly viewable so thumbnails load
+  await fetch(`https://www.googleapis.com/drive/v3/files/${data.id}/permissions`, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + gapi.client.getToken().access_token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role: 'reader', type: 'anyone' })
+  });
+  return `https://drive.google.com/thumbnail?id=${data.id}&sz=w400`;
+}
+
+// Returns thumbnail URL from a Drive URL stored in photos field
+function driveThumbUrl(url){
+  if(!url) return null;
+  const m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400`;
+  // already a thumbnail url
+  if(url.includes('thumbnail')) return url;
+  return url;
+}
+
+function driveViewUrl(url){
+  const m = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m) return `https://drive.google.com/file/d/${m[1]}/view`;
+  return url;
+}
+
+// Render photo grid for detail views (read-only)
+function renderPhotoGrid(photos){
+  if(!photos || !photos.length) return '';
+  return `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px">
+    ${photos.map(u=>`<a href="${driveViewUrl(u)}" target="_blank" style="display:block;border-radius:var(--rs);overflow:hidden;aspect-ratio:1;background:var(--card2)">
+      <img src="${driveThumbUrl(u)}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px\'>🖼️</div>'">
+    </a>`).join('')}
+  </div>`;
+}
+
+// Photo editor widget used in edit modals
+// containerId = element to render into; entityPhotos = current comma-sep string; onChange(newStr) callback
+function renderPhotoEditor(containerId, entityPhotos, onChange){
+  const el = document.getElementById(containerId); if(!el) return;
+  let photos = (entityPhotos||'').split(',').map(s=>s.trim()).filter(Boolean);
+  function render(){
+    el.innerHTML = `
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Photos</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">
+        ${photos.map((u,i)=>`<div style="position:relative;border-radius:var(--rs);overflow:hidden;aspect-ratio:1;background:var(--card2)">
+          <img src="${driveThumbUrl(u)}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.src=''" >
+          <button onclick="window._photoRemove(${i})" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);border:none;color:#fff;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+        </div>`).join('')}
+        <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;border:1.5px dashed var(--border);border-radius:var(--rs);cursor:pointer;background:var(--card2);gap:4px" id="photo-add-btn-${containerId}">
+          <span style="font-size:22px">📷</span>
+          <span style="font-size:10px;color:var(--muted);font-weight:600">Add photo</span>
+          <input type="file" accept="image/*" style="display:none" onchange="window._photoAdd(event)">
+        </label>
+      </div>
+      <div id="photo-upload-status-${containerId}" style="font-size:11px;color:var(--muted);min-height:16px"></div>
+    `;
+    window._photoRemove = (i) => { photos.splice(i,1); onChange(photos.join(',')); render(); };
+    window._photoAdd = async (e) => {
+      const file = e.target.files[0]; if(!file) return;
+      const statusEl = document.getElementById('photo-upload-status-'+containerId);
+      if(statusEl) statusEl.textContent = '⏳ Uploading…';
+      try {
+        const url = await uploadPhotoToDrive(file);
+        photos.push(url);
+        onChange(photos.join(','));
+        render();
+      } catch(err) {
+        if(statusEl) statusEl.textContent = '❌ Upload failed: ' + err.message;
+        console.error('Photo upload error:', err);
+      }
+    };
+  }
+  render();
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -3819,6 +3937,10 @@ function openTixDetail(id){
         </div>
       </div>`:''}
     </div>
+    ${t.photos ? `<div style="padding:14px 18px 0">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Photos</div>
+      ${renderPhotoGrid(t.photos.split(',').map(s=>s.trim()).filter(Boolean))}
+    </div>` : ''}
     <div style="padding:16px 18px 0">
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Activity Log</div>
       <div id="act-log-${t.id}">${actHTML}</div>
@@ -3900,6 +4022,8 @@ function openNewTicket(){
   populateAssignSelect('tf-assign');
   fSupPopulate('tf', DB.suppliers.filter(s=>s.status!=='Inactive').sort((a,z)=>a.name.localeCompare(z.name)).map(s=>({id:s.id,name:`${s.name} (€ ${s.ratePerHour}/hr)`})), '', 'None');
   openMo('mo-tix');
+  renderPhotoEditor('tf-photos-editor', '', v => { window._tfPhotos = v; });
+  window._tfPhotos = '';
 }
 function tfGetTimeMinutes(){
   const val=parseFloat(document.getElementById('tf-time-val').value)||0;
@@ -3957,6 +4081,7 @@ function editTix(id){
     setTimeout(()=>fSupSetValue('tf', t.supplierId||''), 0);
     populateAssignSelect('tf-assign');
     document.getElementById('tf-assign').value=t.assignedTo||'';
+    setTimeout(()=>{ renderPhotoEditor('tf-photos-editor', t.photos||'', v=>{ window._tfPhotos=v; }); window._tfPhotos=t.photos||''; }, 50);
   } catch(e){ console.error('editTix setup error:', e); }
   openMo('mo-tix');
 }
@@ -3994,6 +4119,7 @@ async function saveTix(){
       t.supplierId=document.getElementById('tf-supplier').value;
       t.reportedBy=document.getElementById('tf-reporter').value;
       t.notes=document.getElementById('tf-notes').value;
+      t.photos=window._tfPhotos||t.photos||'';
       t.timeSpent=tfGetTimeMinutes();
       if(!Array.isArray(t.activity)) t.activity=[];
       if(prevStatus!==status) t.activity.push({ts:new Date().toISOString(),user:currentUser.name,action:`Status: ${prevStatus} → ${status}`});
@@ -4009,7 +4135,7 @@ async function saveTix(){
     const _nflr=DB.floors.find(f=>f.id===_nfId);
     const _nunt=DB.units.find(u=>u.label===_nu&&(_nflr?u.floorId===_nflr.id:true));
     const _ncat=DB.categories.find(x=>x.id===_nc);
-    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nb,floorId:_nflr?_nflr.id:_nfId,unitId:_nunt?_nunt.id:_nu,subject:subj,status,priority:document.getElementById('tf-pri').value,type:document.getElementById('tf-type').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:document.getElementById('tf-date-opened').value||today.toISOString().split('T')[0],dateClosed:document.getElementById('tf-date-closed').value||'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,timeSpent:tfGetTimeMinutes(),createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}]),building:_nb,floor:_nflr?_nflr.label:_nfId,unit:_nu,category:_ncat?_ncat.category:_nc});
+    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nb,floorId:_nflr?_nflr.id:_nfId,unitId:_nunt?_nunt.id:_nu,subject:subj,status,priority:document.getElementById('tf-pri').value,type:document.getElementById('tf-type').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:document.getElementById('tf-date-opened').value||today.toISOString().split('T')[0],dateClosed:document.getElementById('tf-date-closed').value||'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,timeSpent:tfGetTimeMinutes(),photos:window._tfPhotos||'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Ticket created'}]),building:_nb,floor:_nflr?_nflr.label:_nfId,unit:_nu,category:_ncat?_ncat.category:_nc});
   }
   closeMo('mo-tix');
   await writeSheet('tickets');
@@ -4359,10 +4485,12 @@ function openAstDetail(id){
     <div style="display:flex;align-items:center;border-bottom:1px solid var(--border);padding:0 18px;gap:8px">
       <button id="adtab-inspect" style="${tabActive}"  onclick="astDetailTab('inspect')">Inspect</button>
       <button id="adtab-tickets" style="${tabStyle}"  onclick="astDetailTab('tickets')">Tickets</button>
+      ${a.photos ? `<button id="adtab-photos" style="${tabStyle}" onclick="astDetailTab('photos')">Photos</button>` : ''}
       <button id="adtoggle-closed" style="${toggleOff}" onclick="window._adToggleClosed()">Closed</button>
     </div>
     <div id="adpanel-inspect" style="padding:0 18px 8px"></div>
     <div id="adpanel-tickets" style="display:none;padding:4px 18px 8px"></div>
+    ${a.photos ? `<div id="adpanel-photos" style="display:none;padding:12px 18px">${renderPhotoGrid(a.photos.split(',').map(s=>s.trim()).filter(Boolean))}</div>` : ''}
     <div style="padding:8px 18px 0;display:flex;gap:9px;flex-wrap:wrap">
       ${can('canEditAssets')?`<button onclick="editAst('${a.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff"> Edit</button>`:''}
       ${can('canEditAssets')?`<button onclick="duplicateAst()" style="flex:1;padding:13px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--indigo)">Duplicate</button>`:''}
@@ -4442,6 +4570,7 @@ function openNewAsset(){
   populateAstCategorySelect('af-acat');
   autoSelect('af-acat');
   openMo('mo-ast');
+  setTimeout(()=>renderPhotoEditor('af-photos-editor','',v=>{window._afPhotos=v;}),50);
 }
 function editAst(id){
   if(!can('canEditAssets')) return;
@@ -4499,6 +4628,7 @@ async function saveAst(){
     purchaseDate: document.getElementById('af-pdate').value,
     lastServiced: document.getElementById('af-lsvc').value,
     inspectionTime: parseInt(document.getElementById('af-insptime').value)||0,
+    photos: window._afPhotos||'',
   };
   // Resolved display fields merged on top for in-memory use
   const data = {
@@ -5433,7 +5563,7 @@ function unitDetailTab(tab){
 }
 
 function astDetailTab(tab){
-  const tabs=['inspect','tickets'];
+  const tabs=['inspect','tickets','photos'];
   const activeS='flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
   const inactS ='flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
   tabs.forEach(t=>{
@@ -6900,16 +7030,40 @@ function finishInspectionRound(){
     const dueDate = new Date(today); dueDate.setDate(dueDate.getDate()+14);
     const dueFmt  = dueDate.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
     if(dueLabel) dueLabel.textContent = dueFmt;
+    window._inspItemPhotos = {};
     checklist.innerHTML = failedItems.map((item,i)=>`
-      <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-bottom:0.5px solid var(--border);cursor:pointer" ${i===failedItems.length-1?'style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;cursor:pointer"':''}>
-        <input type="checkbox" class="insp-fail-chk" data-idx="${i}" checked style="width:15px;height:15px;margin-top:2px;accent-color:var(--blue);flex-shrink:0">
-        <div>
-          <div style="font-size:13px;font-weight:600;color:var(--text)">${item.label}</div>
-          <div style="font-size:11px;color:var(--sub);margin-top:1px">${item.floor?item.floor+' · ':''}${item.category||''}</div>
-          ${item.note?`<div style="font-size:11px;color:#92400e;background:#FEF3C7;border-radius:4px;padding:2px 6px;margin-top:4px;display:inline-block">${item.note}</div>`:''}
+      <div style="padding:10px 12px;border-bottom:0.5px solid var(--border)">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+          <input type="checkbox" class="insp-fail-chk" data-idx="${i}" checked style="width:15px;height:15px;margin-top:2px;accent-color:var(--blue);flex-shrink:0">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${item.label}</div>
+            <div style="font-size:11px;color:var(--sub);margin-top:1px">${item.floor?item.floor+' · ':''}${item.category||''}</div>
+            ${item.note?`<div style="font-size:11px;color:#92400e;background:#FEF3C7;border-radius:4px;padding:2px 6px;margin-top:4px;display:inline-block">${item.note}</div>`:''}
+          </div>
+        </label>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card2);border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;font-size:12px;color:var(--sub)">
+            📷 <span id="insp-photo-lbl-${i}">Add photo</span>
+            <input type="file" accept="image/*" style="display:none" onchange="window._inspPhotoAdd(event,${i})">
+          </label>
+          <span id="insp-photo-status-${i}" style="font-size:11px;color:var(--muted)"></span>
         </div>
-      </label>`).join('');
+      </div>`).join('');
     tixSection.style.display = '';
+    window._inspPhotoAdd = async (e, idx) => {
+      const file = e.target.files[0]; if(!file) return;
+      const lbl = document.getElementById('insp-photo-lbl-'+idx);
+      const sta = document.getElementById('insp-photo-status-'+idx);
+      if(sta) sta.textContent = '⏳ Uploading…';
+      try {
+        const url = await uploadPhotoToDrive(file);
+        window._inspItemPhotos[idx] = url;
+        if(lbl) lbl.textContent = '✅ Photo added';
+        if(sta) sta.textContent = '';
+      } catch(err) {
+        if(sta) sta.textContent = '❌ ' + err.message;
+      }
+    };
   } else if(tixSection){
     tixSection.style.display = 'none';
   }
@@ -7073,6 +7227,7 @@ async function saveInspectionRound(){
         type       : 'Inspection',
         timeSpent  : '',
         dueDate    : dueDateStr,
+        photos     : (window._inspItemPhotos && window._inspItemPhotos[idx]) ? window._inspItemPhotos[idx] : '',
       };
       DB.tickets.unshift(tix);
       createdTickets.push(tix);
