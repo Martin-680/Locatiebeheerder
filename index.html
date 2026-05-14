@@ -5993,12 +5993,16 @@ function renderSuppliers(){
     const chip = !supEverHadTix.has(s.id)
       ? `<span style="font-size:15px;font-weight:700;color:var(--muted)">—</span>`
       : `<div style="display:flex;gap:10px;align-items:flex-start">
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
             <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)">Open</span>
             <span style="font-size:12px;font-weight:800;color:${openCol(nOpen)}">${nOpen}</span>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
             <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)">Gesloten</span>
+            <span style="font-size:12px;font-weight:800;color:var(--blue)">${nClosed}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+            <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--sub)">Ratio</span>
             <span style="font-size:12px;font-weight:800;color:${closePct===null?'var(--muted)':closeCol(closePct)}">${closePct===null?'—':closePct+'%'}</span>
           </div>
         </div>`;
