@@ -7686,20 +7686,22 @@ function calGetMatched(){
   };
   DB.tickets.forEach(t=>{
     if(!t.dateOpened) return;
-    entries.push({ date:t.dateOpened, supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—', marker: t.dateClosed && t.dateClosed!==t.dateOpened ? 'start' : '' });
-    if(t.dateClosed && t.dateClosed!==t.dateOpened){
-      entries.push({ date:t.dateClosed, supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—', marker:'end' });
-      addMidDays(t.dateOpened, t.dateClosed, { supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—' });
+    const hasRange = t.dateClosed && t.dateClosed!==t.dateOpened;
+    entries.push({ date:t.dateOpened, supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—', marker: hasRange ? 'start' : '', dateEnd: hasRange ? t.dateClosed : '' });
+    if(hasRange){
+      entries.push({ date:t.dateClosed, supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—', marker:'end', dateEnd:'' });
+      addMidDays(t.dateOpened, t.dateClosed, { supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—', dateEnd:'' });
     }
   });
   if(showInsp){
     DB.inspections.forEach(r=>{
       if(!r.dateStart) return;
       const sub=`${r.building||''}${r.floor?' · '+r.floor:''}`;
-      entries.push({ date:r.dateStart, supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub, marker: r.dateEnd && r.dateEnd!==r.dateStart ? 'start' : '' });
-      if(r.dateEnd && r.dateEnd!==r.dateStart){
-        entries.push({ date:r.dateEnd, supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub, marker:'end' });
-        addMidDays(r.dateStart, r.dateEnd, { supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub });
+      const hasRange = r.dateEnd && r.dateEnd!==r.dateStart;
+      entries.push({ date:r.dateStart, supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub, marker: hasRange ? 'start' : '', dateEnd: hasRange ? r.dateEnd : '' });
+      if(hasRange){
+        entries.push({ date:r.dateEnd, supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub, marker:'end', dateEnd:'' });
+        addMidDays(r.dateStart, r.dateEnd, { supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub, dateEnd:'' });
       }
     });
   }
@@ -7845,17 +7847,22 @@ function calDayClick(dateStr){
         : `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(37,99,235,.12);color:var(--blue)">Ticket</span>`;
       const typBadge = e.type && e.source!=='insp' ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(100,116,139,.12);color:var(--sub)">${e.type}</span>` : '';
       const editFn = e.source==='insp' ? `openInspDetail('${e.id}')` : `calOpenEntry('tix','${e.id}')`;
-      const markerBadge = e.marker==='start'
-        ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#0F6E56;color:#fff">start</span>`
+      const endDateFmt = e.dateEnd ? new Date(e.dateEnd+'T00:00:00').toLocaleDateString('nl-NL',{day:'numeric',month:'short'}) : '';
+      const dateRow = e.marker==='start' && e.dateEnd
+        ? `<div style="display:flex;gap:5px;align-items:center;margin-top:5px">
+            <span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#0F6E56;color:#fff">start</span>
+            <span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:#E1F5EE;color:#0F6E56;border:1px solid #5DCAA5">t/m ${endDateFmt}</span>
+           </div>`
         : e.marker==='end'
-        ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#0F6E56;color:#fff">end</span>`
+        ? `<div style="margin-top:5px"><span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#0F6E56;color:#fff">end</span></div>`
         : '';
       html += `<div onclick="${editFn}" style="padding:11px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:3px">
           <div style="font-size:14px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.subject}</div>
-          <div style="display:flex;gap:4px;flex-shrink:0;align-items:center">${markerBadge}${srcBadge}${typBadge}<span style="font-size:16px;color:var(--muted);line-height:1">›</span></div>
+          <div style="display:flex;gap:4px;flex-shrink:0;align-items:center">${srcBadge}${typBadge}<span style="font-size:16px;color:var(--muted);line-height:1">›</span></div>
         </div>
         <div style="font-size:12px;color:var(--sub)">${supName} · ${e.id}</div>
+        ${dateRow}
       </div>`;
     });
     if(isFuture){
