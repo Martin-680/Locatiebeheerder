@@ -1339,20 +1339,20 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 <div class="mo" id="mo-bld" onclick="mcClick(event,'mo-bld')">
   <div class="ms">
     <div class="mh"></div>
-    <div class="mt"><span id="bld-modal-title">Add Building</span><button class="mt-close" onclick="closeMo('mo-bld')">✕</button></div>
-    <div class="fg"><label>Building Name *</label><input class="fi2" id="bf-name" placeholder="e.g. Maple Tower"/></div>
-    <div class="fg"><label>Address</label><input class="fi2" id="bf-addr" placeholder="Full address"/></div>
-    <div class="fg"><label>Size (m²)</label><input class="fi2" type="number" id="bf-size" placeholder="e.g. 1250"/></div>
+    <div class="mt"><span id="bld-modal-title">Gebouw toevoegen</span><button class="mt-close" onclick="closeMo('mo-bld')">✕</button></div>
+    <div class="fg"><label>Naam gebouw *</label><input class="fi2" id="bf-name" placeholder="bijv. Marktstraat 12"/></div>
+    <div class="fg"><label>Adres</label><input class="fi2" id="bf-addr" placeholder="Volledig adres"/></div>
+    <div class="fg"><label>Oppervlakte (m²)</label><input class="fi2" type="number" id="bf-size" placeholder="bijv. 1250"/></div>
     <div class="fg"><label>Dagen open</label><input class="fi2" id="bf-daysopen" placeholder="e.g. Mon–Fri 8:00–18:00"/></div>
-    <div class="fg"><label>Time Open</label><input class="fi2" id="bf-timeopen" placeholder="e.g. 08:00–18:00"/></div>
-    <div class="fg"><label>Workspace</label><input class="fi2" type="number" id="bf-units" placeholder="0"/></div>
+    <div class="fg"><label>Openingstijden</label><input class="fi2" id="bf-timeopen" placeholder="bijv. 08:00–18:00"/></div>
+    <div class="fg"><label>Werkplekken</label><input class="fi2" type="number" id="bf-units" placeholder="0"/></div>
     <div class="frow2">
-      <div class="fg"><label>Manager</label><select class="fs2" id="bf-mgr"></select></div>
-      <div class="fg"><label>Phone</label><input class="fi2" id="bf-phone" placeholder="555-XXXX"/></div>
+      <div class="fg"><label>Beheerder</label><select class="fs2" id="bf-mgr"></select></div>
+      <div class="fg"><label>Telefoon</label><input class="fi2" id="bf-phone" placeholder="555-XXXX"/></div>
     </div>
     <div class="fg"><label>Email</label><input class="fi2" type="email" id="bf-email" placeholder="info@building.nl"/></div>
-    <button class="btn-p" onclick="saveBld()">Save Building</button>
-    <button class="btn-s" onclick="closeMo('mo-bld')">Cancel</button>
+    <button class="btn-p" onclick="saveBld()">Gebouw opslaan</button>
+    <button class="btn-s" onclick="closeMo('mo-bld')">Annuleren</button>
   </div>
 </div>
 
@@ -1360,24 +1360,24 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 <div class="mo" id="mo-sup" onclick="mcClick(event,'mo-sup')">
   <div class="ms">
     <div class="mh"></div>
-    <div class="mt"><span id="sup-modal-title">Add Supplier</span><button class="mt-close" onclick="closeMo('mo-sup')">✕</button></div>
+    <div class="mt"><span id="sup-modal-title">Leverancier toevoegen</span><button class="mt-close" onclick="closeMo('mo-sup')">✕</button></div>
     <div class="frow2">
-      <div class="fg"><label>Company Name *</label><input class="fi2" id="sf-name" placeholder="Company name"/></div>
-      <div class="fg"><label>Contact Person</label><input class="fi2" id="sf-contact" placeholder="Full name"/></div>
+      <div class="fg"><label>Bedrijfsnaam *</label><input class="fi2" id="sf-name" placeholder="Bedrijfsnaam"/></div>
+      <div class="fg"><label>Contactpersoon</label><input class="fi2" id="sf-contact" placeholder="Volledige naam"/></div>
     </div>
-    <div class="fg"><label>Expertise</label><input class="fi2" id="sf-expertise" placeholder="Plumbing, HVAC, Electrical…"/></div>
+    <div class="fg"><label>Expertise</label><input class="fi2" id="sf-expertise" placeholder="Loodgieter, HVAC, Elektra…"/></div>
     <div class="frow2">
-      <div class="fg"><label>Rate/hr (R)</label><input class="fi2" type="number" id="sf-rate" placeholder="0"/></div>
-      <div class="fg"><label>Transport (R)</label><input class="fi2" type="number" id="sf-transport" placeholder="0"/></div>
+      <div class="fg"><label>Tarief/uur (€)</label><input class="fi2" type="number" id="sf-rate" placeholder="0"/></div>
+      <div class="fg"><label>Transport (€)</label><input class="fi2" type="number" id="sf-transport" placeholder="0"/></div>
     </div>
     <div class="frow2">
-      <div class="fg"><label>Phone</label><input class="fi2" type="tel" id="sf-phone" placeholder="555-XXXX"/></div>
+      <div class="fg"><label>Telefoon</label><input class="fi2" type="tel" id="sf-phone" placeholder="555-XXXX"/></div>
       <div class="fg"><label>Email</label><input class="fi2" type="email" id="sf-email" placeholder="contact@…"/></div>
     </div>
-    <div class="fg"><label>Address</label><input class="fi2" id="sf-address" placeholder="Physical address"/></div>
-    <div class="fg"><label>Status</label><select class="fs2" id="sf-status"><option>Active</option><option>Inactive</option><option>Preferred</option></select></div>
-    <button class="btn-p" onclick="saveSupplier()">Save Supplier</button>
-    <button class="btn-s" onclick="closeMo('mo-sup')">Cancel</button>
+    <div class="fg"><label>Adres</label><input class="fi2" id="sf-address" placeholder="Straat en huisnummer"/></div>
+    <div class="fg"><label>Status</label><select class="fs2" id="sf-status"><option value="Active">Actief</option><option value="Inactive">Inactief</option><option value="Preferred">Voorkeur</option></select></div>
+    <button class="btn-p" onclick="saveSupplier()">Leverancier opslaan</button>
+    <button class="btn-s" onclick="closeMo('mo-sup')">Annuleren</button>
   </div>
 </div>
 
@@ -3017,7 +3017,7 @@ function updateBldFilterBadge(){
   if(!active){ chipsEl.style.display='none'; chipsEl.innerHTML=''; return; }
   chipsEl.style.display='flex';
   const val = document.getElementById('sel-bld-status').value;
-  const lbl = val==='Active'?'Normal':'Has Open meldingen';
+  const lbl = val==='Active'?'Normaal':'Heeft open meldingen';
   chipsEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:20px;font-size:12px;font-weight:600;color:var(--blue)">${lbl}<button onclick="clearBldFilters()" style="font-size:12px;line-height:1;color:var(--blue);opacity:.7;padding:0 0 0 2px">&times;</button></span>`;
 }
 
@@ -5687,7 +5687,7 @@ function openBldDetail(id){
 
   html+='<div style="height:20px"></div>';
   if(can('canManageBuildings')) html+=`<div style="padding:0 14px 8px;display:flex;gap:9px">
-    <button onclick="editBld('${b.id}')" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff"> Edit Building</button>
+    <button onclick="editBld('${b.id}')" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-size:15px;font-weight:700;color:#fff"> Gebouw bewerken</button>
     <button onclick="openNewUnitForBuilding('${b.id}')" style="flex:1;padding:14px;background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:var(--rs);font-size:15px;font-weight:700;color:var(--indigo)"> Add Unit</button>
   </div>`;
   html+='<div style="height:20px"></div>';
@@ -5860,7 +5860,7 @@ function renderBlds(){
 function openNewBuilding(){
   if(!can('canManageBuildings')) return;
   editingId.bld=null;
-  document.getElementById('bld-modal-title').textContent='Add Building';
+  document.getElementById('bld-modal-title').textContent='Gebouw toevoegen';
   ['bf-name','bf-addr','bf-size','bf-daysopen','bf-timeopen','bf-units','bf-phone','bf-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   populateMgrSelect('bf-mgr');
   openMo('mo-bld');
@@ -5869,7 +5869,7 @@ function editBld(id){
   if(!can('canManageBuildings')) return;
   const b=DB.buildings.find(x=>x.id===id); if(!b) return;
   editingId.bld=id;
-  document.getElementById('bld-modal-title').textContent='Edit Building';
+  document.getElementById('bld-modal-title').textContent='Gebouw bewerken';
   document.getElementById('bf-name').value=b.name;
   document.getElementById('bf-addr').value=b.address||'';
   document.getElementById('bf-size').value=b.size||'';
@@ -8305,15 +8305,15 @@ function calPlanTicket(dateStr){
     <div class="mt">
       <span style="display:flex;align-items:center;gap:8px">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-        Filter Buildings
+        Gebouwen filteren
       </span>
       <button class="mt-close" onclick="closeMo('mo-bld-filter')">&#x2715;</button>
     </div>
     <div class="fg"><label>Status</label>
       <select class="fi2" id="mf-bld-status">
-        <option value="All">All</option>
-        <option value="Active">Normal (no open tickets)</option>
-        <option value="Issues">Has Open Tickets</option>
+        <option value="All">Alle</option>
+        <option value="Active">Normaal (geen open meldingen)</option>
+        <option value="Issues">Heeft open meldingen</option>
       </select>
     </div>
     <div style="display:flex;gap:10px;padding:4px 18px 18px">
