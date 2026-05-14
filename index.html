@@ -7720,7 +7720,7 @@ function calGetMatched(){
 function dutchHolidays(year){
   const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,mn=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*mn+114)/31),day=((h+l-7*mn+114)%31)+1;
   const easter=new Date(year,month-1,day);
-  const fmt=dt=>dt.toISOString().slice(0,10);
+  const fmt=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
   const add=(dt,n)=>new Date(dt.getTime()+n*864e5);
   const hols={};
   const set=(dt,name)=>{ hols[fmt(dt)]=name; };
