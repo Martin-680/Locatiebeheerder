@@ -4565,6 +4565,12 @@ async function saveAst(){
   };
   if(editingId.ast){ Object.assign(DB.assets.find(x=>x.id===editingId.ast),data); }
   else { DB.assets.push({id:nextId(DB.assets,'AST'),...data}); }
+  // Sync inspection item labels for this asset
+  if(editingId.ast){
+    let inspItemsChanged = false;
+    DB.inspectionItems.forEach(i=>{ if(i.assetId===editingId.ast){ i.label=label; inspItemsChanged=true; } });
+    if(inspItemsChanged) await writeSheet('inspectionItems');
+  }
   closeMo('mo-ast');
   await writeSheet('assets');
   toast(editingId.ast?'Activum bijgewerkt':'Activum aangemaakt');
@@ -7294,12 +7300,17 @@ function openInspDetail(id){
     const rCol = {Approved:'rgba(5,150,105,.1)',Failed:'rgba(220,38,38,.1)',Skipped:'rgba(107,114,128,.1)',Open:'rgba(37,99,235,.1)'}[i.result]||'rgba(107,114,128,.1)';
     const rTxt = {Approved:'#065f46',Failed:'#991b1b',Skipped:'#4b5563',Open:'#1e40af'}[i.result]||'#4b5563';
     const rLbl = {Approved:'Goedgekeurd',Failed:'Afgekeurd',Skipped:'Overgeslagen',Open:'Open'}[i.result]||i.result;
-    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+    const clickable = i.assetId && can('canEditAssets');
+    const clickAttr = clickable ? `onclick="closeMo('mo-insp-detail');setTimeout(()=>openAstDetail('${i.assetId}'),220)" style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer"` : `style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"`;
+    return `<div ${clickAttr}>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;color:var(--text)">${i.label||'—'}</div>
+        <div style="font-size:13px;color:var(--text)">${i.label||'—'}${clickable?` <span style="font-size:10px;color:var(--muted)">${i.assetId}</span>`:''}</div>
         ${i.note?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${i.note}</div>`:''}
       </div>
-      <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${rCol};color:${rTxt};white-space:nowrap;flex-shrink:0">${rLbl}</span>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${rCol};color:${rTxt};white-space:nowrap">${rLbl}</span>
+        ${clickable?`<span style="font-size:16px;color:var(--muted);line-height:1">›</span>`:''}
+      </div>
     </div>`;
   }).join('') : `<div style="font-size:12px;color:var(--muted);padding:8px 0">Geen items gevonden</div>`;
 
