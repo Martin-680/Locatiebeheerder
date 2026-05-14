@@ -7823,47 +7823,60 @@ function calDayClick(dateStr){
         <span>Nieuwe melding</span>
       </button>
     </div>`;
-  let html = '';
-  if(entries.length){
-    entries.forEach(e=>{
-      const supName = DB.suppliers.find(s=>s.id===e.supplierId)?.name || '—';
-      const srcBadge = e.source==='insp'
-        ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(139,92,246,.12);color:#6D28D9">Inspectie</span>`
-        : `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(37,99,235,.12);color:var(--blue)">Ticket</span>`;
-      const typBadge = e.type && e.source!=='insp' ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(100,116,139,.12);color:var(--sub)">${e.type}</span>` : '';
-      const editFn = e.source==='insp' ? `openInspDetail('${e.id}')` : `calOpenEntry('tix','${e.id}')`;
-      const endDateFmt   = e.dateEnd   ? new Date(e.dateEnd  +'T00:00:00').toLocaleDateString('nl-NL',{day:'numeric',month:'short'}) : '';
-      const startDateFmt = e.dateStart ? new Date(e.dateStart+'T00:00:00').toLocaleDateString('nl-NL',{day:'numeric',month:'short'}) : '';
-      const bSolid = (lbl,dt) => `<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:#0F6E56;color:#fff">${lbl} ${dt}</span>`;
-      const bGhost = (lbl,dt) => `<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:#E1F5EE;color:#7DB8A8;border:1px solid #B2DDD3">${lbl} ${dt}</span>`;
-      const thisDayFmt = new Date(e.date+'T00:00:00').toLocaleDateString('nl-NL',{day:'numeric',month:'short'});
-      const dateRow = e.marker==='start' && e.dateEnd
-        ? `<div style="display:flex;gap:5px;align-items:center;margin-top:5px">${bSolid('start',thisDayFmt)}<span style="font-size:10px;color:var(--muted)">—</span>${bGhost('eind',endDateFmt)}</div>`
-        : e.marker==='end' && e.dateStart
-        ? `<div style="display:flex;gap:5px;align-items:center;margin-top:5px">${bGhost('start',startDateFmt)}<span style="font-size:10px;color:var(--muted)">—</span>${bSolid('eind',thisDayFmt)}</div>`
-        : '';
-      html += `<div onclick="${editFn}" style="padding:11px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:3px">
-          <div style="font-size:14px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.subject}</div>
-          <div style="display:flex;gap:4px;flex-shrink:0;align-items:center">${srcBadge}${typBadge}<span style="font-size:16px;color:var(--muted);line-height:1">›</span></div>
-        </div>
-        <div style="font-size:12px;color:var(--sub)">${supName} · ${e.id}</div>
-        ${dateRow}
-      </div>`;
-    });
-    if(isFuture){
-      html += `<div style="padding:14px 18px 6px;font-size:13px;color:var(--sub)">Nog een afspraak plannen:</div>${planBtns}`;
-    }
-  } else {
-    html = `<div style="padding:20px 18px 8px;text-align:center;color:var(--sub);font-size:13px;line-height:1.6">
-      Nog geen afspraken.<br>Plan uw afspraak:
-    </div>${planBtns}`;
-  }
+  const tabStyle   = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
+  const tabActive  = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
+  const tickets = entries.filter(e=>e.source!=='insp');
+  const insps   = entries.filter(e=>e.source==='insp');
+  const bSolid  = (lbl,dt) => `<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:#0F6E56;color:#fff">${lbl} ${dt}</span>`;
+  const bGhost  = (lbl,dt) => `<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:#E1F5EE;color:#7DB8A8;border:1px solid #B2DDD3">${lbl} ${dt}</span>`;
+  const renderEntry = (e, showClose) => {
+    const supName      = DB.suppliers.find(s=>s.id===e.supplierId)?.name || '—';
+    const typBadge     = e.type && e.source!=='insp' ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(100,116,139,.12);color:var(--sub)">${e.type}</span>` : '';
+    const editFn       = e.source==='insp' ? `openInspDetail('${e.id}')` : `calOpenEntry('tix','${e.id}')`;
+    const thisDayFmt   = new Date(e.date   +'T00:00:00').toLocaleDateString('nl-NL',{day:'numeric',month:'short'});
+    const endDateFmt   = e.dateEnd   ? new Date(e.dateEnd  +'T00:00:00').toLocaleDateString('nl-NL',{day:'numeric',month:'short'}) : '';
+    const startDateFmt = e.dateStart ? new Date(e.dateStart+'T00:00:00').toLocaleDateString('nl-NL',{day:'numeric',month:'short'}) : '';
+    const dateRow = e.marker==='start' && e.dateEnd
+      ? `<div style="display:flex;gap:5px;align-items:center;margin-top:5px">${bSolid('start',thisDayFmt)}<span style="font-size:10px;color:var(--muted)">—</span>${bGhost('eind',endDateFmt)}</div>`
+      : e.marker==='end' && e.dateStart
+      ? `<div style="display:flex;gap:5px;align-items:center;margin-top:5px">${bGhost('start',startDateFmt)}<span style="font-size:10px;color:var(--muted)">—</span>${bSolid('eind',thisDayFmt)}</div>`
+      : '';
+    const closeBtn = showClose
+      ? `<button onclick="event.stopPropagation();quickCloseTix('${e.id}')" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:#EAF3DE;color:#27500A;border:1px solid #97C459;cursor:pointer;white-space:nowrap">Gesloten</button>`
+      : '';
+    return `<div onclick="${editFn}" style="padding:11px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:3px">
+        <div style="font-size:14px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.subject}</div>
+        <div style="display:flex;gap:4px;flex-shrink:0;align-items:center">${closeBtn}${typBadge}<span style="font-size:16px;color:var(--muted);line-height:1">›</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--sub)">${supName} · ${e.id}</div>
+      ${dateRow}
+    </div>`;
+  };
+  const tixHtml  = tickets.length ? tickets.map(e=>renderEntry(e,true)).join('') : `<div style="padding:16px 18px;font-size:12px;color:var(--sub);text-align:center">Geen tickets</div>`;
+  const inspHtml = insps.length   ? insps.map(e=>renderEntry(e,false)).join('')  : `<div style="padding:16px 18px;font-size:12px;color:var(--sub);text-align:center">Geen inspecties</div>`;
+  let html = `<div style="display:flex;border-bottom:1px solid var(--border)">
+    <button id="caldtab-tix"  style="${tabActive}"  onclick="calDayTab('tix')">Tickets <span style="font-size:10px;opacity:.7">(${tickets.length})</span></button>
+    <button id="caldtab-insp" style="${tabStyle}"   onclick="calDayTab('insp')">Inspecties <span style="font-size:10px;opacity:.7">(${insps.length})</span></button>
+  </div>
+  <div id="caldtab-panel-tix">${tixHtml}${isFuture ? planBtns : ''}</div>
+  <div id="caldtab-panel-insp" style="display:none">${inspHtml}</div>`;
   document.getElementById('cal-day-body').innerHTML = html;
   openMo('mo-cal-day');
 }
 
-function calPlanInsp(dateStr){
+function calDayTab(tab){
+  const tabStyle  = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
+  const tabActive = 'flex:1;padding:10px 4px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
+  ['tix','insp'].forEach(t=>{
+    const btn   = document.getElementById('caldtab-'+t);
+    const panel = document.getElementById('caldtab-panel-'+t);
+    if(btn)   btn.style.cssText   = t===tab ? tabActive : tabStyle;
+    if(panel) panel.style.display = t===tab ? '' : 'none';
+  });
+}
+
+
   // Open Start Inspection modal with the date pre-set to Planned
   if(!can('canStartInspection')){ toast('No permission to start inspections','err'); return; }
   openStartInspection();
