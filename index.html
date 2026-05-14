@@ -905,20 +905,6 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub)"><div style="width:12px;height:12px;border-radius:3px;background:none;border:2px solid #E24B4A;flex-shrink:0"></div>Feestdag</div>
     </div>
     <div class="cal-months" id="cal-months"></div>
-    <div style="display:flex;flex-direction:column;gap:6px;padding:0 14px 16px;font-size:12px;color:var(--sub)">
-      <div style="display:flex;align-items:center;gap:7px">
-        <div style="width:16px;height:16px;border-radius:5px;background:#EAF3DE;border:1px solid #97C459;flex-shrink:0"></div>
-        Overeenkomende meldingen
-      </div>
-      <div id="cal-insp-legend" style="display:none;align-items:center;gap:7px">
-        <div style="width:16px;height:16px;border-radius:50%;background:none;border:2px solid #378ADD;flex-shrink:0"></div>
-        Inspectie startdag
-      </div>
-      <div id="cal-both-legend" style="display:none;align-items:center;gap:7px">
-        <div style="width:16px;height:16px;border-radius:50%;background:#EAF3DE;border:2px solid #378ADD;flex-shrink:0"></div>
-        Melding + inspectie
-      </div>
-    </div>
   </div>
 
   <!-- Calendar day detail modal -->
@@ -7664,10 +7650,6 @@ function calInspToggle(){
   const thumb = document.getElementById('cal-insp-thumb');
   if(track) track.style.background = on ? 'var(--blue)' : 'var(--border)';
   if(thumb) thumb.style.left = on ? '21px' : '3px';
-  const li = document.getElementById('cal-insp-legend');
-  const lb = document.getElementById('cal-both-legend');
-  if(li) li.style.display = on ? 'flex' : 'none';
-  if(lb) lb.style.display = on ? 'flex' : 'none';
 }
 function calGetMatched(){
   const supId   = document.getElementById('cal-sup')?.value || '';
