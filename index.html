@@ -1209,14 +1209,14 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="mt"><span id="ast-modal-title">Nieuw activum</span><button class="mt-close" onclick="closeMo('mo-ast')">✕</button></div>
     <div class="fg"><label>Naam activum *</label><input class="fi2" id="af-name" placeholder="bijv. HVAC eenheid A"/></div>
     <div class="frow2">
-      <div class="fg"><label>Building</label><select class="fs2" id="af-bldg" onchange="afOnBldgChange()"><option value="">— Select building —</option></select></div>
-      <div class="fg"><label>Floor</label><select class="fs2" id="af-sub" onchange="afOnFloorChange()"><option value="">None</option></select></div>
+      <div class="fg"><label>Gebouw</label><select class="fs2" id="af-bldg" onchange="afOnBldgChange()"><option value="">— Selecteer gebouw —</option></select></div>
+      <div class="fg"><label>Verdieping</label><select class="fs2" id="af-sub" onchange="afOnFloorChange()"><option value="">Geen</option></select></div>
     </div>
     <div class="frow2">
-      <div class="fg"><label>Unit</label><select class="fs2" id="af-loc"><option value="">— Select unit —</option></select></div>
+      <div class="fg"><label>Eenheid</label><select class="fs2" id="af-loc"><option value="">— Selecteer eenheid —</option></select></div>
       <div class="fg"><label>Leverancier</label>
         <div id="af-cat-wrap" style="position:relative">
-          <input id="af-cat-search" class="fi2" placeholder="Search supplier…" autocomplete="off"
+          <input id="af-cat-search" class="fi2" placeholder="Zoek leverancier…" autocomplete="off"
             oninput="fSupFilter('af')"
             onfocus="fSupOpen('af')"
             onblur="setTimeout(()=>fSupClose('af'),180)"
@@ -1227,13 +1227,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <input type="hidden" id="af-cat"/>
       </div>
     </div>
-    <div class="fg"><label>Category</label>
+    <div class="fg"><label>Categorie</label>
       <select class="fs2" id="af-acat">
-        <option value="">— Select category —</option>
+        <option value="">— Selecteer categorie —</option>
       </select>
     </div>
     <div class="frow2">
-      <div class="fg"><label>Status</label><select class="fs2" id="af-status"><option>Active</option><option>In onderhoud</option><option>Buiten gebruik</option></select></div>
+      <div class="fg"><label>Status</label><select class="fs2" id="af-status"><option value="Active">Actief</option><option>In onderhoud</option><option>Buiten gebruik</option></select></div>
       <div class="fg"><label>Fabrikant</label><input class="fi2" id="af-mfr" placeholder="Merk"/></div>
     </div>
     <div class="frow2">
@@ -1245,13 +1245,13 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="fg"><label>Laatste onderhoud</label><input class="fi2" type="date" id="af-lsvc"/></div>
     </div>
     <div class="frow2">
-      <div class="fg"><label>Inspectietijd (min)</label><input class="fi2" type="number" min="0" id="af-insptime" placeholder="e.g. 45"/></div>
+      <div class="fg"><label>Inspectietijd (min)</label><input class="fi2" type="number" min="0" id="af-insptime" placeholder="bijv. 45"/></div>
       <div class="fg"><div id="af-photos-editor"></div></div>
       <div class="fg"></div>
     </div>
-    <button class="btn-p" onclick="saveAst()">Save Asset</button>
+    <button class="btn-p" onclick="saveAst()">Activum opslaan</button>
     <button class="btn-p" id="ast-dup-btn" onclick="duplicateAst()" style="background:#EEF2FF;color:var(--indigo);">Dupliceren</button>
-    <button class="btn-s" onclick="closeMo('mo-ast')">Cancel</button>
+    <button class="btn-s" onclick="closeMo('mo-ast')">Annuleren</button>
   </div>
 </div>
 
@@ -5139,7 +5139,7 @@ function openNewUnitForFloor(floorId){
 function openNewUnit(){
   if(!can('canManageBuildings')) return;
   editingId.unit=null;
-  document.getElementById('unit-modal-title').textContent='New Unit';
+  document.getElementById('unit-modal-title').textContent='Nieuwe eenheid';
   document.getElementById('unit-dup-btn').style.display='none';
   document.getElementById('uf2-label').value='';
   document.getElementById('uf2-insptime').value='';
@@ -5153,7 +5153,7 @@ function editUnit(id){
   if(!can('canManageBuildings')) return;
   const u=DB.units.find(x=>x.id===id); if(!u) return;
   editingId.unit=id; closeMo('mo-unit-detail');
-  document.getElementById('unit-modal-title').textContent='Edit Unit';
+  document.getElementById('unit-modal-title').textContent='Eenheid bewerken';
   document.getElementById('unit-dup-btn').style.display='';
   document.getElementById('uf2-label').value=u.label||'';
   document.getElementById('uf2-sort').value=u.sortOrder||'';
@@ -5548,7 +5548,7 @@ function inspDetailToggle(filter, btn){
 function openNewFloor(){
   if(!can('canManageBuildings')) return;
   editingId.floor = null;
-  document.getElementById('floor-modal-title').textContent = 'New Floor';
+  document.getElementById('floor-modal-title').textContent = 'Nieuwe verdieping';
   document.getElementById('ff-label').value = '';
   document.getElementById('ff-insptime').value = '';
   document.getElementById('ff-sort').value  = '';
@@ -5563,7 +5563,7 @@ function editFloor(id){
   const f = DB.floors.find(x=>x.id===id); if(!f) return;
   editingId.floor = id;
   closeMo('mo-floor-detail');
-  document.getElementById('floor-modal-title').textContent = 'Edit Floor';
+  document.getElementById('floor-modal-title').textContent = 'Verdieping bewerken';
   document.getElementById('ff-label').value = f.label||'';
   document.getElementById('ff-sort').value  = f.sortOrder||'';
   populateBldSelect('ff-bldg');
@@ -7998,13 +7998,13 @@ function calPlanTicket(dateStr){
 <div class="mo" id="mo-floor" onclick="mcClick(event,'mo-floor')">
   <div class="ms">
     <div class="mh"></div>
-    <div class="mt"><span id="floor-modal-title">New Floor</span><button class="mt-close" onclick="closeMo('mo-floor')">✕</button></div>
-    <div class="fg"><label>Floor Name *</label><input class="fi2" id="ff-label" placeholder="e.g. Ground Floor"/></div>
+    <div class="mt"><span id="floor-modal-title">Nieuwe verdieping</span><button class="mt-close" onclick="closeMo('mo-floor')">✕</button></div>
+    <div class="fg"><label>Naam verdieping *</label><input class="fi2" id="ff-label" placeholder="bijv. Begane grond"/></div>
     <div class="fg"><label>Gebouw *</label><select class="fs2" id="ff-bldg"><option value="">Select…</option></select></div>
-    <div class="fg"><label>Sort Order</label><input class="fi2" type="number" id="ff-sort" placeholder="0"/></div>
+    <div class="fg"><label>Sorteervolgorde</label><input class="fi2" type="number" id="ff-sort" placeholder="0"/></div>
     <div class="fg"><label>Inspectietijd (min)</label><input class="fi2" type="number" min="0" id="ff-insptime" placeholder="e.g. 30"/></div>
-    <button class="btn-p" onclick="saveFloor()">Save Floor</button>
-    <button class="btn-s" onclick="closeMo('mo-floor')">Cancel</button>
+    <button class="btn-p" onclick="saveFloor()">Verdieping opslaan</button>
+    <button class="btn-s" onclick="closeMo('mo-floor')">Annuleren</button>
   </div>
 </div>
 
@@ -8020,17 +8020,17 @@ function calPlanTicket(dateStr){
 <div class="mo" id="mo-unit" onclick="mcClick(event,'mo-unit')">
   <div class="ms">
     <div class="mh"></div>
-    <div class="mt"><span id="unit-modal-title">New Unit</span><button class="mt-close" onclick="closeMo('mo-unit')">✕</button></div>
-    <div class="fg"><label>Unit Name *</label><input class="fi2" id="uf2-label" placeholder="e.g. Office 101"/></div>
+    <div class="mt"><span id="unit-modal-title">Nieuwe eenheid</span><button class="mt-close" onclick="closeMo('mo-unit')">✕</button></div>
+    <div class="fg"><label>Naam eenheid *</label><input class="fi2" id="uf2-label" placeholder="bijv. Kantoor 101"/></div>
     <div class="frow2">
       <div class="fg"><label>Gebouw *</label><select class="fs2" id="uf2-bldg" onchange="uf2OnBldgChange()"><option value="">Select…</option></select></div>
-      <div class="fg"><label>Floor</label><select class="fs2" id="uf2-floor"><option value="">— Select floor —</option></select></div>
+      <div class="fg"><label>Verdieping</label><select class="fs2" id="uf2-floor"><option value="">— Selecteer verdieping —</option></select></div>
     </div>
-    <div class="fg"><label>Sort Order</label><input class="fi2" type="number" id="uf2-sort" placeholder="0"/></div>
+    <div class="fg"><label>Sorteervolgorde</label><input class="fi2" type="number" id="uf2-sort" placeholder="0"/></div>
     <div class="fg"><label>Inspectietijd (min)</label><input class="fi2" type="number" min="0" id="uf2-insptime" placeholder="e.g. 30"/></div>
-    <button class="btn-p" onclick="saveUnit()">Save Unit</button>
+    <button class="btn-p" onclick="saveUnit()">Eenheid opslaan</button>
     <button class="btn-p" id="unit-dup-btn" onclick="duplicateUnit()" style="background:#EEF2FF;color:var(--indigo);">Dupliceren</button>
-    <button class="btn-s" onclick="closeMo('mo-unit')">Cancel</button>
+    <button class="btn-s" onclick="closeMo('mo-unit')">Annuleren</button>
   </div>
 </div>
 
