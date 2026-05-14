@@ -202,16 +202,18 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:2px 6px 7px}
 .cal-day{height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:12px;color:var(--text);cursor:default;position:relative;overflow:hidden}
 .cal-day.cal-match{background:#EAF3DE;color:#27500A;font-weight:700;cursor:pointer}
-.cal-day.cal-insp{background:#EEEDFE;color:#534AB7;font-weight:700;cursor:pointer}
+.cal-day.cal-insp{color:#534AB7;font-weight:700;cursor:pointer}
+.cal-day.cal-insp span{border:2px solid #7F77DD;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px}
 .cal-day.cal-selected{background:#3B6D11;color:#fff;font-weight:700;cursor:pointer}
 .cal-day.cal-today{outline:1.5px solid var(--blue);outline-offset:-1px}
 .cal-day.cal-empty{color:var(--muted);}
 .cal-day.cal-pad{pointer-events:none;}
-.cal-day.cal-holiday{background:#FEF3C7;color:#92400E;font-weight:700;cursor:pointer}
-.cal-day.cal-tri-start-match::after{content:'';position:absolute;bottom:0;left:0;width:0;height:0;border-style:solid;border-width:0 0 8px 8px;border-color:transparent transparent #27500A transparent}
-.cal-day.cal-tri-end-match::after{content:'';position:absolute;bottom:0;right:0;width:0;height:0;border-style:solid;border-width:8px 8px 0 0;border-color:#27500A transparent transparent transparent}
-.cal-day.cal-tri-start-insp::after{content:'';position:absolute;bottom:0;left:0;width:0;height:0;border-style:solid;border-width:0 0 8px 8px;border-color:transparent transparent #534AB7 transparent}
-.cal-day.cal-tri-end-insp::after{content:'';position:absolute;bottom:0;right:0;width:0;height:0;border-style:solid;border-width:8px 8px 0 0;border-color:#534AB7 transparent transparent transparent}
+.cal-day.cal-holiday{background:none;border:2px solid #E24B4A;color:#A32D2D;font-weight:700;cursor:pointer}
+.cal-day.cal-range-start{background:#0F6E56;color:#fff;font-weight:700;cursor:pointer;border-radius:7px 0 0 7px}
+.cal-day.cal-range-end{background:#0F6E56;color:#fff;font-weight:700;cursor:pointer;border-radius:0 7px 7px 0}
+.cal-day.cal-range-mid{background:#E1F5EE;color:#0F6E56;border-radius:0;cursor:pointer}
+.cal-day.cal-range-mid.cal-match{background:linear-gradient(180deg,#E1F5EE 50%,#EAF3DE 50%);color:#0F6E56}
+.cal-day.cal-range-mid.cal-insp{background:#E1F5EE;color:#534AB7}
 /* ── TICKET LIST ── */
 .tlist{display:flex;flex-direction:column;gap:8px;padding:0 14px 8px;}
 .ti{background:var(--card);border:1.5px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05);border-radius:var(--r);padding:13px 14px;display:flex;align-items:flex-start;gap:11px;cursor:pointer;transition:border-color .15s;}
@@ -905,7 +907,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div style="display:flex;flex-wrap:wrap;gap:10px;padding:4px 14px 10px;align-items:center">
       <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub)"><div style="width:12px;height:12px;border-radius:3px;background:#EAF3DE;border:1px solid #3B6D11;flex-shrink:0"></div>Ticket</div>
       <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub)"><div style="width:12px;height:12px;border-radius:3px;background:#EEEDFE;border:1px solid #534AB7;flex-shrink:0"></div>Inspectie</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub)"><div style="width:12px;height:12px;border-radius:3px;background:#FEF3C7;border:1px solid #D97706;flex-shrink:0"></div>Feestdag</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sub)"><div style="width:12px;height:12px;border-radius:3px;background:none;border:2px solid #E24B4A;flex-shrink:0"></div>Feestdag</div>
     </div>
     <div class="cal-months" id="cal-months"></div>
     <div style="display:flex;flex-direction:column;gap:6px;padding:0 14px 16px;font-size:12px;color:var(--sub)">
@@ -929,7 +931,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="ms">
       <div class="mh"></div>
       <div class="mt"><span id="cal-day-title">Entries</span><button class="mt-close" onclick="closeMo('mo-cal-day')">✕</button></div>
-      <div id="cal-day-holiday" style="display:none;padding:2px 16px 8px;font-size:12px;font-weight:700;color:#92400E;background:#FEF3C7;text-align:center"></div>
+      <div id="cal-day-holiday" style="display:none;padding:2px 16px 8px;font-size:12px;font-weight:700;color:#A32D2D;text-align:center"></div>
       <div id="cal-day-body" style="padding-bottom:16px"></div>
     </div>
   </div>
@@ -1522,7 +1524,8 @@ function nlPublicHolidays(year) {
   const E=new Date(year,month-1,day);
   const add=(x,n)=>{const r=new Date(x);r.setDate(r.getDate()+n);return r;};
   const fmt=x=>`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
-  return {[fmt(new Date(year,0,1))]:'Nieuwjaarsdag',[fmt(add(E,-2))]:'Goede Vrijdag',[fmt(E)]:'Eerste Paasdag',[fmt(add(E,1))]:'Tweede Paasdag',[fmt(new Date(year,3,27))]:'Koningsdag',[fmt(add(E,39))]:'Hemelvaartsdag',[fmt(add(E,49))]:'Eerste Pinksterdag',[fmt(add(E,50))]:'Tweede Pinksterdag',[fmt(new Date(year,11,25))]:'Eerste Kerstdag',[fmt(new Date(year,11,26))]:'Tweede Kerstdag'};
+  const K=new Date(year,3,27);
+  return {[fmt(new Date(year,0,1))]:'Nieuwjaarsdag',[fmt(add(E,-2))]:'Goede Vrijdag',[fmt(E)]:'Eerste Paasdag',[fmt(add(E,1))]:'Tweede Paasdag',[fmt(K.getDay()===0?add(K,-1):K)]:'Koningsdag',[fmt(new Date(year,4,5))]:'Bevrijdingsdag',[fmt(add(E,39))]:'Hemelvaartsdag',[fmt(add(E,49))]:'Eerste Pinksterdag',[fmt(add(E,50))]:'Tweede Pinksterdag',[fmt(new Date(year,11,25))]:'Eerste Kerstdag',[fmt(new Date(year,11,26))]:'Tweede Kerstdag'};
 }
 // Working days between two dates (Mon-Fri, excl. NL public holidays + optional daysOff array)
 function workingDaysInRange(start, end, skipDates=[]) {
@@ -7676,11 +7679,17 @@ function calGetMatched(){
   const typ     = document.getElementById('cal-type')?.value || '';
   const showInsp= document.getElementById('cal-show-insp')?.checked || false;
   const entries = [];
+  const addMidDays=(dateStart,dateEnd,base)=>{
+    let d=new Date(dateStart+'T00:00:00'); d.setDate(d.getDate()+1);
+    const end=new Date(dateEnd+'T00:00:00');
+    while(d<end){ const ds=d.toISOString().slice(0,10); entries.push({...base,date:ds,marker:'mid'}); d.setDate(d.getDate()+1); }
+  };
   DB.tickets.forEach(t=>{
     if(!t.dateOpened) return;
     entries.push({ date:t.dateOpened, supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—', marker: t.dateClosed && t.dateClosed!==t.dateOpened ? 'start' : '' });
     if(t.dateClosed && t.dateClosed!==t.dateOpened){
       entries.push({ date:t.dateClosed, supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—', marker:'end' });
+      addMidDays(t.dateOpened, t.dateClosed, { supplierId:t.supplierId, type:t.type||'', source:'ticket', id:t.id, subject:t.subject||'—' });
     }
   });
   if(showInsp){
@@ -7690,6 +7699,7 @@ function calGetMatched(){
       entries.push({ date:r.dateStart, supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub, marker: r.dateEnd && r.dateEnd!==r.dateStart ? 'start' : '' });
       if(r.dateEnd && r.dateEnd!==r.dateStart){
         entries.push({ date:r.dateEnd, supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub, marker:'end' });
+        addMidDays(r.dateStart, r.dateEnd, { supplierId:'', type:'inspectie', source:'insp', id:r.id, subject:sub });
       }
     });
   }
@@ -7712,11 +7722,12 @@ function dutchHolidays(year){
   const add=(dt,n)=>new Date(dt.getTime()+n*864e5);
   const hols={};
   const set=(dt,name)=>{ hols[fmt(dt)]=name; };
+  const koningsdag=new Date(year,3,27);
   set(new Date(year,0,1),'Nieuwjaarsdag');
   set(add(easter,-2),'Goede Vrijdag');
   set(easter,'Eerste Paasdag');
   set(add(easter,1),'Tweede Paasdag');
-  set(new Date(year,3,27),'Koningsdag');
+  set(koningsdag.getDay()===0?add(koningsdag,-1):koningsdag,'Koningsdag');
   set(new Date(year,4,5),'Bevrijdingsdag');
   set(add(easter,39),'Hemelvaartsdag');
   set(add(easter,49),'Eerste Pinksterdag');
@@ -7755,31 +7766,27 @@ function renderCalendar(){
       const hasInsp  = dayEntries.some(e=>e.source==='insp');
       const isToday  = ds===todayStr;
       const holiday  = holidays[ds];
-      // determine triangle markers
-      const matchStart = dayEntries.some(e=>e.source!=='insp'&&e.marker==='start');
-      const matchEnd   = dayEntries.some(e=>e.source!=='insp'&&e.marker==='end');
-      const inspStart  = dayEntries.some(e=>e.source==='insp'&&e.marker==='start');
-      const inspEnd    = dayEntries.some(e=>e.source==='insp'&&e.marker==='end');
+      const isRangeStart = dayEntries.some(e=>e.marker==='start');
+      const isRangeEnd   = dayEntries.some(e=>e.marker==='end');
+      const isRangeMid   = dayEntries.some(e=>e.marker==='mid');
       let dayStyle = '', cls = ['cal-day'], title = holiday ? `title="${holiday}"` : '';
-      if(holiday && hasMatch && hasInsp){
-        dayStyle='background:linear-gradient(135deg,#EAF3DE 33%,#EEEDFE 33% 66%,#FEF3C7 66%);color:#27500A;';
-      } else if(holiday && hasMatch){
-        dayStyle='background:linear-gradient(135deg,#EAF3DE 50%,#FEF3C7 50%);color:#27500A;';
-      } else if(holiday && hasInsp){
-        dayStyle='background:linear-gradient(135deg,#EEEDFE 50%,#FEF3C7 50%);color:#534AB7;';
+      if(isRangeStart){ cls.push('cal-range-start'); }
+      else if(isRangeEnd){ cls.push('cal-range-end'); }
+      else if(isRangeMid){
+        cls.push('cal-range-mid');
+        if(hasMatch) cls.push('cal-match');
+        else if(hasInsp) cls.push('cal-insp');
       } else if(hasMatch && hasInsp){
-        dayStyle='background:linear-gradient(135deg,#EAF3DE 50%,#EEEDFE 50%);color:#3B6D11;';
-      } else if(holiday){ cls.push('cal-holiday'); }
+        dayStyle='background:linear-gradient(135deg,#EAF3DE 50%,transparent 50%);';
+        cls.push('cal-insp');
+      } else if(hasMatch){ cls.push('cal-match'); }
       else if(hasInsp){ cls.push('cal-insp'); }
-      else if(hasMatch){ cls.push('cal-match'); }
       else { cls.push('cal-empty'); }
+      if(holiday) cls.push('cal-holiday');
       if(isToday) cls.push('cal-today');
-      if(matchStart) cls.push('cal-tri-start-match');
-      if(matchEnd)   cls.push('cal-tri-end-match');
-      if(inspStart)  cls.push('cal-tri-start-insp');
-      if(inspEnd)    cls.push('cal-tri-end-insp');
       const clickable = hasMatch||hasInsp||holiday;
-      html+=`<div class="${cls.join(' ')}" style="${dayStyle}${clickable?'cursor:pointer;':''}" data-date="${ds}" ${title} onclick="calDayClick('${ds}')">${day}</div>`;
+      const inner = hasInsp && !isRangeStart && !isRangeEnd ? `<span>${day}</span>` : day;
+      html+=`<div class="${cls.join(' ')}" style="${dayStyle}${clickable?'cursor:pointer;':''}" data-date="${ds}" ${title} onclick="calDayClick('${ds}')">${inner}</div>`;
     }
     html+=`</div></div>`;
   }
@@ -7839,9 +7846,9 @@ function calDayClick(dateStr){
       const typBadge = e.type && e.source!=='insp' ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(100,116,139,.12);color:var(--sub)">${e.type}</span>` : '';
       const editFn = e.source==='insp' ? `openInspDetail('${e.id}')` : `calOpenEntry('tix','${e.id}')`;
       const markerBadge = e.marker==='start'
-        ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#EAF3DE;color:#27500A">start</span>`
+        ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#0F6E56;color:#fff">start</span>`
         : e.marker==='end'
-        ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#FEF3C7;color:#92400E">end</span>`
+        ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#0F6E56;color:#fff">end</span>`
         : '';
       html += `<div onclick="${editFn}" style="padding:11px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmousedown="this.style.background='var(--card2)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">
