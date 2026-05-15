@@ -1004,7 +1004,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="info-section-lbl" style="padding:14px 0 6px">Belangrijke velden</div>
       <div class="info-desc" style="font-size:11px;line-height:1.8">Gebouw · Verdieping · Eenheid · Toegewezen aan · Leverancier · Categorie · Datum geopend · Vervaldatum · Activiteitenlog</div>
       <div class="info-section-lbl" style="padding:14px 0 6px">Meldingsdruk</div>
-      <div class="info-desc">Elke meldingskaart toont een <strong>Druk</strong>-score in punten — geen percentage. Het geeft aan hoe urgent deze individuele melding is, op basis van hoe lang hij al open staat.<br><br>De score wordt berekend als: <strong>2 pts × leeftijdsfactor</strong>, waarbij de leeftijdsfactor toeneemt met de tijd en na 90 dagen op ×4 uitkomt. Een melding van één dag scoort 2 pts; een melding van 90+ dagen scoort 8 pts.</div>
+      <div class="info-desc">Elke meldingskaart toont een <strong>Druk</strong>-score in punten — geen percentage. Het geeft aan hoe urgent deze individuele melding is, op basis van hoe lang hij al open staat.<br><br>De score wordt berekend als: <strong>2 pts × leeftijdsfactor</strong>, waarbij de leeftijdsfactor toeneemt met de tijd en na 30 werkdagen op ×4 uitkomt. Een melding van één werkdag scoort 2 pts; een melding van 30+ werkdagen scoort 8 pts.<br><br>De leeftijd wordt gemeten in <strong>werkdagen</strong> (maandag t/m vrijdag), exclusief Nederlandse feestdagen. Weekenden en feestdagen tellen niet mee voor de drukberekening.</div>
       <div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--rs);padding:0 14px;margin-top:8px">
         <div class="info-field-row"><span style="color:var(--sub)">6 pts of meer</span><span style="font-weight:600;color:#dc2626">Rood — hoge urgentie</span></div>
         <div class="info-field-row"><span style="color:var(--sub)">3 – 5,9 pts</span><span style="font-weight:600;color:#d97706">Amber — matig</span></div>
@@ -1059,7 +1059,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       <div class="info-section-lbl" style="padding:14px 0 6px">Werkdruk</div>
       <div class="info-desc">De ruwe druk op een gebouw — hoeveel actieve problemen het momenteel heeft, gewogen naar ernst en leeftijd.</div>
       <div class="info-section-lbl" style="padding:14px 0 6px">Gezondheidsscore</div>
-      <div class="info-desc">De gezondheidsscore toont hoeveel druk een gebouw heeft, genormaliseerd naar zijn grootte. Zo wordt het stap voor stap berekend:<br><br><strong>1. Open meldingen (×2)</strong> — het aantal open meldingen. Elke melding draagt 2 pts × leeftijdsfactor bij (leeftijdsfactor ≥ 1, max ×4 na 90 dagen).<br><br><strong>2. Inspectieitems</strong> — elk item voegt 0,5 pts toe bij goedgekeurd of afgekeurd, of 2 pts × leeftijdsfactor bij nog openstaand.<br><br><strong>3. Grootte (per 100m²)</strong> — de effectieve vloeroppervlakte van het gebouw gedeeld door 100. Dit is de deler — het normaliseert de werkdruk zodat een groot gebouw niet oneerlijk benadeeld wordt. Als geen m² is ingesteld, wordt het aantal eenheden × 50m² als terugvaloptie gebruikt.<br><br><strong>4. Werkdrukscore</strong> — de gewogen som van alle meldingen en inspectieitems.<br><br><strong>5. Druk</strong> = Werkdruk ÷ Grootte (per 100m²)<br><br><strong>6. Gezondheid %</strong> = 100 − Druk<br><br>Een score van 100% betekent geen actieve druk. Hoe lager de score, hoe meer onopgelost werk ten opzichte van de grootte van het gebouw.</div>
+      <div class="info-desc">De gezondheidsscore toont hoeveel druk een gebouw heeft, genormaliseerd naar zijn grootte. Zo wordt het stap voor stap berekend:<br><br><strong>1. Open meldingen (×2)</strong> — het aantal open meldingen. Elke melding draagt 2 pts × leeftijdsfactor bij (leeftijdsfactor ≥ 1, max ×4 na 30 werkdagen). De leeftijd wordt gemeten in werkdagen (ma–vr), exclusief Nederlandse feestdagen.<br><br><strong>2. Inspectieitems</strong> — elk item voegt 0,5 pts toe bij goedgekeurd of afgekeurd, of 2 pts × leeftijdsfactor bij nog openstaand.<br><br><strong>3. Grootte (per 100m²)</strong> — de effectieve vloeroppervlakte van het gebouw gedeeld door 100. Dit is de deler — het normaliseert de werkdruk zodat een groot gebouw niet oneerlijk benadeeld wordt. Als geen m² is ingesteld, wordt het aantal eenheden × 50m² als terugvaloptie gebruikt.<br><br><strong>4. Werkdrukscore</strong> — de gewogen som van alle meldingen en inspectieitems.<br><br><strong>5. Druk</strong> = Werkdruk ÷ Grootte (per 100m²)<br><br><strong>6. Gezondheid %</strong> = 100 − Druk<br><br>Een score van 100% betekent geen actieve druk. Hoe lager de score, hoe meer onopgelost werk ten opzichte van de grootte van het gebouw.</div>
     </div>
   </div>
   </div><!-- /info-slide-wrap -->
@@ -1548,7 +1548,8 @@ function getDashPeriodBounds() {
 }
 // Parse YYYY-MM-DD as local midnight to avoid UTC offset shifting the date by ±1 day
 const parseDate=(s)=>{if(!s)return null;const p=s.split('-');if(p.length===3)return new Date(+p[0],+p[1]-1,+p[2]);return new Date(s);};
-const ageMult = d => d ? Math.min(1 + (today - parseDate(d)) / (30 * _MS_DAY), 4) : 1;
+const workDaysSince=(s)=>{if(!s)return 0;const start=parseDate(s);if(!start||start>today)return 0;return workingDaysInRange(start,today).days;};
+const ageMult = d => d ? Math.min(1 + workDaysSince(d) / 30, 4) : 1;
 const d=(n)=>{const x=new Date(today);x.setDate(x.getDate()-n);return x.toISOString().split('T')[0];};
 const df=(s)=>s?parseDate(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
 const daysSince=(s)=>s?Math.max(0,Math.floor((today-parseDate(s))/_MS_DAY)):0;
@@ -2684,16 +2685,12 @@ function renderDash(){
   // Statistics section — period-aware gezondheid score (top 5 buildings by workload)
   const statsEl = document.getElementById('dash-stats');
   if(statsEl){
-    // Duration multiplier: capped linear, max ×4 at 90 days
-    // dMult(date) = min(1 + daysOpen/30, 4)
-    const MS_DAY = 86400000;
-    const dMult  = d => d ? Math.min(1 + (now - new Date(d)) / (30 * MS_DAY), 4) : 1;
-
+    // Duration multiplier: uses global ageMult (working days, excl. NL public holidays)
     // Inspection item base weight: Pending=+2, Approved/Failed=+0.5, Skipped=0
     // Duration factor only applies to open (Pending) items — resolved items don't accumulate
     const itemPt = (result, dateStart) => {
       if(result === 'Skipped') return 0;
-      if(result === 'Pending') return 2 * dMult(dateStart);
+      if(result === 'Pending') return 2 * ageMult(dateStart);
       return 0.5; // Approved / Failed — resolved, no duration factor
     };
 
@@ -2708,7 +2705,7 @@ function renderDash(){
       // Tickets with dateOpened in period
       const periodTix    = DB.tickets.filter(t=>t.buildingId===b.id&&inPeriod(t.dateOpened));
       const openTix      = periodTix.filter(t=>t.status!=='Closed');
-      const openTixPts   = openTix.reduce((s,t)=>s + 2 * dMult(t.dateOpened), 0);
+      const openTixPts   = openTix.reduce((s,t)=>s + 2 * ageMult(t.dateOpened), 0);
       const closedTixPts = periodTix.filter(t=>t.status==='Closed').length * -1;
 
       // Inspection items from inspections with dateStart in period
@@ -6333,7 +6330,7 @@ function inspListCardHTML(r){
               <div class="wl-tip-row"><span style="color:var(--sub)">Items gecontroleerd</span><span style="font-weight:700">${_inspItems.length}</span></div>
               <div class="wl-tip-row"><span style="color:var(--sub)">Tijdfactor</span><span style="font-weight:700">×${Math.round(ageMult(r.dateStart)*10)/10}</span></div>
               <div class="wl-tip-row"><span style="color:var(--sub)">Druk</span><span style="font-weight:700;color:${wHc}">${inspScore} pts</span></div>
-              <div class="wl-tip-formula">Pending ×2×age · Approved/Failed ×0.5 · Skipped ×0<br>Tijdfactor = min(1 + days÷30, 4), caps at ×4.</div>
+              <div class="wl-tip-formula">Pending ×2×age · Approved/Failed ×0.5 · Skipped ×0<br>Tijdfactor = min(1 + werkdagen÷30, 4), max ×4. Weekenden en NL feestdagen tellen niet mee.</div>
             </div>
           </div>
           <span class="badge" style="background:${stBg};color:${stColor}">${stLabel}</span>
