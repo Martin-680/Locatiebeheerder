@@ -3790,35 +3790,39 @@ function renderTix(){
 
 function tixItemHTML(t,clickable=true){
   const fn=clickable?`openTixDetail('${t.id}')`:`navTo('tickets')`;
-  const bldLabel = t.building||'—';
-  const sub = [t.building, DB.floors.find(f=>f.id===t.floor||f.label===t.floor)?.label||t.floor||'', t.unit||''].filter(Boolean).join(' · ');
+  const fmtDate=s=>{if(!s)return'—';const d=new Date(s);return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear();};
+  const locParts=[t.building, DB.floors.find(f=>f.id===t.floor||f.label===t.floor)?.label||t.floor||'', t.unit||''].filter(Boolean).join(' · ');
+  const dateStart=fmtDate(t.dateOpened);
+  const dateEnd=t.dateClosed?fmtDate(t.dateClosed):'—';
+  const dur=t.dateOpened?(t.dateClosed?Math.round((new Date(t.dateClosed)-new Date(t.dateOpened))/_MS_DAY):daysSince(t.dateOpened)):0;
+  const durLabel=dur>0?dur+' dagen':'—';
+  const statusMap={Open:'Open','In Progress':'In behandeling',Closed:'Gesloten',Planned:'Gepland',Requested:'Aangevraagd',Ordered:'Besteld'};
+  const badgeMap={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'};
   // Individual ticket pressure: base 2pts × age multiplier (cap ×4 at 90 days)
   const tixAge   = t.status==='Closed' ? 0 : 2 * ageMult(t.dateOpened);
   const tixScore = Math.round(tixAge * 10) / 10;
   const hc = tixScore>=6?'#dc2626':tixScore>=3?'#d97706':'#059669';
   return`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;overflow:hidden;transition:border-color .15s,box-shadow .15s" onclick="${fn}" onmouseenter="this.style.borderColor='rgba(37,99,235,.4)';this.style.boxShadow='0 2px 8px rgba(37,99,235,.08)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''">
-    <div style="padding:12px 14px 8px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:2px">
-        <div class="ct" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject||'—'}</div>
-        <div class="wl-tooltip-wrap">
-          <div class="wl-tooltip-chip">
-            <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">Druk</span>
-            <span style="font-size:12px;font-weight:800;color:${hc}">${tixScore} pts</span>
-            <span class="wl-info">ⓘ</span>
-          </div>
-          <div class="wl-tip">
-            <div class="wl-tip-row"><span style="color:var(--sub)">Base score</span><span style="font-weight:700">2 pts</span></div>
-            <div class="wl-tip-row"><span style="color:var(--sub)">Tijdfactor</span><span style="font-weight:700">×${Math.round(ageMult(t.dateOpened)*10)/10}</span></div>
-            <div class="wl-tip-row"><span style="color:var(--sub)">Druk</span><span style="font-weight:700;color:${hc}">${tixScore} pts</span></div>
-          </div>
+    <div style="padding:12px 14px 10px;display:flex;gap:12px;align-items:stretch">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px">
+          <div class="ct" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject||'—'}</div>
+          <span class="badge ${badgeMap[t.status]||'b-open'}" style="flex-shrink:0;font-size:10px;padding:2px 7px">${statusMap[t.status]||t.status}</span>
+        </div>
+        <div class="cm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">${locParts||'—'}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="cm">${dateStart}</span>
+          <span class="cm">${durLabel}</span>
+          <span class="cm">${dateEnd}</span>
+        </div>
+        <div style="height:4px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px">
+          <div style="height:100%;width:${Math.min(tixScore/8*100,100)}%;background:${hc};border-radius:3px;transition:width .4s ease"></div>
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <div class="cm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">${sub}</div>
-        <span class="badge ${{Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open'}" style="flex-shrink:0;font-size:10px;padding:2px 7px">${{Open:'Open','In Progress':'In behandeling',Closed:'Gesloten',Planned:'Gepland',Requested:'Aangevraagd',Ordered:'Besteld'}[t.status]||t.status}</span>
-      </div>
-      <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px">
-        <div style="height:100%;width:${Math.min(tixScore/8*100,100)}%;background:${hc};border-radius:3px;transition:width .4s ease"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;width:48px;border-left:1px solid var(--border);padding-left:10px">
+        <span style="font-size:12px;color:var(--muted)">Druk</span>
+        <span style="font-size:20px;font-weight:700;color:${hc};line-height:1.2">${tixScore}</span>
+        <span style="font-size:11px;color:var(--muted)">pts</span>
       </div>
     </div>
   </div>`;
