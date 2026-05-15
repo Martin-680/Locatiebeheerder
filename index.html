@@ -1446,12 +1446,12 @@ const COLS = {
   assets:    ['id','label','buildingId','floorId','unitId','supplierId','categoryId','status','manufacturer','model','warrantyExpiry','purchaseDate','lastServiced','inspectionTime','photos'],
   tickets:   ['id','buildingId','floorId','unitId','subject','status','priority','categoryId','assignedTo','dateOpened','dateClosed','assetId','supplierId','reportedBy','notes','createdBy','activity','type','timeSpent','dueDate','photos'],
   suppliers: ['id','name','contact','expertise','ratePerHour','transportCost','phone','email','address','status'],
-  inspections:      ['id','buildingId','floorId','unitId','categoryId','dateStart','dateEnd','inspector','status','notes','reinspectedAt'],
-  inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note','timeSpent'],
+  inspections:      ['id','buildingId','floorId','unitId','categoryId','dateStart','dateEnd','inspector','status','notes','reinspectedAt','dueDate','templateId'],
+  inspectionItems:  ['id','inspectionId','unitId','assetId','label','result','note','timeSpent','photos'],
   floors:    ['id','buildingId','label','sortOrder','inspectionTime'],
   units:     ['id','floorId','buildingId','label','sortOrder','inspectionTime'],
   categories:['id','category','notes'],
-  inspectionTemplates: ['id','name','buildingId','types','floors','categories','units','assets'],
+  inspectionTemplates: ['id','name','buildingId','types','floors','categories','units','assets','interval','dueDays'],
 };
 
 /* ══════════════════════════════════════════════════════════
@@ -1549,6 +1549,8 @@ function getDashPeriodBounds() {
 // Parse YYYY-MM-DD as local midnight to avoid UTC offset shifting the date by ±1 day
 const parseDate=(s)=>{if(!s)return null;const p=s.split('-');if(p.length===3)return new Date(+p[0],+p[1]-1,+p[2]);return new Date(s);};
 const workDaysSince=(s)=>{if(!s)return 0;const start=parseDate(s);if(!start||start>today)return 0;return workingDaysInRange(start,today).days;};
+const workingDaysAdd=(startStr,n)=>{if(!startStr||!n)return null;const cur=new Date(parseDate(startStr));let added=0;while(added<n){cur.setDate(cur.getDate()+1);const dow=cur.getDay();const ds=`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;const hols={...nlPublicHolidays(cur.getFullYear())};if(dow>=1&&dow<=5&&!hols[ds])added++;}return`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;};
+const fmtDateDDMMYYYY=(s)=>{if(!s)return'—';const d=parseDate(s);return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear();};
 const ageMult = d => d ? Math.min(1 + workDaysSince(d) / 30, 4) : 1;
 const d=(n)=>{const x=new Date(today);x.setDate(x.getDate()-n);return x.toISOString().split('T')[0];};
 const df=(s)=>s?parseDate(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
@@ -6314,6 +6316,17 @@ function inspListCardHTML(r){
     return s + 0.5;
   }, 0) * 10) / 10;
   const wHc = inspScore>=20?'#dc2626':inspScore>=8?'#d97706':'#059669';
+  // dueDate badge — only for open inspections
+  let dueBadgeHTML = '';
+  if(r.dueDate && r.status !== 'Completed'){
+    const dueD = parseDate(r.dueDate);
+    const workLeft = workingDaysInRange(today <= dueD ? today : dueD, today <= dueD ? dueD : today).days * (today <= dueD ? 1 : -1);
+    const isOverdue = today > dueD;
+    const dueColor  = isOverdue ? '#dc2626' : workLeft <= 1 ? '#d97706' : 'var(--muted)';
+    const dueBg     = isOverdue ? 'rgba(220,38,38,.1)' : workLeft <= 1 ? 'rgba(217,119,6,.1)' : 'var(--card2,rgba(0,0,0,.04))';
+    const dueText   = isOverdue ? `Vervallen ${fmtDate(r.dueDate)} · ${Math.abs(workLeft)} werkdag${Math.abs(workLeft)===1?'':'en'} over` : workLeft === 0 ? `Vervalt vandaag` : `Vervalt ${fmtDate(r.dueDate)} · ${workLeft} werkdag${workLeft===1?'':'en'}`;
+    dueBadgeHTML = `<div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><span style="display:inline-flex;align-items:center;font-size:11px;padding:2px 8px;border-radius:999px;background:${dueBg};color:${dueColor};font-weight:500">⏱ ${dueText}</span></div>`;
+  }
   const pillsHTML = [
     approved>0 ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 7px;border-radius:999px;background:rgba(5,150,105,.1);color:#059669;font-weight:500">${approved} goedgekeurd</span>` : '',
     failed>0   ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 7px;border-radius:999px;background:rgba(220,38,38,.1);color:#dc2626;font-weight:500">${failed} afgekeurd</span>` : '',
@@ -6333,6 +6346,7 @@ function inspListCardHTML(r){
           <span class="cm">${durLabel}</span>
           <span class="cm">${fmtDate(r.dateEnd)}</span>
         </div>
+        ${dueBadgeHTML}
         <div style="height:4px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px">
           <div style="height:100%;width:${pct}%;background:${progColor};border-radius:3px;transition:width .4s ease"></div>
         </div>
@@ -6378,18 +6392,51 @@ function renderInspTemplates(){
     list.innerHTML='<div style="padding:10px 14px;font-size:12px;color:var(--muted)">Nog geen sjablonen — maak hieronder uw eerste ronde.</div>';
     return;
   }
+  // Alert banners for overdue templates
+  const overdueBanners = tpls.filter(t => {
+    if(!t.interval) return false;
+    const lastInsp = DB.inspections.filter(r => r.templateId === t.id).sort((a,b) => (b.dateStart||'').localeCompare(a.dateStart||''))[0];
+    if(!lastInsp) return false;
+    const daysSinceLast = workingDaysInRange(parseDate(lastInsp.dateStart), today).days;
+    const intervalDays = t.interval === 'week' ? 5 : t.interval === '2weeks' ? 10 : 21;
+    return daysSinceLast > intervalDays;
+  }).map(t => {
+    const bld = DB.buildings.find(b=>b.id===t.buildingId);
+    const lastInsp = DB.inspections.filter(r=>r.templateId===t.id).sort((a,b)=>(b.dateStart||'').localeCompare(a.dateStart||''))[0];
+    const daysSinceLast = workingDaysInRange(parseDate(lastInsp.dateStart), today).days;
+    return `<div style="background:rgba(217,119,6,.08);border:0.5px solid rgba(217,119,6,.3);border-radius:var(--r);padding:9px 12px;margin-bottom:6px;font-size:12px;color:#92400e;display:flex;gap:7px;align-items:flex-start;line-height:1.5">
+      <span style="flex-shrink:0">⚠️</span>
+      <span><strong>${bld?bld.name:t.buildingId} · ${t.name}</strong> — laatste ronde was <strong>${daysSinceLast} werkdagen</strong> geleden. Wekelijks interval overschreden.</span>
+    </div>`;
+  }).join('');
+  if(overdueBanners) list.insertAdjacentHTML('beforebegin', `<div id="insp-tpl-alerts">${overdueBanners}</div>`);
   list.innerHTML=tpls.map((t,i)=>{
     const bld=DB.buildings.find(b=>b.id===t.buildingId);
-    const sub=[t.types,t.floors?'Floors: '+t.floors:'',t.categories?t.categories:''].filter(Boolean).join(' · ');
-    const border=i<tpls.length-1?'border-bottom:0.5px solid var(--border);':'';    const canDel=currentUser&&currentUser.role==='Admin';
+    const sub=[t.types,t.floors?'Verdieping: '+t.floors:'',t.categories?t.categories:''].filter(Boolean).join(' · ');
+    const intervalLabel = t.interval==='week'?'Elke week':t.interval==='2weeks'?'Elke 2 weken':t.interval==='month'?'Elke maand':'';
+    const lastInsp = DB.inspections.filter(r=>r.templateId===t.id).sort((a,b)=>(b.dateStart||'').localeCompare(a.dateStart||''))[0];
+    let statusPill = '';
+    if(lastInsp && t.interval){
+      const daysSinceLast = workingDaysInRange(parseDate(lastInsp.dateStart), today).days;
+      const intervalDays = t.interval==='week'?5:t.interval==='2weeks'?10:21;
+      statusPill = daysSinceLast > intervalDays
+        ? `<span style="font-size:10px;padding:2px 7px;border-radius:999px;background:rgba(220,38,38,.1);color:#dc2626;font-weight:500">Achterstallig</span>`
+        : `<span style="font-size:10px;padding:2px 7px;border-radius:999px;background:rgba(5,150,105,.1);color:#059669;font-weight:500">Op schema</span>`;
+    }
+    const border=i<tpls.length-1?'border-bottom:0.5px solid var(--border);':'';
+    const canDel=currentUser&&currentUser.role==='Admin';
     return`<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;${border}" onclick="inspSelectTemplate('${t.id}')">
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</div>
-        <div style="font-size:11px;color:var(--sub)">${bld?bld.name:t.buildingId} · ${sub||'All'}</div>
+        <div style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:2px">${bld?bld.name:t.buildingId}${intervalLabel?' · '+intervalLabel:''} · ${sub||'Alles'}</div>
+        ${statusPill?`<div style="margin-top:5px">${statusPill}</div>`:''}
       </div>
-      <button onclick="event.stopPropagation();inspEditTemplate('${t.id}')" style="font-size:11px;padding:3px 8px;border:0.5px solid var(--border);border-radius:var(--rs);background:var(--surface);color:var(--sub);cursor:pointer">Edit</button>
-      ${canDel?`<button onclick="event.stopPropagation();inspDeleteTemplate('${t.id}')" style="font-size:11px;padding:3px 8px;border:0.5px solid rgba(220,38,38,.3);border-radius:var(--rs);background:none;color:var(--red);cursor:pointer">✕</button>`:''}
-    </div>`;  }).join('');
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        <button onclick="event.stopPropagation();inspEditTemplate('${t.id}')" style="font-size:11px;padding:3px 8px;border:0.5px solid var(--border);border-radius:var(--rs);background:var(--surface);color:var(--sub);cursor:pointer">Bewerk</button>
+        ${canDel?`<button onclick="event.stopPropagation();inspDeleteTemplate('${t.id}')" style="font-size:11px;padding:3px 8px;border:0.5px solid rgba(220,38,38,.3);border-radius:var(--rs);background:none;color:var(--red);cursor:pointer">✕</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function inspSelectTemplate(id){
@@ -6421,6 +6468,17 @@ function inspEditTemplate(id){
   document.getElementById('insp-tpl-section').style.display='none';
   document.getElementById('insp-tpl-preview').style.display='none';
   showInspFreeForm(t.buildingId, t.name, true);
+  // Pre-fill interval and dueDays after form renders
+  requestAnimationFrame(()=>{
+    const chk=document.getElementById('insp-save-tpl-chk');
+    if(chk){chk.checked=true;document.getElementById('insp-tpl-name-wrap').style.display='flex';}
+    const nameEl=document.getElementById('insp-tpl-name');
+    if(nameEl) nameEl.value=t.name||'';
+    const intEl=document.getElementById('insp-tpl-interval');
+    if(intEl) intEl.value=t.interval||'week';
+    const dueEl=document.getElementById('insp-tpl-duedays');
+    if(dueEl) dueEl.value=t.dueDays||'3';
+  });
 }
 
 async function inspDeleteTemplate(id){
@@ -6631,7 +6689,9 @@ async function launchInspectionRound(){
   const tplName=document.getElementById('insp-tpl-name')?.value.trim();
   if(saveTpl&&tplName){
     const bldObj=DB.buildings.find(b=>b.name===bldgName);
-    const tplData={name:tplName,buildingId:bldObj?bldObj.id:bldgName,types:[...inspTypes].join(','),floors:inspSelFloors.join(','),categories:inspSelCats.join(','),units:inspSelUnits.join(','),assets:inspSelAssets.join(',')};
+    const tplInterval=document.getElementById('insp-tpl-interval')?.value||'week';
+    const tplDueDays=document.getElementById('insp-tpl-duedays')?.value||'3';
+    const tplData={name:tplName,buildingId:bldObj?bldObj.id:bldgName,types:[...inspTypes].join(','),floors:inspSelFloors.join(','),categories:inspSelCats.join(','),units:inspSelUnits.join(','),assets:inspSelAssets.join(','),interval:tplInterval,dueDays:tplDueDays};
     if(inspActiveTplId){
       Object.assign(DB.inspectionTemplates.find(x=>x.id===inspActiveTplId)||{},tplData);
     } else {
@@ -6798,6 +6858,16 @@ function inspRoundItemHTML(item, idx){
           </select>
           ${item.expectedTime ? `<span style="font-size:11px;color:var(--muted);white-space:nowrap">(verwacht ${item.expectedTime}m)</span>` : ''}
         </div>
+        <div style="padding:0 14px 10px">
+          <input type="file" accept="image/*" capture="environment" id="insp-photo-input-${idx}" style="display:none" onchange="onInspPhotoInput(${idx},this)">
+          <div id="insp-photo-preview-${idx}" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:${item.photos?'8px':'0'}">
+            ${(item.photos||'').split(',').filter(Boolean).map(url=>`<a href="${url}" target="_blank" style="display:block;width:56px;height:56px;border-radius:6px;overflow:hidden;border:1px solid var(--border)"><img src="${url}" style="width:100%;height:100%;object-fit:cover"></a>`).join('')}
+          </div>
+          <button onclick="document.getElementById('insp-photo-input-${idx}').click()" style="display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px dashed var(--border);border-radius:var(--rs);background:none;color:var(--sub);font-size:12px;cursor:pointer;width:100%;justify-content:center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            ${item.photos ? 'Foto toevoegen' : 'Foto maken / uploaden'}
+          </button>
+        </div>
       </div>
     </div>`;
 
@@ -6869,6 +6939,36 @@ function onInspTimeInput(idx){
   const val=parseFloat(document.getElementById('insp-time-'+idx)?.value)||0;
   const unit=document.getElementById('insp-time-unit-'+idx)?.value||'min';
   activeRound.items[idx].timeSpent = unit==='hr' ? Math.round(val*60) : Math.round(val);
+}
+
+async function onInspPhotoInput(idx, input){
+  if(!input.files||!input.files[0]) return;
+  const file=input.files[0];
+  const item=activeRound?.items[idx];
+  if(!item) return;
+  const btn=input.nextElementSibling?.nextElementSibling;
+  if(btn) btn.textContent='Uploaden…';
+  try {
+    const url=await uploadPhotoToDrive(file, `Insp_${activeRound.inspId}_item${idx}`);
+    const existing=(item.photos||'').split(',').filter(Boolean);
+    existing.push(url);
+    item.photos=existing.join(',');
+    // Update preview
+    const preview=document.getElementById('insp-photo-preview-'+idx);
+    if(preview){
+      const a=document.createElement('a');
+      a.href=url; a.target='_blank';
+      a.style.cssText='display:block;width:56px;height:56px;border-radius:6px;overflow:hidden;border:1px solid var(--border)';
+      const img=document.createElement('img');
+      img.src=url; img.style.cssText='width:100%;height:100%;object-fit:cover';
+      a.appendChild(img); preview.appendChild(a);
+    }
+    toast('Foto opgeslagen','ok');
+  } catch(e) {
+    toast('Foto upload mislukt: '+e.message,'err');
+  }
+  input.value='';
+  if(btn) btn.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Foto toevoegen`;
 }
 
 /* ── Finish button → summary modal ── */
@@ -7081,6 +7181,9 @@ async function saveInspectionRound(){
     ? 'Planned'
     : (allChecked ? 'Completed' : 'In Progress');
   const existingInsp = DB.inspections.find(x => x.id === activeRound.inspId);
+  const _tpl = inspActiveTplId ? DB.inspectionTemplates.find(t=>t.id===inspActiveTplId) : null;
+  const _dueDays = _tpl?.dueDays ? parseInt(_tpl.dueDays) : 3;
+  const _dateStart = activeRound.dateStart || todayStr;
   const inspRecord = {
     id         : activeRound.inspId,
     buildingId : inspBld ? inspBld.id : activeRound.building,
@@ -7090,12 +7193,14 @@ async function saveInspectionRound(){
     building   : activeRound.building,
     floor      : activeRound.floor,
     category   : activeRound.category,
-    dateStart  : activeRound.dateStart || todayStr,
+    dateStart  : _dateStart,
     dateEnd    : newStatus === 'Completed' ? todayStr : '',
     inspector  : currentUser.name,
     status     : newStatus,
     notes      : existingInsp?.notes || '',
     reinspectedAt: activeRound.resuming && existingInsp?.status === 'Completed' ? todayStr : (existingInsp?.reinspectedAt || ''),
+    dueDate    : existingInsp?.dueDate || workingDaysAdd(_dateStart, _dueDays) || '',
+    templateId : inspActiveTplId || existingInsp?.templateId || '',
   };
 
   // Build InspectionItems rows for this round
@@ -7110,6 +7215,7 @@ async function saveInspectionRound(){
     result       : item.result  || 'Open',
     note         : item.note    || '',
     timeSpent    : item.timeSpent || 0,
+    photos       : item.photos    || '',
   }));
   // Assign sequential IDs (nextId uses current array state, so push one-by-one)
   const numbered = [];
@@ -7135,6 +7241,30 @@ async function saveInspectionRound(){
   } catch(e){
     toast('Opslaan mislukt – controleer Sheets-rechten','err');
     return;
+  }
+
+  // Auto-create template from completed round if none exists yet
+  if(newStatus === 'Completed' && !inspActiveTplId){
+    const bldObj = DB.buildings.find(b=>b.name===activeRound.building);
+    const autoTplName = `${activeRound.building}${activeRound.floor?' · '+activeRound.floor:''}${activeRound.category?' · '+activeRound.category:''}`;
+    const alreadyExists = DB.inspectionTemplates.some(t=>t.buildingId===(bldObj?.id||activeRound.building) && t.name===autoTplName);
+    if(!alreadyExists){
+      const newTpl = {
+        id: nextId(DB.inspectionTemplates,'TPL'),
+        name: autoTplName,
+        buildingId: bldObj?.id||activeRound.building,
+        types: [...inspTypes].join(','),
+        floors: inspSelFloors.join(','),
+        categories: inspSelCats.join(','),
+        units: inspSelUnits.join(','),
+        assets: inspSelAssets.join(','),
+        interval: 'week',
+        dueDays: '3',
+      };
+      DB.inspectionTemplates.push(newTpl);
+      await writeSheet('inspectionTemplates');
+      toast('Sjabloon automatisch aangemaakt');
+    }
   }
 
   // Create tickets for checked failed items
@@ -8068,6 +8198,25 @@ function calPlanTicket(dateStr){
       </div>
       <div id="insp-tpl-name-wrap" style="display:none;padding:0 18px 12px;gap:8px;flex-direction:column">
         <input class="fi2" id="insp-tpl-name" placeholder="Naam sjabloon…">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px">Herhalingsinterval</label>
+            <select id="insp-tpl-interval" class="fi2" style="margin:0">
+              <option value="">Geen herhaling</option>
+              <option value="week">Elke week</option>
+              <option value="2weeks">Elke 2 weken</option>
+              <option value="month">Elke maand</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--sub);display:block;margin-bottom:4px">Doorlooptijd</label>
+            <select id="insp-tpl-duedays" class="fi2" style="margin:0">
+              <option value="3">3 werkdagen</option>
+              <option value="5">5 werkdagen</option>
+              <option value="10">10 werkdagen</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 10px">
         <button class="btn-p" style="margin:0" onclick="launchInspectionRound()">Nu starten</button>
