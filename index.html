@@ -403,6 +403,25 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 #floor-detail-body .bs-val  { font-size:13px !important; }
 #floor-detail-body .bs-lbl  { font-size:11px !important; }
 #floor-detail-body .ti-subj { font-size:13px !important; }
+
+/* ── Searchable building dropdown ── */
+.bsd-wrap{position:relative;width:100%;}
+.bsd-input{width:100%;padding:9px 34px 9px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:500;background:var(--surface);color:var(--text);outline:none;appearance:none;cursor:pointer;transition:border-color .15s;}
+.bsd-input:focus{border-color:var(--blue);}
+.bsd-input.bsd-has-val{color:var(--text);}
+.bsd-input::placeholder{color:var(--muted);}
+.bsd-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);}
+.bsd-clear{position:absolute;right:28px;top:50%;transform:translateY(-50%);display:none;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:0 2px;}
+.bsd-clear.show{display:block;}
+.bsd-dd{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rs);box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:999;display:none;flex-direction:column;max-height:220px;overflow:hidden;}
+.bsd-dd.open{display:flex;}
+.bsd-dd-search{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.bsd-dd-search input{flex:1;border:none;outline:none;font-size:13px;background:transparent;color:var(--text);}
+.bsd-dd-list{overflow-y:auto;flex:1;}
+.bsd-opt{padding:10px 12px;font-size:13px;font-weight:500;cursor:pointer;transition:background .1s;}
+.bsd-opt:hover,.bsd-opt.focused{background:var(--card2);}
+.bsd-opt.selected{color:var(--blue);font-weight:700;}
+.bsd-empty{padding:12px;font-size:13px;color:var(--muted);text-align:center;}
 </style>
 </head>
 <body>
@@ -1158,7 +1177,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
       </div>
     </div>
     <div class="fg"><label>Status</label>
-        <select class="fs2" id="tf-status"><option>Open</option><option>In behandeling</option><option>Gepland</option><option>Aangevraagd</option><option>Besteld</option><option>Gesloten</option></select>
+        <select class="fs2" id="tf-status"><option value="Open">Open</option><option value="In Progress">In behandeling</option><option value="Planned">Gepland</option><option value="Requested">Aangevraagd</option><option value="Ordered">Besteld</option><option value="Closed">Gesloten</option></select>
       </div>
     <div class="frow2">
       <div class="fg"><label>Toewijzen aan</label><select class="fs2" id="tf-assign"><option value="">Niet toegewezen</option></select></div>
@@ -1706,6 +1725,12 @@ function launchApp(){
   document.getElementById('app').style.display='flex';
   document.getElementById('app').style.flexDirection='column';
   applyPermUI();
+  // Init searchable building dropdowns (one-time, idempotent)
+  makeBldSearchable('tf-bldg',  tfOnBldgChange);
+  makeBldSearchable('af-bldg',  afOnBldgChange);
+  makeBldSearchable('insp-bldg',inspOnBldgChange);
+  makeBldSearchable('ff-bldg',  null);
+  makeBldSearchable('uf2-bldg', uf2OnBldgChange);
   navTo('dashboard');
   toast(`Welcome, ${currentUser.name.split(' ')[0]}!`);
   // Auto-refresh every 5 minutes
@@ -2212,6 +2237,148 @@ function populateBldSelect(id, placeholder){
   const label = placeholder || '— Selecteer gebouw —';
   el.innerHTML=`<option value="">${label}</option>`+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
   if(DB.buildings.find(b=>b.name===cur)) el.value=cur;
+  // Refresh searchable UI if present
+  const wrap=el.closest('.bsd-wrap');
+  if(wrap) _bsdRefresh(wrap,el);
+}
+
+/* ── Searchable building dropdown ─────────────────────────────────────────────
+   Usage: call makeBldSearchable('select-id', optionalOnChangeFn) once after
+   the select is in the DOM. populateBldSelect updates it automatically.
+──────────────────────────────────────────────────────────────────────────── */
+function makeBldSearchable(selectId, onChangeFn){
+  const sel=document.getElementById(selectId);
+  if(!sel||sel.dataset.bsdDone) return;
+  sel.dataset.bsdDone='1';
+  sel.style.display='none';
+
+  // Build wrapper
+  const wrap=document.createElement('div');
+  wrap.className='bsd-wrap';
+  sel.parentNode.insertBefore(wrap,sel);
+  wrap.appendChild(sel);
+
+  // Trigger display (shows selected value or placeholder)
+  const input=document.createElement('input');
+  input.type='text';
+  input.className='bsd-input';
+  input.readOnly=true;
+  input.placeholder=sel.options[0]?.text||'— Selecteer gebouw —';
+  wrap.appendChild(input);
+
+  // Arrow icon
+  const arrow=document.createElement('span');
+  arrow.className='bsd-arrow';
+  arrow.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  wrap.appendChild(arrow);
+
+  // Clear button
+  const clr=document.createElement('button');
+  clr.className='bsd-clear';
+  clr.type='button';
+  clr.innerHTML='&times;';
+  clr.title='Wissen';
+  clr.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    _bsdSetVal(wrap,sel,'','',onChangeFn);
+    _bsdClose(wrap);
+  });
+  wrap.appendChild(clr);
+
+  // Dropdown panel
+  const dd=document.createElement('div');
+  dd.className='bsd-dd';
+  // Search inside dropdown
+  const dsWrap=document.createElement('div');
+  dsWrap.className='bsd-dd-search';
+  dsWrap.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  const dsInput=document.createElement('input');
+  dsInput.placeholder='Zoek gebouw…';
+  dsInput.autocomplete='off';
+  dsWrap.appendChild(dsInput);
+  dd.appendChild(dsWrap);
+  const list=document.createElement('div');
+  list.className='bsd-dd-list';
+  dd.appendChild(list);
+  wrap.appendChild(dd);
+
+  // Open on trigger input click
+  input.addEventListener('click',()=>{
+    if(dd.classList.contains('open')){ _bsdClose(wrap); return; }
+    _bsdOpen(wrap,sel,list,dsInput,onChangeFn);
+  });
+
+  // Filter while typing in search
+  dsInput.addEventListener('input',()=>_bsdFilter(sel,list,dsInput.value,wrap,onChangeFn));
+
+  // Close on outside click
+  document.addEventListener('click',(e)=>{
+    if(!wrap.contains(e.target)) _bsdClose(wrap);
+  },{capture:true,passive:true});
+
+  // Init display
+  _bsdRefresh(wrap,sel);
+}
+
+function _bsdOpen(wrap,sel,list,dsInput,onChangeFn){
+  wrap.querySelector('.bsd-dd').classList.add('open');
+  dsInput.value='';
+  _bsdFilter(sel,list,'',wrap,onChangeFn);
+  setTimeout(()=>dsInput.focus(),60);
+}
+function _bsdClose(wrap){
+  const dd=wrap.querySelector('.bsd-dd');
+  dd.classList.remove('open');
+}
+function _bsdFilter(sel,list,q,wrap,onChangeFn){
+  const opts=[...sel.options].filter(o=>o.value!=='');
+  const lq=q.toLowerCase().trim();
+  const hits=lq?opts.filter(o=>o.text.toLowerCase().includes(lq)):opts;
+  list.innerHTML='';
+  if(!hits.length){
+    list.innerHTML='<div class="bsd-empty">Geen gebouwen gevonden</div>';
+    return;
+  }
+  hits.forEach(o=>{
+    const div=document.createElement('div');
+    div.className='bsd-opt'+(o.value===sel.value?' selected':'');
+    div.textContent=o.text;
+    div.addEventListener('click',()=>{
+      _bsdSetVal(wrap,sel,o.value,o.text,onChangeFn);
+      _bsdClose(wrap);
+    });
+    list.appendChild(div);
+  });
+}
+function _bsdSetVal(wrap,sel,val,label,onChangeFn){
+  sel.value=val;
+  _bsdRefresh(wrap,sel);
+  if(onChangeFn) onChangeFn();
+  // Also fire native change for any existing onchange attr
+  sel.dispatchEvent(new Event('change',{bubbles:true}));
+}
+function _bsdRefresh(wrap,sel){
+  const input=wrap.querySelector('.bsd-input');
+  const clr=wrap.querySelector('.bsd-clear');
+  if(!input) return;
+  const chosen=sel.value?[...sel.options].find(o=>o.value===sel.value):null;
+  if(chosen){
+    input.value=chosen.text;
+    input.classList.add('bsd-has-val');
+    if(clr) clr.classList.add('show');
+  } else {
+    input.value='';
+    input.placeholder=sel.options[0]?.text||'— Selecteer gebouw —';
+    input.classList.remove('bsd-has-val');
+    if(clr) clr.classList.remove('show');
+  }
+}
+/* Set value on a searchable-bld select from code and refresh UI */
+function bsdSetExternal(id, val){
+  const el=document.getElementById(id); if(!el) return;
+  el.value=val;
+  const wrap=el.closest('.bsd-wrap');
+  if(wrap) _bsdRefresh(wrap,el);
 }
 /* ── getFloorsForBuilding: returns sorted floors from DB for a given building id or name ── */
 function getFloorsForBuilding(bldgIdOrName){
@@ -2335,7 +2502,12 @@ function populateCatSelect(id, allowAll=false, currentVal=''){
 function autoSelect(id, onChangeFn){
   const el=document.getElementById(id); if(!el) return;
   const real=[...el.options].filter(o=>o.value!=='');
-  if(real.length===1){ el.value=real[0].value; if(onChangeFn) onChangeFn(); }
+  if(real.length===1){
+    el.value=real[0].value;
+    const wrap=el.closest('.bsd-wrap');
+    if(wrap) _bsdRefresh(wrap,el);
+    if(onChangeFn) onChangeFn();
+  }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -3953,7 +4125,7 @@ function openNewTicket(){
   document.getElementById('tf-date-opened').value=today.toISOString().split('T')[0];
   document.getElementById('tf-date-closed').value='';
   populateBldSelect('tf-bldg','— Select —');
-  document.getElementById('tf-bldg').value='';
+  bsdSetExternal('tf-bldg','');
   tfOnBldgChange();
   autoSelect('tf-bldg', ()=>{
     tfOnBldgChange();
@@ -4002,7 +4174,7 @@ function editTix(id){
     tfSetTimeMinutes(t.timeSpent||0);
     // Cascade: building → floor → unit → asset → supplier
     populateBldSelect('tf-bldg','— Select —');
-    document.getElementById('tf-bldg').value=t.building;
+    bsdSetExternal('tf-bldg',t.building);
     tfOnBldgChange();
     document.getElementById('tf-sub').value = DB.floors.find(f=>f.id===t.floorId)?.id || DB.floors.find(f=>f.label===t.floor)?.id || '';
     tfOnFloorChange();
@@ -4476,7 +4648,7 @@ function openNewAssetForUnit(unitId){
     openNewAsset();
     // pre-fill building
     const bldEl=document.getElementById('af-bldg');
-    if(bldEl&&u.buildingId){ bldEl.value=u.buildingId; afOnBldgChange(); }
+    if(bldEl&&u.buildingId){ bsdSetExternal('af-bldg',u.buildingId); afOnBldgChange(); }
     // pre-fill floor
     setTimeout(()=>{
       const flrEl=document.getElementById('af-sub');
@@ -4498,7 +4670,7 @@ function openNewAsset(){
   document.getElementById('af-status').value='Active';
   document.getElementById('af-loc').innerHTML='<option value="">— Select unit —</option>';
   populateBldSelect('af-bldg');
-  document.getElementById('af-bldg').value='';
+  bsdSetExternal('af-bldg','');
   document.getElementById('af-acat').value='';
   populateSubs('af-sub','af-bldg');
   autoSelect('af-bldg', ()=>{
@@ -4522,7 +4694,7 @@ function editAst(id){
   document.getElementById('ast-dup-btn').style.display='';
   document.getElementById('af-name').value=a.label||a.name;
   populateBldSelect('af-bldg');
-  document.getElementById('af-bldg').value=a.building||'';
+  bsdSetExternal('af-bldg',a.building||'');
   populateSubs('af-sub','af-bldg');
   document.getElementById('af-sub').value=a.floorId||'';
   // populate unit dropdown for this floor then set value
@@ -5132,7 +5304,7 @@ function openNewUnitForFloor(floorId){
   setTimeout(()=>{
     openNewUnit();
     const bldEl=document.getElementById('uf2-bldg');
-    if(bldEl&&bld){ bldEl.value=bld.name; uf2OnBldgChange(); }
+    if(bldEl&&bld){ bsdSetExternal('uf2-bldg',bld.name); uf2OnBldgChange(); }
     setTimeout(()=>{
       const flrEl=document.getElementById('uf2-floor');
       if(flrEl&&floorId) flrEl.value=floorId;
@@ -5148,7 +5320,7 @@ function openNewUnit(){
   document.getElementById('uf2-insptime').value='';
   document.getElementById('uf2-sort').value='';
   populateBldSelect('uf2-bldg');
-  document.getElementById('uf2-bldg').value='';
+  bsdSetExternal('uf2-bldg','');
   autoSelect('uf2-bldg', ()=>{ uf2OnBldgChange(); autoSelect('uf2-floor'); });
   openMo('mo-unit');
 }
@@ -5162,7 +5334,7 @@ function editUnit(id){
   document.getElementById('uf2-sort').value=u.sortOrder||'';
   populateBldSelect('uf2-bldg');
   const bld=DB.buildings.find(b=>b.id===u.buildingId);
-  document.getElementById('uf2-bldg').value=bld?bld.name:'';
+  bsdSetExternal('uf2-bldg',bld?bld.name:'');
   uf2OnBldgChange();
   document.getElementById('uf2-floor').value=u.floorId||'';
   document.getElementById('uf2-insptime').value=u.inspectionTime||'';
@@ -5230,7 +5402,7 @@ function openNewUnitForBuilding(bldId){
   document.getElementById('uf2-sort').value='';
   populateBldSelect('uf2-bldg');
   const bld=DB.buildings.find(b=>b.id===bldId);
-  document.getElementById('uf2-bldg').value=bld?bld.name:'';
+  bsdSetExternal('uf2-bldg',bld?bld.name:'');
   uf2OnBldgChange();
   autoSelect('uf2-floor');
   openMo('mo-unit');
@@ -5556,7 +5728,7 @@ function openNewFloor(){
   document.getElementById('ff-insptime').value = '';
   document.getElementById('ff-sort').value  = '';
   populateBldSelect('ff-bldg');
-  document.getElementById('ff-bldg').value  = '';
+  bsdSetExternal('ff-bldg','');
   autoSelect('ff-bldg');
   openMo('mo-floor');
 }
@@ -5571,7 +5743,7 @@ function editFloor(id){
   document.getElementById('ff-sort').value  = f.sortOrder||'';
   populateBldSelect('ff-bldg');
   const bld = DB.buildings.find(b=>b.id===f.buildingId);
-  document.getElementById('ff-bldg').value  = bld ? bld.name : '';
+  bsdSetExternal('ff-bldg', bld ? bld.name : '');
   document.getElementById('ff-insptime').value = f.inspectionTime||'';
   openMo('mo-floor');
 }
@@ -6501,8 +6673,8 @@ function showInspFreeForm(bldgId, tplName, isEdit){
   form.style.display='';
   populateBldSelect('insp-bldg');
   const bldSel=document.getElementById('insp-bldg');
-  if(bldgId){ const b=DB.buildings.find(x=>x.id===bldgId); if(b) bldSel.value=b.name; }
-  else bldSel.value='';
+  if(bldgId){ const b=DB.buildings.find(x=>x.id===bldgId); if(b) bsdSetExternal('insp-bldg',b.name); }
+  else bsdSetExternal('insp-bldg','');
   // Type toggles
   ['assets','units'].forEach(tp=>{
     const btn=document.getElementById('insp-type-'+tp);
