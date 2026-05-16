@@ -1571,6 +1571,7 @@ const workDaysSince=(s)=>{if(!s)return 0;const start=parseDate(s);if(!start||sta
 const workingDaysAdd=(startStr,n)=>{if(!startStr||!n)return null;const cur=new Date(parseDate(startStr));let added=0;while(added<n){cur.setDate(cur.getDate()+1);const dow=cur.getDay();const ds=`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;const hols={...nlPublicHolidays(cur.getFullYear())};if(dow>=1&&dow<=5&&!hols[ds])added++;}return`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;};
 const fmtDateDDMMYYYY=(s)=>{if(!s)return'—';const d=parseDate(s);return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear();};
 const ageMult = d => d ? Math.min(1 + workDaysSince(d) / 30, 4) : 1;
+const ageMultAt = (startD, endD) => { if(!startD||!endD) return 1; const s=parseDate(startD),e=parseDate(endD); if(!s||!e||e<s) return 1; return Math.min(1 + workingDaysInRange(s,e).days / 30, 4); };
 const d=(n)=>{const x=new Date(today);x.setDate(x.getDate()-n);return x.toISOString().split('T')[0];};
 const df=(s)=>s?parseDate(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
 const daysSince=(s)=>s?Math.max(0,Math.floor((today-parseDate(s))/_MS_DAY)):0;
@@ -3966,12 +3967,14 @@ function tixItemHTML(t,clickable=true){
   const dateStart=fmtDate(t.dateOpened);
   const dateEnd=t.dateClosed?fmtDate(t.dateClosed):'—';
   const dur=t.dateOpened?(t.dateClosed?Math.round((new Date(t.dateClosed)-new Date(t.dateOpened))/_MS_DAY):daysSince(t.dateOpened)):0;
-  const durLabel=dur>0?dur+' dagen':'—';
+  const durLabel=dur>0?dur+'d':'—';
   const statusMap={Open:'Open','In Progress':'In behandeling',Closed:'Gesloten',Planned:'Gepland',Requested:'Aangevraagd',Ordered:'Besteld'};
   const badgeMap={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'};
   // Individual ticket pressure: base 2pts × age multiplier (cap ×4 at 90 days)
-  const tixAge   = t.status==='Closed' ? 0 : 2 * ageMult(t.dateOpened);
-  const tixScore = Math.round(tixAge * 10) / 10;
+  const isClosed = t.status==='Closed';
+  const tixScore = isClosed
+    ? (t.dateClosed ? Math.round(2 * ageMultAt(t.dateOpened, t.dateClosed) * 10) / 10 : 0)
+    : Math.round(2 * ageMult(t.dateOpened) * 10) / 10;
   const hc = tixScore>=6?'#dc2626':tixScore>=3?'#d97706':'#059669';
   return`<div style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;overflow:hidden;transition:border-color .15s,box-shadow .15s" onclick="${fn}" onmouseenter="this.style.borderColor='rgba(37,99,235,.4)';this.style.boxShadow='0 2px 8px rgba(37,99,235,.08)'" onmouseleave="this.style.borderColor='var(--border)';this.style.boxShadow='none'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''">
     <div style="padding:12px 14px 10px;display:flex;gap:12px;align-items:stretch">
@@ -6476,15 +6479,16 @@ function inspListCardHTML(r){
   const fmtDate = s => { if(!s) return '—'; const d=parseDate(s); return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear(); };
   const durMs   = r.dateEnd ? new Date(r.dateEnd) - new Date(r.dateStart) : new Date() - new Date(r.dateStart);
   const durDays = Math.max(1, Math.round(durMs / 86400000));
-  const durLabel = durDays + ' dagen';
+  const durLabel = durDays + 'd';
   const pct = total ? Math.round(approved / total * 100) : 0;
   const progColor = r.status !== 'Completed' ? 'var(--blue)' : (failed > 0 ? 'var(--red)' : 'var(--green)');
   const locSub = [r.floor||'', r.unit||'', (r.category && r.category !== 'All') ? r.category : ''].filter(Boolean).join(' · ');
   // Individual inspectiedruk: sum of item weights × age factor from dateStart
   const _inspItems  = DB.inspectionItems.filter(i=>i.inspectionId===r.id);
-  const inspScore   = Math.round(_inspItems.reduce((s,i)=>{
+  const isInspDone = r.status==='Completed';
+  const inspScore = Math.round(_inspItems.reduce((s,i)=>{
     if(i.result==='Skipped') return s;
-    if(i.result==='Pending') return s + 2 * ageMult(r.dateStart);
+    if(i.result==='Pending') return s + 2 * (isInspDone && r.dateEnd ? ageMultAt(r.dateStart, r.dateEnd) : ageMult(r.dateStart));
     return s + 0.5;
   }, 0) * 10) / 10;
   const wHc = inspScore>=20?'#dc2626':inspScore>=8?'#d97706':'#059669';
