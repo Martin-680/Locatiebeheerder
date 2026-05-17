@@ -519,7 +519,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
-    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="tsearch" placeholder="Zoek meldingen…" oninput="setPage('tix',1);renderTix()"/></div>
+    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="tsearch" placeholder="Zoek onderwerp, leverancier…" oninput="setPage('tix',1);renderTix()"/></div>
     <!-- hidden selects (drive filtering; values set from modal) -->
     <select id="sel-tix-status" style="display:none" onchange="setPage('tix',1);renderTix()">
       <option value="All">Alle statussen</option><option value="Open">Open</option>
@@ -577,7 +577,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
-    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="asearch" placeholder="Zoek middelen…" oninput="setPage('ast',1);renderAst()"/></div>
+    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="asearch" placeholder="Zoek naam, verdieping…" oninput="setPage('ast',1);renderAst()"/></div>
   <div style="margin:4px 14px 6px;background:var(--card2,rgba(0,0,0,.04));border-radius:var(--rs);padding:3px;display:grid;grid-template-columns:repeat(3,1fr)">
     <button id="ast-seg-week"    onclick="setAstPeriod('week')"    style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Week</button>
     <button id="ast-seg-month"   onclick="setAstPeriod('month')"   style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Maand</button>
@@ -683,7 +683,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <input type="hidden" id="sel-insp-date-from" value="">
     <input type="hidden" id="sel-insp-date-to" value="">
 
-    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="insp-search" placeholder="Zoek inspecties…" oninput="setPage('insp',1);renderInspections()"/></div>
+    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input type="text" id="insp-search" placeholder="Zoek titel, categorie…" oninput="setPage('insp',1);renderInspections()"/></div>
     <div id="insp-bldg-btns" style="display:none;padding:8px 14px 10px;gap:8px"></div>
     <div id="insp-filter-chips" style="padding:0 14px 10px;display:none;flex-wrap:wrap;gap:6px"></div>
     <div id="insp-hide-strip" class="hide-strip">
@@ -812,7 +812,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         </div>
       </div>
     </div>
-    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="unit-search" placeholder="Zoek eenheden…" oninput="renderUnits()"/></div>
+    <div class="sbar"><span style="color:var(--muted);display:flex"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="unit-search" placeholder="Zoek naam, verdieping…" oninput="renderUnits()"/></div>
   <div style="margin:4px 14px 6px;background:var(--card2,rgba(0,0,0,.04));border-radius:var(--rs);padding:3px;display:grid;grid-template-columns:repeat(3,1fr)">
     <button id="unit-seg-week"    onclick="setUnitPeriod('week')"    style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Week</button>
     <button id="unit-seg-month"   onclick="setUnitPeriod('month')"   style="flex:1;padding:6px 0;font-size:12px;font-weight:600;border:none;border-radius:calc(var(--rs) - 2px);cursor:pointer;transition:all .15s;background:none;color:var(--sub)">Maand</button>
@@ -1819,7 +1819,8 @@ async function loadAllData(){
       floor    : flr ? flr.label    : r.floorId,
       unit     : unt ? unt.label    : (r.unit && r.unit!=='TBD' ? r.unit : ''),
       unitId   : unt ? unt.id       : (r.unitId && r.unitId!=='TBD' ? r.unitId : ''),
-      category : cat ? cat.category : r.categoryId,
+      category     : cat ? cat.category : r.categoryId,
+      supplierName : r.supplierId ? (DB.suppliers.find(s=>s.id===r.supplierId)?.name||'') : '',
     };
   });
   DB.inspectionItems = rowsToObjects(inspectionItems, COLS.inspectionItems);
@@ -3930,7 +3931,7 @@ function renderTix(){
   if(dateTo)   list=list.filter(t=>(t.dateOpened||'')<=dateTo);
   const _tixCutoff = _periodCutoff(tixPeriod);
   if(_tixCutoff) list=list.filter(t=>t.dateOpened && new Date(t.dateOpened)>=_tixCutoff);
-  if(q) list=list.filter(t=>t.subject.toLowerCase().includes(q)||t.building.toLowerCase().includes(q)||t.id.toLowerCase().includes(q)||t.assignedTo?.toLowerCase().includes(q)||(t.reportedBy||'').toLowerCase().includes(q));
+  if(q) list=list.filter(t=>t.subject.toLowerCase().includes(q)||(t.supplierName||'').toLowerCase().includes(q));
   // Hide-closed strip: only applies when status filter is 'All' (not overriding)
   const tixHideActive = (statusVal === 'All' || statusVal === 'notclosed' || statusVal === 'mine');
   const closedCount = tixHideActive ? list.filter(t=>t.status==='Closed').length : 0;
@@ -4553,7 +4554,7 @@ function renderAst(){
     const hasOpenTix=DB.tickets.some(t=>t.assetId===a.id&&t.status!=='Closed');
     return tixStatusVal==='Active'?hasOpenTix:!hasOpenTix;
   });
-  if(q) list=list.filter(a=>a.name.toLowerCase().includes(q)||a.building.toLowerCase().includes(q)||a.id.toLowerCase().includes(q));
+  if(q) list=list.filter(a=>a.name.toLowerCase().includes(q)||(a.floor||'').toLowerCase().includes(q));
   list.sort((a,z)=>{ const c=a.name.localeCompare(z.name); return astSort==='asc'? ((parseInt(a.sortOrder)||0)-(parseInt(z.sortOrder)||0)) || c : c; });
   document.getElementById('ast-lbl').textContent=`${list.length} middel${list.length!==1?'en':''}`;
   const c=document.getElementById('ast-list');
@@ -5118,7 +5119,7 @@ function renderUnits(){
     if(_unitBldIds.size && !_unitBldIds.has(u.buildingId)) return false;
     if(bldgVal !== 'All' && u.buildingId !== bldgVal) return false;
     if(floorVal !== 'All' && u.floorId !== floorVal) return false;
-    if(q && !u.label.toLowerCase().includes(q)) return false;
+    if(q && !(u.label.toLowerCase().includes(q)||(DB.floors.find(f=>f.id===u.floorId)?.label||'').toLowerCase().includes(q))) return false;
     if(statusVal !== 'All'){
       const bld = DB.buildings.find(b=>b.id===u.buildingId);
       const flr = DB.floors.find(f=>f.id===u.floorId);
@@ -6416,10 +6417,13 @@ function renderInspections(){
   if(_inspCutoff) list = list.filter(r => r.dateStart && new Date(r.dateStart) >= _inspCutoff);
   if(inspQ) list = list.filter(r =>
     (r.title||'').toLowerCase().includes(inspQ) ||
-    (r.category||'').toLowerCase().includes(inspQ) ||
-    (r.floor||'').toLowerCase().includes(inspQ) ||
-    (r.status||'').toLowerCase().includes(inspQ) ||
-    (DB.buildings.find(b=>b.id===r.buildingId)?.name||'').toLowerCase().includes(inspQ)
+    (r.category||'').toLowerCase().includes(inspQ)
+  );
+
+
+
+
+
   );
   // Hide-completed strip: only applies when status filter is 'All'
   const inspHideActive = (statusVal === 'All');
