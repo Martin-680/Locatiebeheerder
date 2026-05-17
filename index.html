@@ -2,37 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="vie
-function filterAst() {
-  const q          = (document.getElementById('asearch')?.value||'').toLowerCase();
-  const statusVal  = document.getElementById('sel-ast-status')?.value  || 'All';
-  const bldVal     = document.getElementById('sel-ast-bldg')?.value    || 'All';
-  const floorVal   = document.getElementById('sel-ast-floor')?.value   || 'All';
-  const unitVal    = document.getElementById('sel-ast-unit')?.value    || 'All';
-  const catVal     = document.getElementById('sel-ast-cat')?.value     || 'All';
-  const acatVal    = document.getElementById('sel-ast-acat')?.value    || 'All';
-  const tixStatusVal = document.getElementById('sel-ast-tix-status')?.value || 'All';
-
-  let list = DB.assets;
-  const _bldIds = getUserBuildingIds();
-  if(_bldIds.size)      list = list.filter(a => _bldIds.has(a.buildingId));
-  if(bldVal   !== 'All') list = list.filter(a => a.buildingId === bldVal);
-  if(floorVal !== 'All') list = list.filter(a => a.floorId    === floorVal);
-  if(unitVal  !== 'All') list = list.filter(a => a.unitId     === unitVal);
-  if(statusVal !== 'All') list = list.filter(a => a.status    === statusVal);
-  if(catVal   !== 'All') list = list.filter(a => a.supplierId === catVal);
-  if(acatVal  !== 'All') list = list.filter(a => a.category   === acatVal);
-  if(tixStatusVal !== 'All') list = list.filter(a => {
-    const hasOpenTix = DB.tickets.some(t => t.assetId===a.id && t.status!=='Closed');
-    return tixStatusVal === 'Active' ? hasOpenTix : !hasOpenTix;
-  });
-  if(q) list = list.filter(a => a.name.toLowerCase().includes(q) || (a.floor||'').toLowerCase().includes(q));
-  list.sort((a,z) => {
-    const c = a.name.localeCompare(z.name);
-    return astSort === 'asc' ? ((parseInt(a.sortOrder)||0) - (parseInt(z.sortOrder)||0)) || c : c;
-  });
-  return list;
-}wport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <meta name="theme-color" content="#F4F6FA"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -1620,50 +1590,6 @@ function statusBadge(status) {
   return '<span style="font-size:10px;font-weight:700;height:20px;padding:0 7px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;flex-shrink:0;" class="badge-status badge-status--' + (status||'').replace(' ','-').toLowerCase() + '">' + label + '</span>';
 }
 // ─────────────────────────────────────────────────────────────────────────────
-function filterUnits() {
-  const q        = (document.getElementById('unit-search')?.value||'').toLowerCase();
-  const bldgVal  = document.getElementById('sel-unit-bldg')?.value  || 'All';
-  const floorVal = document.getElementById('sel-unit-floor')?.value || 'All';
-  const statusVal = document.getElementById('sel-unit-status')?.value || 'All';
-  const _bldIds  = getUserBuildingIds();
-  return DB.units.filter(u => {
-    if(_bldIds.size && !_bldIds.has(u.buildingId)) return false;
-    if(bldgVal  !== 'All' && u.buildingId !== bldgVal)  return false;
-    if(floorVal !== 'All' && u.floorId    !== floorVal) return false;
-    if(q && !(u.label.toLowerCase().includes(q)||(DB.floors.find(f=>f.id===u.floorId)?.label||'').toLowerCase().includes(q))) return false;
-    if(statusVal !== 'All'){
-      const bld = DB.buildings.find(b=>b.id===u.buildingId);
-      const flr = DB.floors.find(f=>f.id===u.floorId);
-      const hasOpenTix = DB.tickets.some(t=>
-        t.status!=='Closed' &&
-        (t.building||'').trim()===(bld?.name||'') &&
-        (t.floor||'').trim()===(flr?.label||'') &&
-        (t.unit||'').trim()===u.label &&
-        (t.building||'').trim() && (t.floor||'').trim() && (t.unit||'').trim()
-      );
-      if((hasOpenTix ? 'Active' : 'Available') !== statusVal) return false;
-    }
-    return true;
-  }).sort((a,z) => {
-    const cmp = a.label.localeCompare(z.label);
-    return unitSort === 'asc' ? ((parseInt(a.sortOrder)||0)-(parseInt(z.sortOrder)||0)) || cmp : cmp;
-  });
-}
-
-function filterFloors() {
-  const q       = (document.getElementById('floor-search')?.value||'').toLowerCase();
-  const bldgVal = document.getElementById('sel-floor-bldg')?.value || 'All';
-  const _bldIds = getUserBuildingIds();
-  return DB.floors.filter(f => {
-    if(_bldIds.size && !_bldIds.has(f.buildingId)) return false;
-    if(bldgVal !== 'All' && f.buildingId !== bldgVal) return false;
-    if(q && !f.label.toLowerCase().includes(q)) return false;
-    return true;
-  }).sort((a,z) => {
-    const cmp = a.label.localeCompare(z.label);
-    return floorSort === 'asc' ? (a.sortOrder - z.sortOrder) || cmp : cmp;
-  });
-}
 // ── Locatie regel helper ──────────────────────────────────────────────────────
 const _bldgIcon  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>';
 const _floorIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="flex-shrink:0"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>';
@@ -1679,41 +1605,6 @@ function locLine(t) {
   return '<div class="cm" style="display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">' + parts.join(_dot) + '</div>';
 }
 // ─────────────────────────────────────────────────────────────────────────────
-function filterBlds() {
-  const q         = (document.getElementById('bld-search')?.value||'').toLowerCase();
-  const statusVal = document.getElementById('sel-bld-status')?.value || 'All';
-  const _bldIds   = getUserBuildingIds();
-  let list = DB.buildings.filter(b => !q || b.name.toLowerCase().includes(q) || (b.address||'').toLowerCase().includes(q));
-  if(_bldIds.size) list = list.filter(b => _bldIds.has(b.id));
-  if(statusVal === 'Active') list = list.filter(b => !DB.tickets.some(t => t.building===b.name && t.status!=='Closed'));
-  if(statusVal === 'Issues') list = list.filter(b =>  DB.tickets.some(t => t.building===b.name && t.status!=='Closed'));
-  return list;
-}
-
-function filterSuppliers() {
-  const q           = (document.getElementById('ssearch')?.value||'').toLowerCase();
-  const statusVal   = document.getElementById('sel-sup-status')?.value    || 'All';
-  const expertiseVal = document.getElementById('sel-sup-expertise')?.value || 'All';
-  const sortVal     = document.getElementById('sel-sup-sort')?.value      || 'none';
-  // Per-supplier open ticket count (for sorting)
-  const supCutoff = _periodCutoff(supPeriod);
-  const inSupPeriod = d => d && new Date(d) >= supCutoff;
-  const supOpenCount = {};
-  DB.tickets.filter(t => t.supplierId && inSupPeriod(t.dateOpened)).forEach(t => {
-    if(t.status !== 'Closed') supOpenCount[t.supplierId] = (supOpenCount[t.supplierId]||0) + 1;
-  });
-  let list = [...DB.suppliers];
-  if(statusVal !== 'All') list = list.filter(s => s.status === statusVal);
-  if(expertiseVal !== 'All') list = list.filter(s => {
-    const exp = Array.isArray(s.expertise) ? s.expertise : String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
-    return exp.includes(expertiseVal);
-  });
-  if(q) list = list.filter(s => s.name.toLowerCase().includes(q) || (Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',')).join(' ').toLowerCase().includes(q));
-  if(sortVal === 'asc')  list.sort((a,b) => (supOpenCount[a.id]||0) - (supOpenCount[b.id]||0));
-  else if(sortVal === 'desc') list.sort((a,b) => (supOpenCount[b.id]||0) - (supOpenCount[a.id]||0));
-  else list.sort((a,b) => a.name.localeCompare(b.name));
-  return list;
-}
 // ── Dropdown option helpers ───────────────────────────────────────────────────
 function buildingOptions(selectedId = '') {
   return '<option value="">— Selecteer gebouw —</option>' +
@@ -1860,6 +1751,151 @@ function filterInsp() {
   );
   return { list, statusVal };
 }
+// ── Filter helpers (stap 8-11) ────────────────────────────────────────────────
+function filterInsp() {
+  const inspQ        = (document.getElementById('insp-search')?.value||'').toLowerCase().trim();
+  const statusVal    = document.getElementById('sel-insp-status')?.value    || 'All';
+  const bldgVal      = document.getElementById('sel-insp-bldg')?.value      || 'All';
+  const catVal       = document.getElementById('sel-insp-cat')?.value       || 'All';
+  const inspectorVal = document.getElementById('sel-insp-inspector')?.value || 'All';
+  const resultVal    = document.getElementById('sel-insp-result')?.value    || 'All';
+  const dateFrom     = document.getElementById('sel-insp-date-from')?.value || '';
+  const dateTo       = document.getElementById('sel-insp-date-to')?.value   || '';
+  let list = [...DB.inspections].sort((a,b) => inspSort==='alpha'
+    ? (a.building||'').localeCompare(b.building||'')
+    : (b.dateStart||'') > (a.dateStart||'') ? 1 : -1);
+  const _bldIds = getUserBuildingIds();
+  if(_bldIds.size) list = list.filter(r => _bldIds.has(r.buildingId));
+  if(statusVal    !== 'All') list = list.filter(r => r.status === statusVal);
+  if(bldgVal      !== 'All') list = list.filter(r => r.buildingId === bldgVal);
+  if(catVal       !== 'All') list = list.filter(r => r.category === catVal);
+  if(inspectorVal !== 'All') list = list.filter(r => r.inspector === inspectorVal);
+  if(resultVal    !== 'All') list = list.filter(r => {
+    const items = Array.isArray(r.items) ? r.items : [];
+    const hasFailed  = items.some(i=>i.result==='Failed');
+    const hasPending = items.some(i=>!i.result||i.result==='');
+    if(resultVal==='hasFailed')  return hasFailed;
+    if(resultVal==='hasPending') return hasPending;
+    if(resultVal==='allClear')   return !hasFailed && !hasPending && items.length > 0;
+    return true;
+  });
+  if(dateFrom) list = list.filter(r => (r.dateStart||'') >= dateFrom);
+  if(dateTo)   list = list.filter(r => (r.dateStart||'') <= dateTo);
+  const _cut = _periodCutoff(inspPeriod);
+  if(_cut) list = list.filter(r => r.dateStart && new Date(r.dateStart) >= _cut);
+  if(inspQ) list = list.filter(r =>
+    (r.title||'').toLowerCase().includes(inspQ) ||
+    (r.category||'').toLowerCase().includes(inspQ)
+  );
+  return { list, statusVal };
+}
+function filterAst() {
+  const q            = (document.getElementById('asearch')?.value||'').toLowerCase();
+  const statusVal    = document.getElementById('sel-ast-status')?.value    || 'All';
+  const bldVal       = document.getElementById('sel-ast-bldg')?.value      || 'All';
+  const floorVal     = document.getElementById('sel-ast-floor')?.value     || 'All';
+  const unitVal      = document.getElementById('sel-ast-unit')?.value      || 'All';
+  const catVal       = document.getElementById('sel-ast-cat')?.value       || 'All';
+  const acatVal      = document.getElementById('sel-ast-acat')?.value      || 'All';
+  const tixStatusVal = document.getElementById('sel-ast-tix-status')?.value || 'All';
+  let list = DB.assets;
+  const _bldIds = getUserBuildingIds();
+  if(_bldIds.size)       list = list.filter(a => _bldIds.has(a.buildingId));
+  if(bldVal   !== 'All') list = list.filter(a => a.buildingId === bldVal);
+  if(floorVal !== 'All') list = list.filter(a => a.floorId    === floorVal);
+  if(unitVal  !== 'All') list = list.filter(a => a.unitId     === unitVal);
+  if(statusVal !== 'All') list = list.filter(a => a.status    === statusVal);
+  if(catVal   !== 'All') list = list.filter(a => a.supplierId === catVal);
+  if(acatVal  !== 'All') list = list.filter(a => a.category   === acatVal);
+  if(tixStatusVal !== 'All') list = list.filter(a => {
+    const hasOpenTix = DB.tickets.some(t => t.assetId===a.id && t.status!=='Closed');
+    return tixStatusVal === 'Active' ? hasOpenTix : !hasOpenTix;
+  });
+  if(q) list = list.filter(a => a.name.toLowerCase().includes(q) || (a.floor||'').toLowerCase().includes(q));
+  list.sort((a,z) => {
+    const c = a.name.localeCompare(z.name);
+    return astSort === 'asc' ? ((parseInt(a.sortOrder)||0) - (parseInt(z.sortOrder)||0)) || c : c;
+  });
+  return list;
+}
+function filterUnits() {
+  const q         = (document.getElementById('unit-search')?.value||'').toLowerCase();
+  const bldgVal   = document.getElementById('sel-unit-bldg')?.value   || 'All';
+  const floorVal  = document.getElementById('sel-unit-floor')?.value  || 'All';
+  const statusVal = document.getElementById('sel-unit-status')?.value || 'All';
+  const _bldIds   = getUserBuildingIds();
+  return DB.units.filter(u => {
+    if(_bldIds.size && !_bldIds.has(u.buildingId)) return false;
+    if(bldgVal  !== 'All' && u.buildingId !== bldgVal)  return false;
+    if(floorVal !== 'All' && u.floorId    !== floorVal) return false;
+    if(q && !(u.label.toLowerCase().includes(q)||(DB.floors.find(f=>f.id===u.floorId)?.label||'').toLowerCase().includes(q))) return false;
+    if(statusVal !== 'All'){
+      const bld = DB.buildings.find(b=>b.id===u.buildingId);
+      const flr = DB.floors.find(f=>f.id===u.floorId);
+      const hasOpenTix = DB.tickets.some(t=>
+        t.status!=='Closed' &&
+        (t.building||'').trim()===(bld?.name||'') &&
+        (t.floor||'').trim()===(flr?.label||'') &&
+        (t.unit||'').trim()===u.label &&
+        (t.building||'').trim() && (t.floor||'').trim() && (t.unit||'').trim()
+      );
+      if((hasOpenTix ? 'Active' : 'Available') !== statusVal) return false;
+    }
+    return true;
+  }).sort((a,z) => {
+    const cmp = a.label.localeCompare(z.label);
+    return unitSort === 'asc' ? ((parseInt(a.sortOrder)||0)-(parseInt(z.sortOrder)||0)) || cmp : cmp;
+  });
+}
+function filterFloors() {
+  const q       = (document.getElementById('floor-search')?.value||'').toLowerCase();
+  const bldgVal = document.getElementById('sel-floor-bldg')?.value || 'All';
+  const _bldIds = getUserBuildingIds();
+  return DB.floors.filter(f => {
+    if(_bldIds.size && !_bldIds.has(f.buildingId)) return false;
+    if(bldgVal !== 'All' && f.buildingId !== bldgVal) return false;
+    if(q && !f.label.toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a,z) => {
+    const cmp = a.label.localeCompare(z.label);
+    return floorSort === 'asc' ? (a.sortOrder - z.sortOrder) || cmp : cmp;
+  });
+}
+function filterBlds() {
+  const q         = (document.getElementById('bld-search')?.value||'').toLowerCase();
+  const statusVal = document.getElementById('sel-bld-status')?.value || 'All';
+  const _bldIds   = getUserBuildingIds();
+  let list = DB.buildings.filter(b => !q || b.name.toLowerCase().includes(q) || (b.address||'').toLowerCase().includes(q));
+  if(_bldIds.size) list = list.filter(b => _bldIds.has(b.id));
+  if(statusVal === 'Active') list = list.filter(b => !DB.tickets.some(t => t.building===b.name && t.status!=='Closed'));
+  if(statusVal === 'Issues') list = list.filter(b =>  DB.tickets.some(t => t.building===b.name && t.status!=='Closed'));
+  return list;
+}
+function filterSuppliers() {
+  const q            = (document.getElementById('ssearch')?.value||'').toLowerCase();
+  const statusVal    = document.getElementById('sel-sup-status')?.value    || 'All';
+  const expertiseVal = document.getElementById('sel-sup-expertise')?.value || 'All';
+  const sortVal      = document.getElementById('sel-sup-sort')?.value      || 'none';
+  const supCutoff    = _periodCutoff(supPeriod);
+  const inSupPeriod  = d => d && new Date(d) >= supCutoff;
+  const supOpenCount = {};
+  DB.tickets.filter(t => t.supplierId && inSupPeriod(t.dateOpened)).forEach(t => {
+    if(t.status !== 'Closed') supOpenCount[t.supplierId] = (supOpenCount[t.supplierId]||0) + 1;
+  });
+  let list = [...DB.suppliers];
+  if(statusVal !== 'All') list = list.filter(s => s.status === statusVal);
+  if(expertiseVal !== 'All') list = list.filter(s => {
+    const exp = Array.isArray(s.expertise) ? s.expertise : String(s.expertise||'').replace(/[\[\]"]/g,'').split(',').map(x=>x.trim()).filter(Boolean);
+    return exp.includes(expertiseVal);
+  });
+  if(q) list = list.filter(s => s.name.toLowerCase().includes(q) || (Array.isArray(s.expertise)?s.expertise:String(s.expertise||'').replace(/[\[\]"]/g,'').split(',')).join(' ').toLowerCase().includes(q));
+  if(sortVal === 'asc')       list.sort((a,b) => (supOpenCount[a.id]||0) - (supOpenCount[b.id]||0));
+  else if(sortVal === 'desc') list.sort((a,b) => (supOpenCount[b.id]||0) - (supOpenCount[a.id]||0));
+  else list.sort((a,b) => a.name.localeCompare(b.name));
+  return list;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const d=(n)=>{const x=new Date(today);x.setDate(x.getDate()-n);return x.toISOString().split('T')[0];};
 const df=(s)=>s?parseDate(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
 const daysSince=(s)=>s?Math.max(0,Math.floor((today-parseDate(s))/_MS_DAY)):0;
