@@ -1148,11 +1148,9 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="mh"></div>
     <div class="mt"><span id="tix-modal-title">Nieuwe melding</span><button class="mt-close" onclick="closeMo('mo-tix')">✕</button></div>
     <div class="fg"><label>Onderwerp *</label><input class="fi2" id="tf-subj" placeholder="Beschrijf het probleem…"/></div>
+    <div class="fg"><label>Gebouw *</label><select class="fs2" id="tf-bldg" onchange="tfOnBldgChange()"><option value="">— Select —</option></select></div>
     <div class="frow2">
-      <div class="fg"><label>Gebouw *</label><select class="fs2" id="tf-bldg" onchange="tfOnBldgChange()"><option value="">— Select —</option></select></div>
       <div class="fg"><label>Verdieping</label><select class="fs2" id="tf-sub" onchange="tfOnFloorChange()"><option value="">— Geen —</option></select></div>
-    </div>
-    <div class="frow2">
       <div class="fg"><label>Eenheid</label><select class="fs2" id="tf-unit" onchange="tfOnUnitChange()"><option value="">— Geen —</option></select></div>
       <div class="fg"><label>Asset</label><select class="fs2" id="tf-asset" onchange="tfOnAssetChange()"><option value="">— Geen —</option></select></div>
     </div>
@@ -1227,12 +1225,12 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="mh"></div>
     <div class="mt"><span id="ast-modal-title">Nieuw activum</span><button class="mt-close" onclick="closeMo('mo-ast')">✕</button></div>
     <div class="fg"><label>Naam activum *</label><input class="fi2" id="af-name" placeholder="bijv. HVAC eenheid A"/></div>
+    <div class="fg"><label>Gebouw</label><select class="fs2" id="af-bldg" onchange="afOnBldgChange()"><option value="">— Selecteer gebouw —</option></select></div>
     <div class="frow2">
-      <div class="fg"><label>Gebouw</label><select class="fs2" id="af-bldg" onchange="afOnBldgChange()"><option value="">— Selecteer gebouw —</option></select></div>
       <div class="fg"><label>Verdieping</label><select class="fs2" id="af-sub" onchange="afOnFloorChange()"><option value="">Geen</option></select></div>
+      <div class="fg"><label>Eenheid</label><select class="fs2" id="af-loc"><option value="">— Selecteer eenheid —</option></select></div>
     </div>
     <div class="frow2">
-      <div class="fg"><label>Eenheid</label><select class="fs2" id="af-loc"><option value="">— Selecteer eenheid —</option></select></div>
       <div class="fg"><label>Leverancier</label>
         <div id="af-cat-wrap" style="position:relative">
           <input id="af-cat-search" class="fi2" placeholder="Zoek leverancier…" autocomplete="off"
@@ -1605,6 +1603,26 @@ function locLine(t) {
   if (t.unit)      parts.push(_unitIcon  + '<span>' + t.unit + '</span>');
   if (!parts.length) return '—';
   return '<div class="cm" style="display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">' + parts.join(_dot) + '</div>';
+}
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Dropdown option helpers ───────────────────────────────────────────────────
+function buildingOptions(selectedId = '') {
+  return '<option value="">— Selecteer gebouw —</option>' +
+    [...DB.buildings].sort((a,b) => a.name.localeCompare(b.name))
+      .map(b => `<option value="${b.id}"${b.id === selectedId ? ' selected' : ''}>${b.name}</option>`)
+      .join('');
+}
+function floorOptions(buildingId, selectedId = '') {
+  const floors = DB.floors.filter(f => f.buildingId === buildingId)
+    .sort((a,b) => a.sortOrder - b.sortOrder);
+  return '<option value="">— Geen —</option>' +
+    floors.map(f => `<option value="${f.id}"${f.id === selectedId ? ' selected' : ''}>${f.label}</option>`).join('');
+}
+function unitOptions(floorId, selectedId = '') {
+  const units = DB.units.filter(u => u.floorId === floorId)
+    .sort((a,b) => (parseInt(a.sortOrder)||0) - (parseInt(b.sortOrder)||0));
+  return '<option value="">— Geen —</option>' +
+    units.map(u => `<option value="${u.id}"${u.id === selectedId ? ' selected' : ''}>${u.label}</option>`).join('');
 }
 // ─────────────────────────────────────────────────────────────────────────────
 const d=(n)=>{const x=new Date(today);x.setDate(x.getDate()-n);return x.toISOString().split('T')[0];};
@@ -8340,10 +8358,8 @@ function calPlanTicket(dateStr){
     <div class="mh"></div>
     <div class="mt"><span id="unit-modal-title">Nieuwe eenheid</span><button class="mt-close" onclick="closeMo('mo-unit')">✕</button></div>
     <div class="fg"><label>Naam eenheid *</label><input class="fi2" id="uf2-label" placeholder="bijv. Kantoor 101"/></div>
-    <div class="frow2">
-      <div class="fg"><label>Gebouw *</label><select class="fs2" id="uf2-bldg" onchange="uf2OnBldgChange()"><option value="">Selecteer…</option></select></div>
-      <div class="fg"><label>Verdieping</label><select class="fs2" id="uf2-floor"><option value="">— Selecteer verdieping —</option></select></div>
-    </div>
+    <div class="fg"><label>Gebouw *</label><select class="fs2" id="uf2-bldg" onchange="uf2OnBldgChange()"><option value="">Selecteer…</option></select></div>
+    <div class="fg"><label>Verdieping</label><select class="fs2" id="uf2-floor"><option value="">— Selecteer verdieping —</option></select></div>
     <div class="fg"><label>Sorteervolgorde</label><input class="fi2" type="number" id="uf2-sort" placeholder="0"/></div>
     <div class="fg"><label>Inspectietijd (min)</label><input class="fi2" type="number" min="0" id="uf2-insptime" placeholder="e.g. 30"/></div>
     <button class="btn-p" onclick="saveUnit()">Eenheid opslaan</button>
