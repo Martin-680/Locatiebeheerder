@@ -1580,6 +1580,18 @@ function scopeInfo(t) {
   const bg    = hasAsset ? 'rgba(5,150,105,.1)' : hasUnit ? 'rgba(37,99,235,.1)' : hasFloor ? 'rgba(217,119,6,.1)' : 'rgba(220,38,38,.12)';
   return { label, color, bg };
 }
+function scopeMult(t) {
+  // Scope multiplier for pressure calculation
+  // assetId → ×1, unitId → ×1.5, floorId → ×(1+1/floors), building only → ×2
+  if(t.assetId) return 1;
+  if(t.unitId)  return 1.5;
+  if(t.floorId) {
+    const bld = DB.buildings.find(b => b.id === t.buildingId);
+    const floorCount = bld ? DB.floors.filter(f => f.buildingId === bld.id).length : 1;
+    return 1 + 1 / Math.max(floorCount, 1);
+  }
+  return 2; // whole building
+}
 function scopeBadge(t) {
   const { label, color, bg } = scopeInfo(t);
   return '<span style="font-size:10px;font-weight:700;height:20px;padding:0 7px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;flex-shrink:0;background:' + bg + ';color:' + color + '">' + label + '</span>';
@@ -1637,9 +1649,10 @@ function tixCard(t, clickable=true){
   const { label: scopeLabel, color: scopeColor, bg: scopeBg } = scopeInfo(t);
   const badgeStyle = 'font-size:10px;font-weight:700;height:20px;padding:0 7px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;flex-shrink:0;background:'+scopeBg+';color:'+scopeColor;
   const isClosed  = t.status === 'Closed';
+  const _mult     = scopeMult(t);
   const tixScore  = isClosed
-    ? (t.dateClosed ? Math.round(2 * ageMultAt(t.dateOpened, t.dateClosed) * 10) / 10 : 0)
-    : Math.round(2 * ageMult(t.dateOpened) * 10) / 10;
+    ? (t.dateClosed ? Math.round(2 * _mult * ageMultAt(t.dateOpened, t.dateClosed) * 10) / 10 : 0)
+    : Math.round(2 * _mult * ageMult(t.dateOpened) * 10) / 10;
   const hc        = scopeColor;
   const dateStart = fmtDate(t.dateOpened);
   const dateEnd   = t.dateClosed ? fmtDate(t.dateClosed) : '—';
@@ -3198,7 +3211,7 @@ function renderDash(){
       // Tickets with dateOpened in period
       const periodTix    = DB.tickets.filter(t=>t.buildingId===b.id&&inPeriod(t.dateOpened));
       const openTix      = periodTix.filter(t=>t.status!=='Closed');
-      const openTixPts   = openTix.reduce((s,t)=>s + 2 * ageMult(t.dateOpened), 0);
+      const openTixPts   = openTix.reduce((s,t)=>s + 2 * scopeMult(t) * ageMult(t.dateOpened), 0);
       const closedTixPts = periodTix.filter(t=>t.status==='Closed').length * -1;
 
       // Inspection items from inspections with dateStart in period
