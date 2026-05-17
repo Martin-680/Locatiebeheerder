@@ -1620,6 +1620,50 @@ function statusBadge(status) {
   return '<span style="font-size:10px;font-weight:700;height:20px;padding:0 7px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;flex-shrink:0;" class="badge-status badge-status--' + (status||'').replace(' ','-').toLowerCase() + '">' + label + '</span>';
 }
 // ─────────────────────────────────────────────────────────────────────────────
+function filterUnits() {
+  const q        = (document.getElementById('unit-search')?.value||'').toLowerCase();
+  const bldgVal  = document.getElementById('sel-unit-bldg')?.value  || 'All';
+  const floorVal = document.getElementById('sel-unit-floor')?.value || 'All';
+  const statusVal = document.getElementById('sel-unit-status')?.value || 'All';
+  const _bldIds  = getUserBuildingIds();
+  return DB.units.filter(u => {
+    if(_bldIds.size && !_bldIds.has(u.buildingId)) return false;
+    if(bldgVal  !== 'All' && u.buildingId !== bldgVal)  return false;
+    if(floorVal !== 'All' && u.floorId    !== floorVal) return false;
+    if(q && !(u.label.toLowerCase().includes(q)||(DB.floors.find(f=>f.id===u.floorId)?.label||'').toLowerCase().includes(q))) return false;
+    if(statusVal !== 'All'){
+      const bld = DB.buildings.find(b=>b.id===u.buildingId);
+      const flr = DB.floors.find(f=>f.id===u.floorId);
+      const hasOpenTix = DB.tickets.some(t=>
+        t.status!=='Closed' &&
+        (t.building||'').trim()===(bld?.name||'') &&
+        (t.floor||'').trim()===(flr?.label||'') &&
+        (t.unit||'').trim()===u.label &&
+        (t.building||'').trim() && (t.floor||'').trim() && (t.unit||'').trim()
+      );
+      if((hasOpenTix ? 'Active' : 'Available') !== statusVal) return false;
+    }
+    return true;
+  }).sort((a,z) => {
+    const cmp = a.label.localeCompare(z.label);
+    return unitSort === 'asc' ? ((parseInt(a.sortOrder)||0)-(parseInt(z.sortOrder)||0)) || cmp : cmp;
+  });
+}
+
+function filterFloors() {
+  const q       = (document.getElementById('floor-search')?.value||'').toLowerCase();
+  const bldgVal = document.getElementById('sel-floor-bldg')?.value || 'All';
+  const _bldIds = getUserBuildingIds();
+  return DB.floors.filter(f => {
+    if(_bldIds.size && !_bldIds.has(f.buildingId)) return false;
+    if(bldgVal !== 'All' && f.buildingId !== bldgVal) return false;
+    if(q && !f.label.toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a,z) => {
+    const cmp = a.label.localeCompare(z.label);
+    return floorSort === 'asc' ? (a.sortOrder - z.sortOrder) || cmp : cmp;
+  });
+}
 // ── Locatie regel helper ──────────────────────────────────────────────────────
 const _bldgIcon  = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="flex-shrink:0"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>';
 const _floorIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="flex-shrink:0"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>';
@@ -5203,7 +5247,6 @@ function toggleUnitBldgBtn(name){
 }
 
 function renderUnits(){
-  const q = (document.getElementById('unit-search')?.value||'').toLowerCase();
   renderUnitBldgBtns();
 
   // Populate building filter
@@ -5230,35 +5273,10 @@ function renderUnits(){
   }
 
   const floorVal = flrSel?.value || 'All';
-  const statusVal = document.getElementById('sel-unit-status')?.value || 'All';
   syncSelActive('sel-unit-bldg'); syncSelActive('sel-unit-floor'); syncSelActive('sel-unit-status');
   updateUnitFilterBadge();
 
-  // Filter units
-  const _unitBldIds=getUserBuildingIds();
-  let list = DB.units.filter(u => {
-    if(_unitBldIds.size && !_unitBldIds.has(u.buildingId)) return false;
-    if(bldgVal !== 'All' && u.buildingId !== bldgVal) return false;
-    if(floorVal !== 'All' && u.floorId !== floorVal) return false;
-    if(q && !(u.label.toLowerCase().includes(q)||(DB.floors.find(f=>f.id===u.floorId)?.label||'').toLowerCase().includes(q))) return false;
-    if(statusVal !== 'All'){
-      const bld = DB.buildings.find(b=>b.id===u.buildingId);
-      const flr = DB.floors.find(f=>f.id===u.floorId);
-      const hasOpenTix = DB.tickets.some(t=>
-        t.status!=='Closed' &&
-        (t.building||'').trim()===(bld?.name||'') &&
-        (t.floor||'').trim()===(flr?.label||'') &&
-        (t.unit||'').trim()===u.label &&
-        (t.building||'').trim() && (t.floor||'').trim() && (t.unit||'').trim()
-      );
-      const uStatus = hasOpenTix ? 'Active' : 'Available';
-      if(uStatus !== statusVal) return false;
-    }
-    return true;
-  }).sort((a,z) => {
-    const cmp = a.label.localeCompare(z.label);
-    return unitSort === 'asc' ? ((parseInt(a.sortOrder)||0)-(parseInt(z.sortOrder)||0)) || cmp : cmp;
-  });
+  const list = filterUnits();
 
   document.getElementById('unit-lbl').textContent = `${list.length} ${list.length!==1?'eenheden':'eenheid'}`;
   const c = document.getElementById('unit-list');
@@ -5585,8 +5603,6 @@ function renderFloors(){
   if(!document.getElementById('floor-list')) return;
   updateFloorFilterBadge();
   renderFloorBldgBtns();
-  const q = (document.getElementById('floor-search')?.value||'').toLowerCase();
-
   const bldSel = document.getElementById('sel-floor-bldg');
   if(bldSel){
     const cur = bldSel.value;
@@ -5597,16 +5613,7 @@ function renderFloors(){
   const bldgVal = bldSel?.value || 'All';
   syncSelActive('sel-floor-bldg');
 
-  const _flrBldIds=getUserBuildingIds();
-  let list = DB.floors.filter(f => {
-    if(_flrBldIds.size && !_flrBldIds.has(f.buildingId)) return false;
-    if(bldgVal !== 'All' && f.buildingId !== bldgVal) return false;
-    if(q && !f.label.toLowerCase().includes(q)) return false;
-    return true;
-  }).sort((a,z) => {
-    const cmp = a.label.localeCompare(z.label);
-    return floorSort === 'asc' ? (a.sortOrder - z.sortOrder) || cmp : cmp;
-  });
+  const list = filterFloors();
 
   document.getElementById('floor-lbl').textContent = `${list.length} verdieping${list.length!==1?'en':''}`;
   const c = document.getElementById('floor-list');
