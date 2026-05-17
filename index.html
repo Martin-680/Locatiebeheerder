@@ -513,7 +513,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <div class="topbar-actions">
           <button class="ib" id="tix-clear-btn" onclick="clearTixFilters()" title="Clear filters" style="opacity:.35;pointer-events:none;transition:opacity .2s" style="background:#E6F1FB;border:1px solid #B5D4F4;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <button class="ib" id="tix-filter-btn" onclick="openTixFilterModal()" title="Filters" style="position:relative"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg><span id="tix-filter-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:1px 4px;border-radius:20px;pointer-events:none"></span></button>
-          <button class="ib" id="tix-sort-btn" onclick="toggleTixSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">A–Z</button>
+          <button class="ib" id="tix-sort-btn" onclick="toggleTixSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">0→9</button>
           <button class="ib" onclick="openNewTicket()" id="btn-new-tix" style="display:none" title="New Ticket"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
         </div>
@@ -571,7 +571,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <div class="topbar-actions">
           <button class="ib" id="ast-clear-btn" onclick="clearAstFilters()" title="Clear filters" style="opacity:.35;pointer-events:none;transition:opacity .2s"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <button class="ib" id="ast-filter-btn" onclick="openAstFilterModal()" title="Filters" style="position:relative"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg><span id="ast-filter-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:1px 4px;border-radius:20px;pointer-events:none"></span></button>
-          <button class="ib" id="ast-sort-btn" onclick="toggleAstSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">A–Z</button>
+          <button class="ib" id="ast-sort-btn" onclick="toggleAstSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">0→9</button>
           <button class="ib" onclick="openNewAsset()" id="btn-new-ast" style="display:none" title="New Asset"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
         </div>
@@ -663,7 +663,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <div class="topbar-actions">
           <button class="ib" id="insp-clear-btn" onclick="clearInspFilters()" title="Clear filters" style="opacity:.35;pointer-events:none;transition:opacity .2s" style="background:#E6F1FB;border:1px solid #B5D4F4;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <button class="ib" id="insp-filter-btn" onclick="openInspFilterModal()" title="Filters" style="position:relative"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg><span id="insp-filter-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:1px 4px;border-radius:20px;pointer-events:none"></span></button>
-          <button class="ib" id="insp-sort-btn" onclick="toggleInspSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">A–Z</button>
+          <button class="ib" id="insp-sort-btn" onclick="toggleInspSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">0→9</button>
           <button class="ib" onclick="openStartInspection()" id="btn-new-insp" style="display:none" title="Ronde starten"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
         </div>
@@ -806,7 +806,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <div class="topbar-actions">
           <button class="ib" id="unit-clear-btn" onclick="clearUnitFilters()" title="Clear filters" style="opacity:.35;pointer-events:none;transition:opacity .2s"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <button class="ib" id="unit-filter-btn" onclick="openUnitFilterModal()" title="Filters" style="position:relative"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg><span id="unit-filter-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:1px 4px;border-radius:20px;pointer-events:none"></span></button>
-          <button class="ib" id="unit-sort-btn" onclick="toggleUnitSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">A–Z</button>
+          <button class="ib" id="unit-sort-btn" onclick="toggleUnitSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">0→9</button>
           <button class="ib" onclick="openNewUnit()" id="btn-new-unit" style="display:none" title="Eenheid toevoegen"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
         </div>
@@ -839,7 +839,7 @@ input,select,textarea{font-family:inherit;color:var(--text);}
         <div class="topbar-actions">
           <button class="ib" id="floor-clear-btn" onclick="clearFloorFilters()" title="Clear filters" style="opacity:.35;pointer-events:none;transition:opacity .2s"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <button class="ib" id="floor-filter-btn" onclick="openFloorFilterModal()" title="Filters" style="position:relative"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg><span id="floor-filter-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:1px 4px;border-radius:20px;pointer-events:none"></span></button>
-          <button class="ib" id="floor-sort-btn" onclick="toggleFloorSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">A–Z</button>
+          <button class="ib" id="floor-sort-btn" onclick="toggleFloorSort()" title="Sort order" style="font-size:11px;font-weight:700;color:var(--sub)">0→9</button>
           <button class="ib" onclick="openNewFloor()" id="btn-new-floor" style="display:none" title="Add Floor"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
         </div>
@@ -1148,13 +1148,15 @@ input,select,textarea{font-family:inherit;color:var(--text);}
     <div class="mh"></div>
     <div class="mt"><span id="tix-modal-title">Nieuwe melding</span><button class="mt-close" onclick="closeMo('mo-tix')">✕</button></div>
     <div class="fg"><label>Onderwerp *</label><input class="fi2" id="tf-subj" placeholder="Beschrijf het probleem…"/></div>
-    <div class="fg"><label>Gebouw *</label><select class="fs2" id="tf-bldg" onchange="tfOnBldgChange()"><option value="">— Select —</option></select></div>
     <div class="frow2">
+      <div class="fg"><label>Gebouw *</label><select class="fs2" id="tf-bldg" onchange="tfOnBldgChange()"><option value="">— Select —</option></select></div>
       <div class="fg"><label>Verdieping</label><select class="fs2" id="tf-sub" onchange="tfOnFloorChange()"><option value="">— Geen —</option></select></div>
-      <div class="fg"><label>Eenheid</label><select class="fs2" id="tf-unit" onchange="tfOnUnitChange()"><option value="">— Geen —</option></select></div>
     </div>
     <div class="frow2">
+      <div class="fg"><label>Eenheid</label><select class="fs2" id="tf-unit" onchange="tfOnUnitChange()"><option value="">— Geen —</option></select></div>
       <div class="fg"><label>Asset</label><select class="fs2" id="tf-asset" onchange="tfOnAssetChange()"><option value="">— Geen —</option></select></div>
+    </div>
+    <div class="frow2">
       <div class="fg"><label>Type</label>
         <select class="fs2" id="tf-type">
           <option value="">— Select —</option>
@@ -1170,16 +1172,16 @@ input,select,textarea{font-family:inherit;color:var(--text);}
           <option value="verhuizing">Verhuizing</option>
         </select>
       </div>
-    </div>
-    <div class="frow2">
       <div class="fg"><label>Categorie</label>
         <select class="fs2" id="tf-cat"><option value="">— Select —</option></select>
       </div>
-      <div class="fg"><label>Status</label>
+    </div>
+    <div class="fg"><label>Status</label>
         <select class="fs2" id="tf-status"><option value="Open">Open</option><option value="In Progress">In behandeling</option><option value="Planned">Gepland</option><option value="Requested">Aangevraagd</option><option value="Ordered">Besteld</option><option value="Closed">Gesloten</option></select>
       </div>
+    <div class="frow2">
+      <div class="fg"><label>Toewijzen aan</label><select class="fs2" id="tf-assign"><option value="">Niet toegewezen</option></select></div>
     </div>
-    <div style="display:none"><select id="tf-assign"><option value="">Niet toegewezen</option></select></div>
     <div class="frow2">
       <div class="fg"><label>Datum geopend</label><input class="fi2" type="date" id="tf-date-opened"/></div>
       <div class="fg"><label>Datum gesloten</label><input class="fi2" type="date" id="tf-date-closed"/></div>
@@ -2199,7 +2201,7 @@ function navTo(s){
   if(s==='users')       {renderRoleLegend();renderUsers();}
   if(s==='buildings')   renderBlds();
   if(s==='suppliers')   renderSuppliers();
-  if(s==='inspections') { inspActiveBldg=null; inspSort='date'; showCompletedInsp=false; const _sb=document.getElementById('insp-sort-btn');if(_sb){_sb.textContent='A–Z';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';} renderInspections(); }
+  if(s==='inspections') { inspActiveBldg=null; inspSort='date'; showCompletedInsp=false; const _sb=document.getElementById('insp-sort-btn');if(_sb){_sb.textContent='0→9';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';} renderInspections(); }
   if(s==='units')       renderUnits();
   if(s==='floors')      renderFloors();
 
@@ -3806,7 +3808,7 @@ function toggleInspSort(){
   inspSort = inspSort === 'date' ? 'alpha' : 'date';
   const btn = document.getElementById('insp-sort-btn');
   if(btn){
-    btn.textContent = inspSort === 'alpha' ? 'A–Z' : '0–9';
+    btn.textContent = inspSort === 'date' ? '0→9' : 'A→Z';
     btn.style.color = inspSort === 'alpha' ? 'var(--blue)' : 'var(--sub)';
     btn.style.borderColor = inspSort === 'alpha' ? 'rgba(37,99,235,.4)' : '';
     btn.style.background  = inspSort === 'alpha' ? 'rgba(37,99,235,.08)' : '';
@@ -3817,7 +3819,7 @@ function toggleTixSort(){
   tixSort = tixSort === 'date' ? 'alpha' : 'date';
   const btn = document.getElementById('tix-sort-btn');
   if(btn){
-    btn.textContent = tixSort === 'alpha' ? 'A–Z' : '0–9';
+    btn.textContent = tixSort === 'date' ? '0→9' : 'A→Z';
     btn.style.color = tixSort === 'alpha' ? 'var(--blue)' : 'var(--sub)';
     btn.style.borderColor = tixSort === 'alpha' ? 'rgba(37,99,235,.4)' : '';
     btn.style.background  = tixSort === 'alpha' ? 'rgba(37,99,235,.08)' : '';
@@ -3853,7 +3855,7 @@ function toggleTixBldgBtn(name){
 
 function clearTixFilters(){
   tixActiveBldg=null; tixSort='date';
-  const _sb=document.getElementById('tix-sort-btn'); if(_sb){_sb.textContent='A–Z';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';}
+  const _sb=document.getElementById('tix-sort-btn'); if(_sb){_sb.textContent='0→9';_sb.style.color='';_sb.style.borderColor='';_sb.style.background='';}
   ['sel-tix-status','sel-tix-cat','sel-tix-bldg','sel-tix-floor','sel-tix-sup','sel-tix-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='All';});
   const sort=document.getElementById('sel-tix-sort');if(sort)sort.value='newest';
   const search=document.getElementById('tsearch');if(search)search.value='';
@@ -4430,7 +4432,7 @@ function toggleAstSort(){
   astSort = astSort === 'asc' ? 'desc' : 'asc';
   const btn = document.getElementById('ast-sort-btn');
   if(btn){
-    btn.textContent = astSort === 'asc' ? 'A\u2013Z' : 'Z\u2013A';
+    btn.textContent = astSort === 'asc' ? '0→9' : 'A→Z';
     btn.style.color       = astSort === 'desc' ? 'var(--blue)' : 'var(--sub)';
     btn.style.borderColor = astSort === 'desc' ? 'rgba(37,99,235,.4)' : '';
     btn.style.background  = astSort === 'desc' ? 'rgba(37,99,235,.08)' : '';
@@ -4552,7 +4554,7 @@ function renderAst(){
     return tixStatusVal==='Active'?hasOpenTix:!hasOpenTix;
   });
   if(q) list=list.filter(a=>a.name.toLowerCase().includes(q)||a.building.toLowerCase().includes(q)||a.id.toLowerCase().includes(q));
-  list.sort((a,z)=>{ const c=a.name.localeCompare(z.name); return astSort==='asc'?c:-c; });
+  list.sort((a,z)=>{ const c=a.name.localeCompare(z.name); return astSort==='asc'? ((parseInt(a.sortOrder)||0)-(parseInt(z.sortOrder)||0)) || c : c; });
   document.getElementById('ast-lbl').textContent=`${list.length} middel${list.length!==1?'en':''}`;
   const c=document.getElementById('ast-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div style="font-size:13px">No assets found</div></div>';return;}
@@ -5041,7 +5043,7 @@ function toggleUnitSort(){
   unitSort = unitSort === 'asc' ? 'desc' : 'asc';
   const btn = document.getElementById('unit-sort-btn');
   if(btn){
-    btn.textContent = unitSort === 'asc' ? 'A\u2013Z' : 'Z\u2013A';
+    btn.textContent = unitSort === 'asc' ? '0→9' : 'A→Z';
     btn.style.color       = unitSort === 'desc' ? 'var(--blue)' : 'var(--sub)';
     btn.style.borderColor = unitSort === 'desc' ? 'rgba(37,99,235,.4)' : '';
     btn.style.background  = unitSort === 'desc' ? 'rgba(37,99,235,.08)' : '';
@@ -5133,7 +5135,7 @@ function renderUnits(){
     return true;
   }).sort((a,z) => {
     const cmp = a.label.localeCompare(z.label);
-    return unitSort === 'asc' ? cmp : -cmp;
+    return unitSort === 'asc' ? ((parseInt(a.sortOrder)||0)-(parseInt(z.sortOrder)||0)) || cmp : cmp;
   });
 
   document.getElementById('unit-lbl').textContent = `${list.length} ${list.length!==1?'eenheden':'eenheid'}`;
@@ -5421,7 +5423,7 @@ function toggleFloorSort(){
   floorSort = floorSort === 'asc' ? 'desc' : 'asc';
   const btn = document.getElementById('floor-sort-btn');
   if(btn){
-    btn.textContent = floorSort === 'asc' ? 'A\u2013Z' : 'Z\u2013A';
+    btn.textContent = floorSort === 'asc' ? '0→9' : 'A→Z';
     btn.style.color = floorSort === 'desc' ? 'var(--blue)' : 'var(--sub)';
     btn.style.borderColor = floorSort === 'desc' ? 'rgba(37,99,235,.4)' : '';
     btn.style.background  = floorSort === 'desc' ? 'rgba(37,99,235,.08)' : '';
@@ -5482,7 +5484,7 @@ function renderFloors(){
     return true;
   }).sort((a,z) => {
     const cmp = a.label.localeCompare(z.label);
-    return floorSort === 'asc' ? cmp : -cmp;
+    return floorSort === 'asc' ? (a.sortOrder - z.sortOrder) || cmp : cmp;
   });
 
   document.getElementById('floor-lbl').textContent = `${list.length} verdieping${list.length!==1?'en':''}`;
@@ -6305,7 +6307,7 @@ let activeRound = null; // { inspId, building, floor, category, items:[{assetId,
 /* ── List view ── */
 function clearInspFilters(){
   inspSort='date';
-  const _sbi=document.getElementById('insp-sort-btn');if(_sbi){_sbi.textContent='A–Z';_sbi.style.color='';_sbi.style.borderColor='';_sbi.style.background='';}
+  const _sbi=document.getElementById('insp-sort-btn');if(_sbi){_sbi.textContent='0→9';_sbi.style.color='';_sbi.style.borderColor='';_sbi.style.background='';}
   ['sel-insp-status','sel-insp-bldg','sel-insp-floor','sel-insp-cat','sel-insp-inspector','sel-insp-result'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='All';
   });
@@ -6883,13 +6885,11 @@ async function launchInspectionRound(){
   const _existingRound = DB.inspections.find(r=>r.buildingId===(bldObj?.id||bldgName) && r.status==='In Progress');
   const inspId = _existingRound ? _existingRound.id : nextId(DB.inspections,'INS');
   const _unitId = inspSelUnits.length===1 ? (DB.units.find(u=>u.label===inspSelUnits[0])?.id||'') : '';
-  const _catId  = inspSelCats.length===1 ? (DB.categories.find(x=>x.category===inspSelCats[0])?.id||'') : '';
   activeRound={
     inspId, building:bldgName, resuming: !!_existingRound,
     unitId: _unitId,
     floor:inspSelFloors.join(', '),
     category:[...inspTypes].join('+')+( inspSelCats.length? ' · '+inspSelCats.join(','):''),
-    categoryId: _catId,
     dateStart:chosenDate, status:isFuture?'Planned':'In Progress', items,
   };
   closeMo('mo-insp-start');
@@ -7365,7 +7365,7 @@ async function saveInspectionRound(){
     buildingId : inspBld ? inspBld.id : activeRound.building,
     floorId    : inspFlr ? inspFlr.id : activeRound.floor,
     unitId     : activeRound.unitId || '',
-    categoryId : activeRound.categoryId || (inspCat ? inspCat.id : ''),
+    categoryId : inspCat ? inspCat.id : activeRound.category,
     building   : activeRound.building,
     floor      : activeRound.floor,
     category   : activeRound.category,
