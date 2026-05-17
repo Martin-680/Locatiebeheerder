@@ -1672,6 +1672,46 @@ function tixCard(t, clickable=true){
   </div>`;
 }
 // ─────────────────────────────────────────────────────────────────────────────
+// ── Filter helpers ────────────────────────────────────────────────────────────
+function filterTix() {
+  const q        = (document.getElementById('tsearch')?.value||'').toLowerCase();
+  const statusVal = document.getElementById('sel-tix-status')?.value||'All';
+  const sortVal   = document.getElementById('sel-tix-sort')?.value||'newest';
+  const bldgVal   = document.getElementById('sel-tix-bldg')?.value||'All';
+  const floorVal  = document.getElementById('sel-tix-floor')?.value||'All';
+  const catVal    = document.getElementById('sel-tix-cat')?.value||'All';
+  const supVal    = document.getElementById('sel-tix-sup')?.value||'All';
+  const typeVal   = document.getElementById('sel-tix-type')?.value||'All';
+  const dateFrom  = document.getElementById('sel-tix-date-from')?.value||'';
+  const dateTo    = document.getElementById('sel-tix-date-to')?.value||'';
+
+  let list = DB.tickets;
+  const _bldIds = getUserBuildingIds();
+  if(_bldIds.size) list = list.filter(t => _bldIds.has(DB.buildings.find(b=>b.name===t.building)?.id));
+  if(tixActiveBldg)         list = list.filter(t => t.building === tixActiveBldg);
+  if(statusVal === 'mine')       list = list.filter(t => t.assignedTo===currentUser?.name||t.createdBy===currentUser?.name);
+  else if(statusVal === 'notclosed') list = list.filter(t => t.status !== 'Closed');
+  else if(statusVal !== 'All')   list = list.filter(t => t.status === statusVal);
+  if(catVal  !== 'All') list = list.filter(t => t.category   === catVal);
+  if(supVal  !== 'All') list = list.filter(t => t.supplierId === supVal);
+  if(typeVal !== 'All') list = list.filter(t => t.type       === typeVal);
+  if(bldgVal !== 'All') list = list.filter(t => t.building   === bldgVal);
+  if(floorVal !== 'All') list = list.filter(t => t.floor     === floorVal);
+  if(dateFrom) list = list.filter(t => (t.dateOpened||'') >= dateFrom);
+  if(dateTo)   list = list.filter(t => (t.dateOpened||'') <= dateTo);
+  const _cut = _periodCutoff(tixPeriod);
+  if(_cut) list = list.filter(t => t.dateOpened && new Date(t.dateOpened) >= _cut);
+  if(q) list = list.filter(t => t.subject.toLowerCase().includes(q)||(t.supplierName||'').toLowerCase().includes(q));
+
+  // Sort
+  if(tixSort === 'alpha')      list = [...list].sort((a,b) => (a.subject||'').localeCompare(b.subject||''));
+  else if(sortVal === 'oldest') list = [...list].sort((a,b) => new Date(a.dateOpened)-new Date(b.dateOpened));
+  else if(sortVal === 'days')   list = [...list].sort((a,b) => daysSince(b.dateOpened)-daysSince(a.dateOpened));
+  else                          list = [...list].sort((a,b) => new Date(b.dateOpened)-new Date(a.dateOpened));
+
+  return { list, statusVal, sortVal };
+}
+// ─────────────────────────────────────────────────────────────────────────────
 const d=(n)=>{const x=new Date(today);x.setDate(x.getDate()-n);return x.toISOString().split('T')[0];};
 const df=(s)=>s?parseDate(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
 const daysSince=(s)=>s?Math.max(0,Math.floor((today-parseDate(s))/_MS_DAY)):0;
@@ -3970,8 +4010,6 @@ function clearAstFilters(){
 
 function goTixPage(p){setPage('tix',p);renderTix();}
 function renderTix(){
-  const q=(document.getElementById('tsearch')?.value||'').toLowerCase();
-  const statusVal=document.getElementById('sel-tix-status')?.value||'All';
   const sortVal=document.getElementById('sel-tix-sort')?.value||'newest';
   // Populate building filter, preserving selection
   const bldgSel=document.getElementById('sel-tix-bldg');
@@ -3982,7 +4020,7 @@ function renderTix(){
     bldgSel.value=prev;
   }
   const bldgVal=bldgSel?.value||'All';
-  // Populate floor filter scoped to selected building, preserving selection
+  // Populate floor filter
   const tixFloorSel=document.getElementById('sel-tix-floor');
   if(tixFloorSel){
     const prev=tixFloorSel.value;
@@ -4001,32 +4039,13 @@ function renderTix(){
     tixCatSel.innerHTML='<option value="All">All Categories</option>'+getCategoryList().map(c=>`<option value="${c}">${c}</option>`).join('');
     tixCatSel.value=prev;
   }
-  const catVal=tixCatSel?.value||'All';
-  const supVal=document.getElementById('sel-tix-sup')?.value||'All';
-  const typeVal=document.getElementById('sel-tix-type')?.value||'All';
   syncSelActive('sel-tix-status'); syncSelActive('sel-tix-cat'); syncSelActive('sel-tix-bldg'); syncSelActive('sel-tix-floor');
   updateTixFilterBadge();
   renderTixBldgBtns();
-  let list=DB.tickets;
-  const _tixBldIds=getUserBuildingIds(); if(_tixBldIds.size) list=list.filter(t=>_tixBldIds.has(DB.buildings.find(b=>b.name===t.building)?.id));
-  if(tixActiveBldg) list=list.filter(t=>t.building===tixActiveBldg);
-  if(statusVal==='mine') list=list.filter(t=>t.assignedTo===currentUser?.name||t.createdBy===currentUser?.name);
-  else if(statusVal==='notclosed') list=list.filter(t=>t.status!=='Closed');
-  else if(statusVal!=='All') list=list.filter(t=>t.status===statusVal);
-  if(catVal!=='All') list=list.filter(t=>t.category===catVal);
-  if(supVal!=='All') list=list.filter(t=>t.supplierId===supVal);
-  if(typeVal!=='All') list=list.filter(t=>t.type===typeVal);
-  if(bldgVal!=='All') list=list.filter(t=>t.building===bldgVal);
-  if(floorVal!=='All') list=list.filter(t=>t.floor===floorVal);
-  const dateFrom = document.getElementById('sel-tix-date-from')?.value || '';
-  const dateTo   = document.getElementById('sel-tix-date-to')?.value   || '';
-  if(dateFrom) list=list.filter(t=>(t.dateOpened||'')>=dateFrom);
-  if(dateTo)   list=list.filter(t=>(t.dateOpened||'')<=dateTo);
-  const _tixCutoff = _periodCutoff(tixPeriod);
-  if(_tixCutoff) list=list.filter(t=>t.dateOpened && new Date(t.dateOpened)>=_tixCutoff);
-  if(q) list=list.filter(t=>t.subject.toLowerCase().includes(q)||(t.supplierName||'').toLowerCase().includes(q));
+  const { list: _rawList, statusVal: _sv } = filterTix();
+  let list = _rawList;
   // Hide-closed strip: only applies when status filter is 'All' (not overriding)
-  const tixHideActive = (statusVal === 'All' || statusVal === 'notclosed' || statusVal === 'mine');
+  const tixHideActive = (_sv === 'All' || _sv === 'notclosed' || _sv === 'mine');
   const closedCount = tixHideActive ? list.filter(t=>t.status==='Closed').length : 0;
   if(tixHideActive && !showClosedTix) list = list.filter(t=>t.status!=='Closed');
   const tixStrip = document.getElementById('tix-hide-strip');
@@ -4042,7 +4061,7 @@ function renderTix(){
   else if(sortVal==='oldest') list=[...list].sort((a,b)=>new Date(a.dateOpened)-new Date(b.dateOpened));
   else if(sortVal==='days') list=[...list].sort((a,b)=>daysSince(b.dateOpened)-daysSince(a.dateOpened));
   else list=[...list].sort((a,b)=>new Date(b.dateOpened)-new Date(a.dateOpened));
-  const _tixDays = _tixCutoff ? Math.max(1, Math.ceil((new Date() - _tixCutoff) / _MS_DAY)) : null;
+  const _cut2 = _periodCutoff(tixPeriod); const _tixDays = _cut2 ? Math.max(1, Math.ceil((new Date() - _cut2) / _MS_DAY)) : null;
   document.getElementById('tix-lbl').textContent = (list.length) + ' ticket' + (list.length!==1?'s':'') + (_tixDays ? ' · ' + _tixDays + ' day' + (_tixDays===1?'':'s') : '');
   const c=document.getElementById('tix-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M2 9a2 2 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a2 2 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"/><line x1="9" y1="9" x2="9" y2="15"/></svg></div><div style="font-size:13px">Geen meldingen found</div><div style="font-size:12px;color:var(--muted);margin-top:4px"><button onclick="clearTixFilters()" style="color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer">Clear filters</button></div></div>';return;}
