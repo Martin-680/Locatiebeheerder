@@ -1572,6 +1572,26 @@ const workingDaysAdd=(startStr,n)=>{if(!startStr||!n)return null;const cur=new D
 const fmtDateDDMMYYYY=(s)=>{if(!s)return'—';const d=parseDate(s);return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear();};
 const ageMult = d => d ? Math.min(1 + workDaysSince(d) / 30, 4) : 1;
 const ageMultAt = (startD, endD) => { if(!startD||!endD) return 1; const s=parseDate(startD),e=parseDate(endD); if(!s||!e||e<s) return 1; return Math.min(1 + workingDaysInRange(s,e).days / 30, 4); };
+// ── UI Badge helpers ─────────────────────────────────────────────────────────
+function scopeInfo(t) {
+  const hasAsset = !!t.assetId;
+  const hasUnit  = !!t.unitId;
+  const hasFloor = !!t.floorId;
+  const label = hasAsset ? 'Middel' : hasUnit ? 'Eenheid' : hasFloor ? 'Verdieping' : 'Gebouw';
+  const color = hasAsset ? '#059669' : hasUnit ? '#2563eb' : hasFloor ? '#d97706' : '#dc2626';
+  const bg    = hasAsset ? 'rgba(5,150,105,.1)' : hasUnit ? 'rgba(37,99,235,.1)' : hasFloor ? 'rgba(217,119,6,.1)' : 'rgba(220,38,38,.12)';
+  return { label, color, bg };
+}
+function scopeBadge(t) {
+  const { label, color, bg } = scopeInfo(t);
+  return '<span style="font-size:10px;font-weight:700;height:20px;padding:0 7px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;flex-shrink:0;background:' + bg + ';color:' + color + '">' + label + '</span>';
+}
+function statusBadge(status) {
+  const statusMap = {Open:'Open','In Progress':'In behandeling',Closed:'Gesloten',Planned:'Gepland',Requested:'Aangevraagd',Ordered:'Besteld'};
+  const label = statusMap[status] || status;
+  return '<span style="font-size:10px;font-weight:700;height:20px;padding:0 7px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;flex-shrink:0;" class="badge-status badge-status--' + (status||'').replace(' ','-').toLowerCase() + '">' + label + '</span>';
+}
+// ─────────────────────────────────────────────────────────────────────────────
 const d=(n)=>{const x=new Date(today);x.setDate(x.getDate()-n);return x.toISOString().split('T')[0];};
 const df=(s)=>s?parseDate(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—';
 const daysSince=(s)=>s?Math.max(0,Math.floor((today-parseDate(s))/_MS_DAY)):0;
@@ -3971,12 +3991,7 @@ function tixItemHTML(t,clickable=true){
   const durLabel=dur>0?dur+'d':'—';
   const statusMap={Open:'Open','In Progress':'In behandeling',Closed:'Gesloten',Planned:'Gepland',Requested:'Aangevraagd',Ordered:'Besteld'};
   // Scope badge: derived from filled fields
-  const hasAsset = !!t.assetId;
-  const hasUnit  = !!t.unitId;
-  const hasFloor = !!t.floorId;
-  const scopeLabel = hasAsset ? 'Middel' : hasUnit ? 'Eenheid' : hasFloor ? 'Verdieping' : 'Gebouw';
-  const scopeColor = hasAsset ? '#059669' : hasUnit ? '#2563eb' : hasFloor ? '#d97706' : '#dc2626';
-  const scopeBg    = hasAsset ? 'rgba(5,150,105,.1)' : hasUnit ? 'rgba(37,99,235,.1)' : hasFloor ? 'rgba(217,119,6,.1)' : 'rgba(220,38,38,.12)';
+  const { label: scopeLabel, color: scopeColor, bg: scopeBg } = scopeInfo(t);
   const badgeStyle = 'font-size:10px;font-weight:700;height:20px;padding:0 7px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;flex-shrink:0;background:'+scopeBg+';color:'+scopeColor;
   // Individual ticket pressure: base 2pts × age multiplier (cap ×4 at 90 days)
   const isClosed = t.status==='Closed';
