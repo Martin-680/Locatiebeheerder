@@ -2,7 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="vie
+function filterAst() {
+  const q          = (document.getElementById('asearch')?.value||'').toLowerCase();
+  const statusVal  = document.getElementById('sel-ast-status')?.value  || 'All';
+  const bldVal     = document.getElementById('sel-ast-bldg')?.value    || 'All';
+  const floorVal   = document.getElementById('sel-ast-floor')?.value   || 'All';
+  const unitVal    = document.getElementById('sel-ast-unit')?.value    || 'All';
+  const catVal     = document.getElementById('sel-ast-cat')?.value     || 'All';
+  const acatVal    = document.getElementById('sel-ast-acat')?.value    || 'All';
+  const tixStatusVal = document.getElementById('sel-ast-tix-status')?.value || 'All';
+
+  let list = DB.assets;
+  const _bldIds = getUserBuildingIds();
+  if(_bldIds.size)      list = list.filter(a => _bldIds.has(a.buildingId));
+  if(bldVal   !== 'All') list = list.filter(a => a.buildingId === bldVal);
+  if(floorVal !== 'All') list = list.filter(a => a.floorId    === floorVal);
+  if(unitVal  !== 'All') list = list.filter(a => a.unitId     === unitVal);
+  if(statusVal !== 'All') list = list.filter(a => a.status    === statusVal);
+  if(catVal   !== 'All') list = list.filter(a => a.supplierId === catVal);
+  if(acatVal  !== 'All') list = list.filter(a => a.category   === acatVal);
+  if(tixStatusVal !== 'All') list = list.filter(a => {
+    const hasOpenTix = DB.tickets.some(t => t.assetId===a.id && t.status!=='Closed');
+    return tixStatusVal === 'Active' ? hasOpenTix : !hasOpenTix;
+  });
+  if(q) list = list.filter(a => a.name.toLowerCase().includes(q) || (a.floor||'').toLowerCase().includes(q));
+  list.sort((a,z) => {
+    const c = a.name.localeCompare(z.name);
+    return astSort === 'asc' ? ((parseInt(a.sortOrder)||0) - (parseInt(z.sortOrder)||0)) || c : c;
+  });
+  return list;
+}wport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <meta name="theme-color" content="#F4F6FA"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -4587,8 +4617,6 @@ function toggleAstBldgBtn(name){
 
 function renderAst(){
   renderAstBldgBtns();
-  const q=(document.getElementById('asearch')?.value||'').toLowerCase();
-  const statusVal=document.getElementById('sel-ast-status')?.value||'All';
   // Populate building filter (no onchange on innerHTML rebuild)
   const bldSel=document.getElementById('sel-ast-bldg');
   if(bldSel){
@@ -4648,25 +4676,9 @@ function renderAst(){
       +cats.map(c=>`<option value="${c}">${c}</option>`).join('');
     acatSel.value=prev;
   }
-  const catVal=catSel?.value||'All';
-  const acatVal=acatSel?.value||'All';
-  const tixStatusVal=document.getElementById('sel-ast-tix-status')?.value||'All';
   syncSelActive('sel-ast-bldg'); syncSelActive('sel-ast-floor'); syncSelActive('sel-ast-unit'); syncSelActive('sel-ast-status'); syncSelActive('sel-ast-cat'); syncSelActive('sel-ast-acat'); syncSelActive('sel-ast-tix-status');
   updateAstFilterBadge();
-  let list=DB.assets;
-  const _astBldIds=getUserBuildingIds(); if(_astBldIds.size) list=list.filter(a=>_astBldIds.has(a.buildingId));
-  if(bldVal!=='All')    list=list.filter(a=>a.buildingId===bldVal);
-  if(floorVal!=='All')  list=list.filter(a=>a.floorId===floorVal);
-  if(unitVal!=='All')   list=list.filter(a=>a.unitId===unitVal);
-  if(statusVal!=='All') list=list.filter(a=>a.status===statusVal);
-  if(catVal!=='All')    list=list.filter(a=>a.supplierId===catVal);
-  if(acatVal!=='All')   list=list.filter(a=>a.category===acatVal);
-  if(tixStatusVal!=='All') list=list.filter(a=>{
-    const hasOpenTix=DB.tickets.some(t=>t.assetId===a.id&&t.status!=='Closed');
-    return tixStatusVal==='Active'?hasOpenTix:!hasOpenTix;
-  });
-  if(q) list=list.filter(a=>a.name.toLowerCase().includes(q)||(a.floor||'').toLowerCase().includes(q));
-  list.sort((a,z)=>{ const c=a.name.localeCompare(z.name); return astSort==='asc'? ((parseInt(a.sortOrder)||0)-(parseInt(z.sortOrder)||0)) || c : c; });
+  const list = filterAst();
   document.getElementById('ast-lbl').textContent=`${list.length} middel${list.length!==1?'en':''}`;
   const c=document.getElementById('ast-list');
   if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;opacity:0.4"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div style="font-size:13px">No assets found</div></div>';return;}
