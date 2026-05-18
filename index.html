@@ -2029,7 +2029,7 @@ async function refreshAllData(){
     if(currentScreen==='users') renderUsers();
     if(currentScreen==='buildings') renderBlds();
     if(currentScreen==='suppliers') renderSuppliers();
-    toast('Data refreshed');
+    toast('Gegevens vernieuwd');
   } catch(e){ toast('Vernieuwen mislukt','err'); }
 }
 
@@ -4280,7 +4280,7 @@ async function addComment(tixId){
     return`<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="width:28px;height:28px;border-radius:8px;background:rgba(59,130,246,.12);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 0 2 2z"/></svg></div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">${a.user}</div><div style="font-size:12px;color:var(--sub);margin-top:1px">${a.action}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${dstr}</div></div></div>`;
   }).join('');
   await writeSheet('tickets');
-  toast('Comment added');
+  toast('Opmerking toegevoegd');
 }
 
 async function quickCloseTix(id){
@@ -4290,7 +4290,7 @@ async function quickCloseTix(id){
   t.activity.push({ts:new Date().toISOString(),user:currentUser.name,action:'Closed ticket'});
   closeMo('mo-tix-detail');
   await writeSheet('tickets');
-  toast('Ticket closed');
+  toast('Melding gesloten');
   if(currentScreen==='tickets') renderTix();
   if(currentScreen==='dashboard') renderDash();
 }
@@ -4301,7 +4301,7 @@ async function quickProgTix(id){
   t.activity.push({ts:new Date().toISOString(),user:currentUser.name,action:'Status → In Progress'});
   closeMo('mo-tix-detail');
   await writeSheet('tickets');
-  toast('In Progress');
+  toast('Status: In behandeling');
   if(currentScreen==='tickets') renderTix();
   if(currentScreen==='dashboard') renderDash();
 }
@@ -5129,7 +5129,7 @@ function ufBldgRemove(name,e){
 async function saveUser(){
   const name=document.getElementById('uf-name').value.trim();
   const email=document.getElementById('uf-email').value.trim().toLowerCase();
-  if(!name||!email){toast('Name and email required','err');return;}
+  if(!name||!email){toast('Naam en e-mail verplicht','err');return;}
   const _doffSection=document.getElementById('uf-daysoff-section');
   const _doffVal=_doffSection&&_doffSection.style.display!=='none'?getDaysOffInput().join(','):null;
   const data={name,role:document.getElementById('uf-role').value,email,phone:document.getElementById('uf-phone').value,buildings:document.getElementById('uf-bldgs').value.split(',').map(s=>s.trim()).filter(Boolean).join(', '),buildingsOwned:document.getElementById('uf-bldgs-owned').value.split(',').map(s=>s.trim()).filter(Boolean).join(', '),buildingsExternal:document.getElementById('uf-bldgs-external').value.split(',').map(s=>s.trim()).filter(Boolean).join(', '),active:document.getElementById('uf-active').value==='true',...(_doffVal!==null?{daysOff:_doffVal}:{})};
@@ -5141,7 +5141,7 @@ async function saveUser(){
   }
   closeMo('mo-usr');
   await writeSheet('users');
-  toast(editingId.usr?'User updated':'User added');
+  toast(editingId.usr?'Gebruiker bijgewerkt':'Gebruiker toegevoegd');
   if(currentScreen==='users') renderUsers();
 }
 
@@ -5432,7 +5432,7 @@ function uf2OnBldgChange(){
 }
 async function saveUnit(){
   const label=document.getElementById('uf2-label').value.trim();
-  if(!label){toast('Unit name required','err');return;}
+  if(!label){toast('Naam eenheid verplicht','err');return;}
   const bldId=document.getElementById('uf2-bldg').value;
   const floorId=document.getElementById('uf2-floor').value;
   const bld=DB.buildings.find(b=>b.id===bldId);
@@ -5446,32 +5446,32 @@ async function saveUnit(){
   }
   closeMo('mo-unit');
   await writeSheet('units');
-  toast(editingId.unit?'Unit updated':'Unit added');
+  toast(editingId.unit?'Eenheid bijgewerkt':'Eenheid toegevoegd');
   if(currentScreen==='units') renderUnits();
 }
 
 async function duplicateAst(){
-  if(!editingId.ast){ toast('Save the asset first','err'); return; }
+  if(!editingId.ast){ toast('Sla het activum eerst op','err'); return; }
   const a = DB.assets.find(x=>x.id===editingId.ast); if(!a) return;
   const newId = nextId(DB.assets,'AST');
   const copy = {...a, id:newId, label:(a.label||a.name)+' (copy)', name:(a.label||a.name)+' (copy)'};
   DB.assets.push(copy);
   closeMo('mo-ast');
   await writeSheet('assets');
-  toast('Asset duplicated');
+  toast('Activum gedupliceerd');
   if(currentScreen==='assets') renderAst();
   editAst(newId);
 }
 
 async function duplicateUnit(){
-  if(!editingId.unit){ toast('Save the unit first','err'); return; }
+  if(!editingId.unit){ toast('Sla de eenheid eerst op','err'); return; }
   const u = DB.units.find(x=>x.id===editingId.unit); if(!u) return;
   const newId = nextId(DB.units,'U');
   const copy = {...u, id:newId, label:u.label+' (copy)'};
   DB.units.push(copy);
   closeMo('mo-unit');
   await writeSheet('units');
-  toast('Unit duplicated');
+  toast('Eenheid gedupliceerd');
   if(currentScreen==='units') renderUnits();
   editUnit(newId);
 }
@@ -5780,7 +5780,7 @@ function editFloor(id){
 
 async function saveFloor(){
   const label = document.getElementById('ff-label').value.trim();
-  if(!label){ toast('Floor name required','err'); return; }
+  if(!label){ toast('Naam verdieping verplicht','err'); return; }
   const bldId = document.getElementById('ff-bldg').value;
   const bld = DB.buildings.find(b=>b.id===bldId);
   if(!bld){ toast('Selecteer een gebouw','err'); return; }
@@ -5793,7 +5793,7 @@ async function saveFloor(){
   }
   closeMo('mo-floor');
   await writeSheet('floors');
-  toast(editingId.floor ? 'Floor updated' : 'Floor added');
+  toast(editingId.floor?'Verdieping bijgewerkt':'Verdieping toegevoegd');
   if(currentScreen==='floors') renderFloors();
 }
 
@@ -6081,13 +6081,13 @@ function editBld(id){
 }
 async function saveBld(){
   const name=document.getElementById('bf-name').value.trim();
-  if(!name){toast('Building name required','err');return;}
+  if(!name){toast('Naam gebouw verplicht','err');return;}
   const data={name,address:document.getElementById('bf-addr').value,size:parseInt(document.getElementById('bf-size').value)||'',daysOpen:document.getElementById('bf-daysopen').value,timeOpen:document.getElementById('bf-timeopen').value,units:parseInt(document.getElementById('bf-units').value)||0,manager:document.getElementById('bf-mgr').value,phone:document.getElementById('bf-phone').value,email:document.getElementById('bf-email').value};
   if(editingId.bld){ Object.assign(DB.buildings.find(x=>x.id===editingId.bld),data); }
   else { DB.buildings.push({id:nextId(DB.buildings,'BLD'),...data}); }
   closeMo('mo-bld');
   await writeSheet('buildings');
-  toast(editingId.bld?'Building updated':'Building added');
+  toast(editingId.bld?'Gebouw bijgewerkt':'Gebouw toegevoegd');
   if(currentScreen==='buildings') renderBlds();
 }
 
@@ -6291,7 +6291,7 @@ function editSupplier(id){
 }
 async function saveSupplier(){
   const name=document.getElementById('sf-name').value.trim();
-  if(!name){toast('Company name required','err');return;}
+  if(!name){toast('Bedrijfsnaam verplicht','err');return;}
   const expRaw=document.getElementById('sf-expertise').value;
   const expertise=expRaw?expRaw.split(',').map(s=>s.trim()).filter(Boolean):[];
   const data={name,contact:document.getElementById('sf-contact').value,expertise,ratePerHour:parseFloat(document.getElementById('sf-rate').value)||0,transportCost:parseFloat(document.getElementById('sf-transport').value)||0,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,address:document.getElementById('sf-address').value,status:document.getElementById('sf-status').value};
@@ -6524,7 +6524,7 @@ let inspActiveTplId = null;
 let _inspPillDDContext = null;
 
 function openStartInspection(){
-  if(!can('canStartInspection')){ toast('No permission to start inspections','err'); return; }
+  if(!can('canStartInspection')){ toast('Geen toegang om inspecties te starten','err'); return; }
   inspTypes=new Set(); inspSelFloors=[]; inspSelCats=[]; inspSelUnits=[]; inspSelAssets=[]; inspActiveTplId=null;
   document.getElementById('insp-start-date').value='';
   document.getElementById('insp-tpl-preview').style.display='none';
@@ -7672,11 +7672,11 @@ async function saveInspDetailEdits(id){
 /* ══════════════════════════════════════════════════════════
    DELETE
 ══════════════════════════════════════════════════════════ */
+const _deleteNames={ticket:'melding',asset:'activum',supplier:'leverancier',user:'gebruiker',building:'gebouw',inspection:'inspectieronde'};
 function confirmDelete(type,id){
   if(!can('canEditAll')) return;
   pendingDelete={type,id};
-  const names={ticket:'ticket',asset:'asset',supplier:'supplier',user:'user',building:'building',inspection:'inspection round'};
-  document.getElementById('confirm-msg').textContent=`Are you sure you want to permanently delete this ${names[type]||type}? This cannot be undone.`;
+  document.getElementById('confirm-msg').textContent=`Weet je zeker dat je deze ${_deleteNames[type]||type} permanent wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`;
   closeMo('mo-tix-detail'); closeMo('mo-ast-detail'); closeMo('mo-sup-detail'); closeMo('mo-insp-detail');
   openMo('mo-confirm');
 }
@@ -7697,7 +7697,7 @@ async function doConfirmedDelete(){
   } else {
     await writeSheet(key);
   }
-  toast(`${type} deleted`);
+  toast(`${_deleteNames[type]||type} verwijderd`);
   if(currentScreen==='tickets') renderTix();
   if(currentScreen==='assets') renderAst();
   if(currentScreen==='suppliers') renderSuppliers();
@@ -7811,7 +7811,7 @@ function wlTip(){} // clicks handled by document listener below
 let editingCatId = null;
 
 function openCategories(){
-  if(!can('canManageCategories')){ toast('No permission','err'); return; }
+  if(!can('canManageCategories')){ toast('Geen toegang','err'); return; }
   editingCatId = null;
   renderCategoryList();
   openMo('mo-categories');
@@ -7872,7 +7872,7 @@ function cancelCategoryForm(){
 
 async function saveCategory(){
   const val = (document.getElementById('cat-inp').value||'').trim();
-  if(!val){ toast('Category name required','err'); return; }
+  if(!val){ toast('Naam categorie verplicht','err'); return; }
   // Check for duplicate
   const duplicate = DB.categories.find(c=>c.category.toLowerCase()===val.toLowerCase() && c.id!==editingCatId);
   if(duplicate){ toast('Category already exists','err'); return; }
@@ -7887,7 +7887,7 @@ async function saveCategory(){
   }
   cancelCategoryForm();
   await writeSheet('categories');
-  toast(editingCatId ? 'Category updated' : 'Category added');
+  toast(editingCatId?'Categorie bijgewerkt':'Categorie toegevoegd');
   renderCategoryList();
 }
 
@@ -7902,7 +7902,7 @@ async function deleteCategory(id){
   if(!confirm(`Delete category "${c.category}"?${usageMsg}`)) return;
   DB.categories = DB.categories.filter(x=>x.id!==id);
   await writeSheet('categories');
-  toast('Category deleted');
+  toast('Categorie verwijderd');
   renderCategoryList();
 }
 
@@ -8213,7 +8213,7 @@ function calDayTab(tab){
 
 function calPlanInsp(dateStr){
   // Open Start Inspection modal with the date pre-set to Planned
-  if(!can('canStartInspection')){ toast('No permission to start inspections','err'); return; }
+  if(!can('canStartInspection')){ toast('Geen toegang om inspecties te starten','err'); return; }
   openStartInspection();
   // After modal opens, set the date
   setTimeout(()=>{
