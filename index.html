@@ -2574,8 +2574,8 @@ function populateBldSelect(id, placeholder){
   const el=document.getElementById(id); if(!el) return;
   const cur=el.value;
   const label = placeholder || '— Selecteer gebouw —';
-  el.innerHTML=`<option value="">${label}</option>`+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
-  if(DB.buildings.find(b=>b.name===cur)) el.value=cur;
+  el.innerHTML=`<option value="">${label}</option>`+[...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  if(DB.buildings.find(b=>b.id===cur)) el.value=cur;
   // Refresh searchable UI if present
   const wrap=el.closest('.bsd-wrap');
   if(wrap) _bsdRefresh(wrap,el);
@@ -2754,7 +2754,8 @@ function tfOnFloorChange(){
   tfOnUnitChange();
 }
 function tfOnUnitChange(){
-  const bldg=document.getElementById('tf-bldg').value;
+  const bldgId=document.getElementById('tf-bldg').value;
+  const bldgName=DB.buildings.find(b=>b.id===bldgId)?.name||bldgId;
   const floorId=document.getElementById('tf-sub').value;
   const floor=DB.floors.find(f=>f.id===floorId);
   const floorLabel=floor?floor.label:'';
@@ -2763,7 +2764,7 @@ function tfOnUnitChange(){
   fSupClear('tf');
   // Populate assets filtered by building + floor + unit (unit filter only applied when selected)
   const assets=DB.assets.filter(a=>{
-    if(a.building!==bldg) return false;
+    if(a.building!==bldgName) return false;
     if(floorLabel&&a.floor!==floorLabel) return false;
     if(unit&&a.unit!==unit) return false;
     return true;
@@ -4447,7 +4448,7 @@ function editTix(id){
     tfSetTimeMinutes(t.timeSpent||0);
     // Cascade: building → floor → unit → asset → supplier
     populateBldSelect('tf-bldg','— Select —');
-    bsdSetExternal('tf-bldg',t.building);
+    bsdSetExternal('tf-bldg',t.buildingId||DB.buildings.find(b=>b.name===t.building)?.id||'');
     tfOnBldgChange();
     document.getElementById('tf-sub').value = DB.floors.find(f=>f.id===t.floorId)?.id || DB.floors.find(f=>f.label===t.floor)?.id || '';
     tfOnFloorChange();
@@ -4485,11 +4486,12 @@ async function saveTix(){
     const t=DB.tickets.find(x=>x.id===editingId.tix);
     if(t){
       const prevStatus=t.status;
-      const _bldName=document.getElementById('tf-bldg').value;
+      const _bldId=document.getElementById('tf-bldg').value;
       const _flrId=document.getElementById('tf-sub').value;
       const _untLabel=document.getElementById('tf-unit').value||'';
       const _catId=document.getElementById('tf-cat').value;
-      const _bld=DB.buildings.find(b=>b.name===_bldName);
+      const _bld=DB.buildings.find(b=>b.id===_bldId);
+      const _bldName=_bld?_bld.name:_bldId;
       const _flr=DB.floors.find(f=>f.id===_flrId);
       const _unt=DB.units.find(u=>u.label===_untLabel&&(_flr?u.floorId===_flr.id:true));
       const _cat=DB.categories.find(x=>x.id===_catId);
@@ -4519,15 +4521,16 @@ async function saveTix(){
     }
   } else {
     const id=nextId(DB.tickets,'TKT');
-    const _nb=document.getElementById('tf-bldg').value;
+    const _nbldId=document.getElementById('tf-bldg').value;
+    const _nbld=DB.buildings.find(b=>b.id===_nbldId);
+    const _nb=_nbld?_nbld.name:_nbldId;
     const _nfId=document.getElementById('tf-sub').value;
     const _nu=document.getElementById('tf-unit').value||'';
     const _nc=document.getElementById('tf-cat').value;
-    const _nbld=DB.buildings.find(b=>b.name===_nb);
     const _nflr=DB.floors.find(f=>f.id===_nfId);
     const _nunt=DB.units.find(u=>u.label===_nu&&(_nflr?u.floorId===_nflr.id:true));
     const _ncat=DB.categories.find(x=>x.id===_nc);
-    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nb,floorId:_nflr?_nflr.id:_nfId,unitId:_nunt?_nunt.id:_nu,subject:subj,status,type:document.getElementById('tf-type').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:document.getElementById('tf-date-opened').value||today.toISOString().split('T')[0],dateClosed:document.getElementById('tf-date-closed').value||'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,timeSpent:tfGetTimeMinutes(),photos:window._tfPhotos||'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Melding aangemaakt'}]),building:_nb,floor:_nflr?_nflr.label:_nfId,unit:_nu,category:_ncat?_ncat.category:_nc});
+    DB.tickets.unshift({id,buildingId:_nbld?_nbld.id:_nbldId,floorId:_nflr?_nflr.id:_nfId,unitId:_nunt?_nunt.id:_nu,subject:subj,status,type:document.getElementById('tf-type').value,categoryId:_nc,assignedTo:document.getElementById('tf-assign').value,dateOpened:document.getElementById('tf-date-opened').value||today.toISOString().split('T')[0],dateClosed:document.getElementById('tf-date-closed').value||'',assetId:document.getElementById('tf-asset').value,supplierId:document.getElementById('tf-supplier').value,reportedBy:document.getElementById('tf-reporter').value,notes:document.getElementById('tf-notes').value,timeSpent:tfGetTimeMinutes(),photos:window._tfPhotos||'',createdBy:currentUser.name,activity:JSON.stringify([{ts:new Date().toISOString(),user:currentUser.name,action:'Melding aangemaakt'}]),building:_nb,floor:_nflr?_nflr.label:_nfId,unit:_nu,category:_ncat?_ncat.category:_nc});
   }
   closeMo('mo-tix');
   await writeSheet('tickets');
@@ -4947,7 +4950,7 @@ function editAst(id){
   document.getElementById('ast-dup-btn').style.display='';
   document.getElementById('af-name').value=a.label||a.name;
   populateBldSelect('af-bldg');
-  bsdSetExternal('af-bldg',a.building||'');
+  bsdSetExternal('af-bldg',a.buildingId||DB.buildings.find(b=>b.name===a.building)?.id||'');
   populateSubs('af-sub','af-bldg');
   document.getElementById('af-sub').value=a.floorId||'';
   // populate unit dropdown for this floor then set value
@@ -4967,15 +4970,15 @@ function editAst(id){
 async function saveAst(){
   const label=document.getElementById('af-name').value.trim();
   if(!label){toast('Naam activum verplicht','err');return;}
-  const buildingName=document.getElementById('af-bldg').value;
+  const bldId=document.getElementById('af-bldg').value;
+  const bld=DB.buildings.find(b=>b.id===bldId);
+  const buildingName=bld?bld.name:bldId;
   const floorId=document.getElementById('af-sub').value;
   const unitId=document.getElementById('af-loc').value;
-  const bld=DB.buildings.find(b=>b.name===buildingName);
   const flr=DB.floors.find(f=>f.id===floorId);
   const unt=DB.units.find(u=>u.id===unitId);
   const supplierId=document.getElementById('af-cat').value;
   const sup=DB.suppliers.find(s=>s.id===supplierId);
-  const bldId  = bld ? bld.id   : buildingName;
   const flrId  = flr ? flr.id   : floorId;
   const untId  = unt ? unt.id   : unitId;
   // Sheet-facing object: building/floor/unit/supplier hold IDs
@@ -5531,7 +5534,7 @@ function openNewUnitForFloor(floorId){
   setTimeout(()=>{
     openNewUnit();
     const bldEl=document.getElementById('uf2-bldg');
-    if(bldEl&&bld){ bsdSetExternal('uf2-bldg',bld.name); uf2OnBldgChange(); }
+    if(bldEl&&bld){ bsdSetExternal('uf2-bldg',bld.id); uf2OnBldgChange(); }
     setTimeout(()=>{
       const flrEl=document.getElementById('uf2-floor');
       if(flrEl&&floorId) flrEl.value=floorId;
@@ -5561,23 +5564,22 @@ function editUnit(id){
   document.getElementById('uf2-sort').value=u.sortOrder||'';
   populateBldSelect('uf2-bldg');
   const bld=DB.buildings.find(b=>b.id===u.buildingId);
-  bsdSetExternal('uf2-bldg',bld?bld.name:'');
+  bsdSetExternal('uf2-bldg',bld?bld.id:'');
   uf2OnBldgChange();
   document.getElementById('uf2-floor').value=u.floorId||'';
   document.getElementById('uf2-insptime').value=u.inspectionTime||'';
   openMo('mo-unit');
 }
 function uf2OnBldgChange(){
-  const bldName=document.getElementById('uf2-bldg').value;
-  const bld=DB.buildings.find(b=>b.name===bldName);
-  document.getElementById('uf2-floor').innerHTML = floorOptions(bld?.id||'');
+  const bldId=document.getElementById('uf2-bldg').value;
+  document.getElementById('uf2-floor').innerHTML = floorOptions(bldId);
 }
 async function saveUnit(){
   const label=document.getElementById('uf2-label').value.trim();
   if(!label){toast('Unit name required','err');return;}
-  const bldName=document.getElementById('uf2-bldg').value;
+  const bldId=document.getElementById('uf2-bldg').value;
   const floorId=document.getElementById('uf2-floor').value;
-  const bld=DB.buildings.find(b=>b.name===bldName);
+  const bld=DB.buildings.find(b=>b.id===bldId);
   if(!bld){toast('Selecteer een gebouw','err');return;}
   const sortOrder=parseInt(document.getElementById('uf2-sort').value)||0;
   const data={label,floorId,buildingId:bld.id,sortOrder,inspectionTime:parseInt(document.getElementById('uf2-insptime').value)||0};
@@ -5628,7 +5630,7 @@ function openNewUnitForBuilding(bldId){
   document.getElementById('uf2-sort').value='';
   populateBldSelect('uf2-bldg');
   const bld=DB.buildings.find(b=>b.id===bldId);
-  bsdSetExternal('uf2-bldg',bld?bld.name:'');
+  bsdSetExternal('uf2-bldg',bld?bld.id:'');
   uf2OnBldgChange();
   autoSelect('uf2-floor');
   openMo('mo-unit');
@@ -5958,7 +5960,7 @@ function editFloor(id){
   document.getElementById('ff-sort').value  = f.sortOrder||'';
   populateBldSelect('ff-bldg');
   const bld = DB.buildings.find(b=>b.id===f.buildingId);
-  bsdSetExternal('ff-bldg', bld ? bld.name : '');
+  bsdSetExternal('ff-bldg', bld ? bld.id : '');
   document.getElementById('ff-insptime').value = f.inspectionTime||'';
   openMo('mo-floor');
 }
@@ -5966,8 +5968,8 @@ function editFloor(id){
 async function saveFloor(){
   const label = document.getElementById('ff-label').value.trim();
   if(!label){ toast('Floor name required','err'); return; }
-  const bldName = document.getElementById('ff-bldg').value;
-  const bld = DB.buildings.find(b=>b.name===bldName);
+  const bldId = document.getElementById('ff-bldg').value;
+  const bld = DB.buildings.find(b=>b.id===bldId);
   if(!bld){ toast('Selecteer een gebouw','err'); return; }
   const sortOrder = parseInt(document.getElementById('ff-sort').value)||0;
   const data = { label, buildingId: bld.id, sortOrder, inspectionTime: parseInt(document.getElementById('ff-insptime').value)||0 };
@@ -6837,7 +6839,7 @@ function showInspFreeForm(bldgId, tplName, isEdit){
   form.style.display='';
   populateBldSelect('insp-bldg');
   const bldSel=document.getElementById('insp-bldg');
-  if(bldgId){ const b=DB.buildings.find(x=>x.id===bldgId); if(b) bsdSetExternal('insp-bldg',b.name); }
+  if(bldgId){ const b=DB.buildings.find(x=>x.id===bldgId); if(b) bsdSetExternal('insp-bldg',b.id); }
   else bsdSetExternal('insp-bldg','');
   // Type toggles
   ['assets','units'].forEach(tp=>{
@@ -6867,7 +6869,8 @@ function inspToggleType(tp){
 }
 
 function inspOnBldgChange(){
-  const bldgName=document.getElementById('insp-bldg')?.value;
+  const bldgId=document.getElementById('insp-bldg')?.value;
+  const bldgName=DB.buildings.find(b=>b.id===bldgId)?.name||'';
   const wrap=document.getElementById('insp-filters-wrap');
   if(!bldgName){ wrap.style.display='none'; return; }
   wrap.style.display='';
@@ -6902,9 +6905,10 @@ function inspRemovePill(ctx,val){
 }
 
 function inspOpenPillDD(ctx){
-  const bldgName=document.getElementById('insp-bldg')?.value; if(!bldgName) return;
+  const bldgId=document.getElementById('insp-bldg')?.value; if(!bldgId) return;
   _inspPillDDContext=ctx;
-  const bldObj=DB.buildings.find(b=>b.name===bldgName);
+  const bldObj=DB.buildings.find(b=>b.id===bldgId);
+  const bldgName=bldObj?bldObj.name:'';
   let options=[];
   if(ctx==='floors'){ options=getFloorsForBuilding(bldgName).map(f=>f.label); }
   else if(ctx==='cats'){ options=[...new Set(DB.assets.filter(a=>a.building===bldgName).map(a=>a.category).filter(Boolean))].sort(); }
@@ -6931,7 +6935,7 @@ function inspPillToggle(ctx,val,checked){
 function inspUpdateFreePreview(fromTemplate){
   const bldgName = fromTemplate
     ? (()=>{ const t=DB.inspectionTemplates.find(x=>x.id===inspActiveTplId); const b=t&&DB.buildings.find(x=>x.id===t.buildingId); return b?b.name:''; })()
-    : document.getElementById('insp-bldg')?.value;
+    : (()=>{ const id=document.getElementById('insp-bldg')?.value; return DB.buildings.find(b=>b.id===id)?.name||''; })();
   const prevId = fromTemplate ? 'insp-asset-preview' : 'insp-asset-preview-free';
   const prev=document.getElementById(prevId); if(!prev) return;
   if(!bldgName||!inspTypes.size){ prev.innerHTML='<span style="color:var(--sub)">Selecteer een gebouw om items te bekijken</span>'; return; }
@@ -7004,7 +7008,8 @@ async function launchInspectionRound(){
     const b=t&&DB.buildings.find(x=>x.id===t.buildingId);
     bldgName=b?b.name:'';
   } else {
-    bldgName=document.getElementById('insp-bldg')?.value;
+    const _bldgId=document.getElementById('insp-bldg')?.value;
+    bldgName=DB.buildings.find(b=>b.id===_bldgId)?.name||'';
   }
   if(!bldgName){ toast('Selecteer een gebouw','err'); return; }
   if(!inspTypes.size){ toast('Select at least one type (Assets or Units)','err'); return; }
@@ -7708,7 +7713,8 @@ function _prefillTicketFromFailure(item){
   }
 
   populateBldSelect('tf-bldg','— Select —');
-  document.getElementById('tf-bldg').value = activeRound.building;
+  const _arBld=DB.buildings.find(b=>b.name===activeRound.building);
+  bsdSetExternal('tf-bldg', _arBld?_arBld.id:'');
   tfOnBldgChange();
 
   // Restore floor
