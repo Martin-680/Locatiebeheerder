@@ -404,6 +404,22 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 #floor-detail-body .bs-lbl  { font-size:11px !important; }
 #floor-detail-body .ti-subj { font-size:13px !important; }
 
+/* ── PROJECTS ── */
+.proj-ftab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;background:var(--card);border:1.5px solid var(--border);color:var(--sub);white-space:nowrap;transition:all .15s;}
+.proj-ftab-active{background:var(--blue);border-color:var(--blue);color:#fff;}
+.proj-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s;}
+.proj-card:active{transform:scale(.98);}
+.proj-card.proj-selected{border-color:var(--blue);}
+.proj-card-hdr{padding:13px 14px 10px;display:flex;align-items:flex-start;gap:10px;}
+.proj-card-body{padding:0 14px 12px;display:flex;gap:16px;align-items:center;}
+.proj-prog-wrap{flex:1;}
+.proj-prog-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px;}
+.proj-prog-fill{height:100%;border-radius:3px;transition:width .3s;}
+.proj-mel-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid var(--border);}
+.proj-mel-row:last-child{border-bottom:none;}
+.proj-log-row{display:flex;gap:10px;padding:9px 14px;border-top:1px solid var(--border);}
+.proj-avatar{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Outfit',sans-serif;flex-shrink:0;background:rgba(37,99,235,.12);color:var(--blue);}
+
 /* ── Searchable building dropdown ── */
 .bsd-wrap{position:relative;width:100%;}
 .bsd-input{width:100%;padding:9px 34px 9px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;font-weight:500;background:var(--surface);color:var(--text);outline:none;appearance:none;cursor:pointer;transition:border-color .15s;}
@@ -866,6 +882,33 @@ input,select,textarea{font-family:inherit;color:var(--text);}
   <!-- ═══════ PRIORITIES SCREEN ═══════ -->
 
 
+  <!-- ═══════ PROJECTS SCREEN ═══════ -->
+  <div id="screen-projects" class="screen">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-left">
+          <div class="topbar-title">Projecten</div>
+          <div class="topbar-sub" id="proj-lbl"></div>
+        </div>
+        <div class="topbar-actions">
+          <button class="ib" id="btn-new-proj" onclick="openProjectModal()" title="Nieuw project">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="burger" onclick="openDrawer()"><div class="burger-line"></div><div class="burger-line"></div><div class="burger-line"></div><div class="burger-dot"></div></button>
+        </div>
+      </div>
+      <!-- Status filter tabs -->
+      <div style="padding:0 14px 10px;display:flex;gap:6px;overflow-x:auto;">
+        <button id="proj-f-all"    class="proj-ftab proj-ftab-active" onclick="setProjFilter('all')">Alle</button>
+        <button id="proj-f-open"   class="proj-ftab" onclick="setProjFilter('Open')">Open</button>
+        <button id="proj-f-prog"   class="proj-ftab" onclick="setProjFilter('In Progress')">In uitvoering</button>
+        <button id="proj-f-done"   class="proj-ftab" onclick="setProjFilter('Done')">Gereed</button>
+        <button id="proj-f-closed" class="proj-ftab" onclick="setProjFilter('Closed')">Gesloten</button>
+      </div>
+    </div>
+    <div id="proj-list" style="padding:0 14px 80px;display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+
   <!-- ═══════ CALENDAR ═══════ -->
   <div id="screen-calendar" class="screen">
     <div class="topbar">
@@ -1107,6 +1150,60 @@ input,select,textarea{font-family:inherit;color:var(--text);}
 </div>
 
 <!-- ═══════ MODALS ═══════ -->
+
+<!-- Project aanmaken / bewerken -->
+<div class="mo" id="mo-proj-form" onclick="mcClick(event,'mo-proj-form')">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt"><span id="proj-form-title">Nieuw project</span><button class="mt-close" onclick="closeMo('mo-proj-form')">✕</button></div>
+    <div class="fg"><label>Naam *</label><input id="pf-name" class="fi2" placeholder="Projectnaam"/></div>
+    <div class="fg"><label>Omschrijving</label><textarea id="pf-desc" class="ft2" placeholder="Optionele toelichting"></textarea></div>
+    <div class="frow2">
+      <div class="fg"><label>Status</label>
+        <select id="pf-status" class="fi2">
+          <option value="Open">Open</option>
+          <option value="In Progress">In uitvoering</option>
+          <option value="Done">Gereed</option>
+          <option value="Closed">Gesloten</option>
+        </select>
+      </div>
+      <div class="fg"><label>Gebouw</label>
+        <select id="pf-building" class="fi2"><option value="">— Alle gebouwen —</option></select>
+      </div>
+    </div>
+    <div class="frow2">
+      <div class="fg"><label>Startdatum</label><input id="pf-start" type="date" class="fi2"/></div>
+      <div class="fg"><label>Deadline</label><input id="pf-due" type="date" class="fi2"/></div>
+    </div>
+    <div class="fg"><label>Verantwoordelijke</label>
+      <select id="pf-manager" class="fi2"><option value="">— Selecteer —</option></select>
+    </div>
+    <button class="btn-p" onclick="saveProject()">Opslaan</button>
+    <button class="btn-s" id="btn-proj-delete" onclick="deleteProjConfirm()" style="display:none">Verwijderen</button>
+    <div style="height:8px"></div>
+  </div>
+</div>
+
+<!-- Project detail modal -->
+<div class="mo" id="mo-proj-detail" onclick="mcClick(event,'mo-proj-detail')">
+  <div class="ms" style="max-height:92vh">
+    <div class="mh"></div>
+    <div class="mt"><span id="proj-detail-id" style="font-size:13px;color:var(--blue);font-weight:700"></span><button class="mt-close" onclick="closeMo('mo-proj-detail')">✕</button></div>
+    <div id="proj-detail-body" style="padding-bottom:16px"></div>
+  </div>
+</div>
+
+<!-- Melding koppelen modal -->
+<div class="mo" id="mo-proj-link" onclick="mcClick(event,'mo-proj-link')">
+  <div class="ms" style="max-height:88vh">
+    <div class="mh"></div>
+    <div class="mt"><span>Melding koppelen</span><button class="mt-close" onclick="closeMo('mo-proj-link')">✕</button></div>
+    <div style="padding:0 18px 10px">
+      <input id="proj-link-search" class="fi2" placeholder="Zoek op ticket-ID of onderwerp…" oninput="renderProjLinkList()" style="margin-bottom:8px"/>
+    </div>
+    <div id="proj-link-list" style="overflow-y:auto;max-height:55vh;padding-bottom:16px"></div>
+  </div>
+</div>
 
 <!-- KPI drill-down -->
 <div class="mo" id="mo-kpi-list" onclick="mcClick(event,'mo-kpi-list')">
@@ -1463,7 +1560,7 @@ const SHEET_ID    = '1UkjXu3yOwPWlb1bKjMnXuCrYkxsvzC6wBZ48nPr1P4A';
 const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email openid';
 
 /* Sheet tab names — must match exactly what you created */
-const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', inspectionItems:'InspectionItems', floors:'Floors', units:'Units', categories:'Categories', inspectionTemplates:'InspectionTemplates' };
+const TABS = { users:'Users', buildings:'Buildings', assets:'Assets', tickets:'Tickets', suppliers:'Suppliers', inspections:'Inspections', inspectionItems:'InspectionItems', floors:'Floors', units:'Units', categories:'Categories', inspectionTemplates:'InspectionTemplates', projects:'Projects', projectTickets:'ProjectTickets', projectLog:'ProjectLog' };
 
 /* Column orders for each sheet (row index 0 = header) */
 const COLS = {
@@ -1478,6 +1575,9 @@ const COLS = {
   units:     ['id','floorId','buildingId','label','sortOrder','inspectionTime'],
   categories:['id','category','notes'],
   inspectionTemplates: ['id','name','buildingId','types','floors','categories','units','assets','interval','dueDays'],
+  projects:       ['id','name','description','status','buildingId','managerId','dateStart','dateDue','dateClosed','createdBy'],
+  projectTickets: ['id','projectId','ticketId','addedAt','addedBy'],
+  projectLog:     ['id','projectId','note','type','createdAt','createdBy'],
 };
 
 /* ══════════════════════════════════════════════════════════
@@ -1512,17 +1612,17 @@ function getUserBuildingIds(){
    STATE
 ══════════════════════════════════════════════════════════ */
 let tokenClient, accessToken=null, currentUser=null;
-let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], inspectionItems:[], floors:[], units:[], categories:[], inspectionTemplates:[] };
+let DB = { users:[], buildings:[], assets:[], tickets:[], suppliers:[], inspections:[], inspectionItems:[], floors:[], units:[], categories:[], inspectionTemplates:[], projects:[], projectTickets:[], projectLog:[] };
 let bldPeriod  = 'quarter';
 let astPeriod  = 'quarter';
 let unitPeriod = 'quarter';
 let flrPeriod  = 'quarter';
 let supPeriod  = 'quarter';
 let supDetailShowClosed = false;
-let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null, floor:null, log:null };
+let editingId = { tix:null, ast:null, usr:null, bld:null, sup:null, unit:null, floor:null, log:null, proj:null };
 let pendingDelete = null;
 const PAGE_SIZE = 10;
-const pages = { tix:1, ast:1, usr:1, bld:1, sup:1, insp:1, log:1 };
+const pages = { tix:1, ast:1, usr:1, bld:1, sup:1, insp:1, log:1, proj:1 };
 const today = new Date();
 const _MS_DAY = 86400000;
 // Dutch public holidays (fixed + Easter-based) for a given year — returns {dateStr: name}
@@ -2117,7 +2217,7 @@ function rowsToObjects(rows, cols){
 }
 
 async function loadAllData(){
-  const [users,buildings,assets,tickets,suppliers,inspections,inspectionItems,floors,units,categories,inspectionTemplates] = await Promise.all([
+  const [users,buildings,assets,tickets,suppliers,inspections,inspectionItems,floors,units,categories,inspectionTemplates,projects,projectTickets,projectLog] = await Promise.all([
     sheetsGet(`${TABS.users}!A:Z`),
     sheetsGet(`${TABS.buildings}!A:Z`),
     sheetsGet(`${TABS.assets}!A:Z`),
@@ -2129,6 +2229,9 @@ async function loadAllData(){
     sheetsGet(`${TABS.units}!A:Z`),
     sheetsGet(`${TABS.categories}!A:Z`),
     sheetsGet(`${TABS.inspectionTemplates}!A:Z`),
+    sheetsGet(`${TABS.projects}!A:Z`),
+    sheetsGet(`${TABS.projectTickets}!A:Z`),
+    sheetsGet(`${TABS.projectLog}!A:Z`),
   ]);
   DB.users      = rowsToObjects(users,     COLS.users);
   DB.inspectionTemplates = rowsToObjects(inspectionTemplates||[], COLS.inspectionTemplates);
@@ -2197,6 +2300,9 @@ async function loadAllData(){
       category    : cat ? cat.category : r.categoryId,
     };
   });
+  DB.projects       = rowsToObjects(projects||[],       COLS.projects);
+  DB.projectTickets = rowsToObjects(projectTickets||[], COLS.projectTickets);
+  DB.projectLog     = rowsToObjects(projectLog||[],     COLS.projectLog);
 }
 
 function objToRow(obj, cols){
@@ -2453,6 +2559,7 @@ function openDrawer(){
 
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>','Dashboard',"navTo('dashboard');closeDrawer()",'dashboard');
   html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><rect x="7" y="13" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="11" y="13" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="15" y="13" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="7" y="17" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/><rect x="11" y="17" width="2" height="2" rx="0.5" fill="currentColor" stroke="none"/></svg>','Kalender',"navTo('calendar');closeDrawer()",'calendar');
+  html+=di('<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>','Projecten',"navTo('projects');closeDrawer()",'projects');
 
 
   if(alertCount) html+=`<div class="drawer-item" onclick="closeDrawer();openAlerts()" style="color:var(--blue)"><div class="drawer-item-icon"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div style="flex:1;font-weight:700">Alerts</div><span class="drawer-item-badge">${alertCount}</span></div>`;
@@ -2523,6 +2630,7 @@ function navTo(s){
 
 
   if(s==='calendar')    renderCalendar();
+  if(s==='projects')    renderProjects();
   if(s==='info')        { document.querySelectorAll('.info-subscreen').forEach(x=>x.classList.remove('open')); document.getElementById('info-main')?.classList.remove('pushed'); }
 }
 function navBack(){
@@ -8306,6 +8414,386 @@ function calPlanTicket(dateStr){
     const statusEl = document.getElementById('tf-status');
     if(statusEl) statusEl.value = 'Planned';
   }, 50);
+}
+
+/* ══════════════════════════════════════════════════════════
+   PROJECTS
+══════════════════════════════════════════════════════════ */
+let projFilter = 'all';
+let projDetailId = null;
+let projDetailTab = 'tickets'; // 'tickets' | 'log'
+
+function setProjFilter(f){
+  projFilter = f;
+  document.querySelectorAll('.proj-ftab').forEach(b=>b.classList.remove('proj-ftab-active'));
+  const map = {all:'all',Open:'open','In Progress':'prog',Done:'done',Closed:'closed'};
+  document.getElementById('proj-f-'+(map[f]||f))?.classList.add('proj-ftab-active');
+  renderProjects();
+}
+
+function projStatusLabel(s){ return {Open:'Open','In Progress':'In uitvoering',Done:'Gereed',Closed:'Gesloten'}[s]||s; }
+function projStatusClass(s){ return {Open:'b-open','In Progress':'b-prog',Done:'b-closed',Closed:'b-cancel'}[s]||'b-open'; }
+function projStatusColor(s){ return {Open:'var(--red)','In Progress':'var(--amber)',Done:'var(--green)',Closed:'var(--muted)'}[s]||'var(--muted)'; }
+
+function projTicketCount(projId){
+  return DB.projectTickets.filter(pt=>pt.projectId===projId).length;
+}
+function projDoneCount(projId){
+  const ids = DB.projectTickets.filter(pt=>pt.projectId===projId).map(pt=>pt.ticketId);
+  return ids.filter(id=>{ const t=DB.tickets.find(x=>x.id===id); return t&&t.status==='Closed'; }).length;
+}
+
+function renderProjects(){
+  let list = [...DB.projects];
+  if(projFilter !== 'all') list = list.filter(p=>p.status===projFilter);
+  list.sort((a,b)=>{
+    const order = {Open:0,'In Progress':1,Done:2,Closed:3};
+    return (order[a.status]??9)-(order[b.status]??9) || (a.dateStart||'').localeCompare(b.dateStart||'');
+  });
+  const total = DB.projects.length;
+  const active = DB.projects.filter(p=>p.status==='Open'||p.status==='In Progress').length;
+  document.getElementById('proj-lbl').textContent = `${total} project${total!==1?'en':''} · ${active} actief`;
+  const c = document.getElementById('proj-list');
+  if(!list.length){
+    c.innerHTML=`<div class="empty"><div class="empty-icon" style="font-size:0;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="opacity:.35"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div style="font-size:13px;color:var(--sub)">Geen projecten gevonden</div></div>`;
+    return;
+  }
+  c.innerHTML = list.map(p=>{
+    const total = projTicketCount(p.id);
+    const done  = projDoneCount(p.id);
+    const pct   = total>0 ? Math.round(done/total*100) : 0;
+    const bld   = DB.buildings.find(b=>b.id===p.buildingId);
+    const mgr   = DB.users.find(u=>u.id===p.managerId);
+    const overdue = p.dateDue && p.status!=='Done' && p.status!=='Closed' && p.dateDue < today.toISOString().split('T')[0];
+    const fillColor = p.status==='Done'?'var(--green)':p.status==='Closed'?'var(--muted)':'var(--blue)';
+    return `<div class="proj-card${projDetailId===p.id?' proj-selected':''}" onclick="openProjDetail('${p.id}')">
+      <div class="proj-card-hdr">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${projStatusColor(p.status)}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${bld?bld.name:'Alle gebouwen'} · ${mgr?mgr.name:'—'}</div>
+        </div>
+        <span class="badge ${projStatusClass(p.status)}">${projStatusLabel(p.status)}</span>
+      </div>
+      <div class="proj-card-body">
+        <div class="proj-prog-wrap">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:var(--muted)">${done} / ${total} meldingen gereed</span>
+            <span style="font-size:11px;font-weight:700;color:${fillColor}">${pct}%</span>
+          </div>
+          <div class="proj-prog-bar"><div class="proj-prog-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+        </div>
+        ${p.dateDue?`<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:${overdue?'rgba(220,38,38,.1)':'var(--card2)'};color:${overdue?'var(--red)':'var(--sub)'};white-space:nowrap;flex-shrink:0">${overdue?'⚠ ':''}${fmtDateDDMMYYYY(p.dateDue)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openProjDetail(id){
+  projDetailId = id;
+  projDetailTab = 'tickets';
+  renderProjects(); // highlight kaart
+  const p = DB.projects.find(x=>x.id===id); if(!p) return;
+  const bld = DB.buildings.find(b=>b.id===p.buildingId);
+  const mgr = DB.users.find(u=>u.id===p.managerId);
+  const total = projTicketCount(p.id);
+  const done  = projDoneCount(p.id);
+  const pct   = total>0 ? Math.round(done/total*100) : 0;
+  const fillColor = p.status==='Done'?'var(--green)':p.status==='Closed'?'var(--muted)':'var(--blue)';
+  const lastLog = [...DB.projectLog].filter(l=>l.projectId===id).sort((a,b)=>b.createdAt.localeCompare(a.createdAt))[0];
+  document.getElementById('proj-detail-id').textContent = p.id;
+
+  const tixRows = DB.projectTickets.filter(pt=>pt.projectId===id).map(pt=>{
+    const t = DB.tickets.find(x=>x.id===pt.ticketId);
+    if(!t) return `<div class="proj-mel-row" style="opacity:.4"><span style="font-size:12px;color:var(--muted)">${pt.ticketId} — niet gevonden</span></div>`;
+    const stCls={Open:'b-open','In Progress':'b-prog',Closed:'b-closed',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
+    const stLbl={Open:'Open','In Progress':'In behandeling',Closed:'Gesloten',Planned:'Gepland',Requested:'Aangevraagd',Ordered:'Besteld'}[t.status]||t.status;
+    const dotColor={Open:'var(--red)','In Progress':'var(--amber)',Closed:'var(--green)',Planned:'var(--purple)',Requested:'#EAB308',Ordered:'var(--teal)'}[t.status]||'var(--muted)';
+    return `<div class="proj-mel-row">
+      <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject}</div>
+        <div style="font-size:11px;color:var(--muted)">${t.id} · ${t.building||'—'}</div>
+      </div>
+      <span class="badge ${stCls}" style="flex-shrink:0">${stLbl}</span>
+      <button onclick="event.stopPropagation();closeMo('mo-proj-detail');openTixDetail('${t.id}')" style="font-size:14px;color:var(--muted);padding:2px 4px;background:none;border:none;cursor:pointer" title="Open melding">›</button>
+      <button onclick="event.stopPropagation();unlinkProjTicket('${id}','${pt.ticketId}')" style="font-size:12px;color:var(--muted);padding:2px 4px;background:none;border:none;cursor:pointer" title="Ontkoppelen">✕</button>
+    </div>`;
+  }).join('') || `<div style="padding:14px 18px;font-size:12px;color:var(--sub);text-align:center">Nog geen meldingen gekoppeld</div>`;
+
+  const logRows = [...DB.projectLog].filter(l=>l.projectId===id).sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(l=>{
+    const user = DB.users.find(u=>u.id===l.createdBy);
+    const initials = user ? user.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase() : '?';
+    const dt = l.createdAt ? l.createdAt.slice(0,16).replace('T',' ') : '';
+    return `<div class="proj-log-row">
+      <div class="proj-avatar">${initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;line-height:1.4">${l.note}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">${user?user.name:'?'} · ${dt}</div>
+      </div>
+      ${can('canEditAll')?`<button onclick="event.stopPropagation();deleteProjLog('${l.id}')" style="font-size:12px;color:var(--muted);padding:2px 4px;background:none;border:none;cursor:pointer;flex-shrink:0" title="Verwijderen">✕</button>`:''}
+    </div>`;
+  }).join('') || `<div style="padding:14px 18px;font-size:12px;color:var(--sub);text-align:center">Nog geen updates</div>`;
+
+  const tabBase = 'flex:1;padding:10px 4px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
+  const tabOn   = 'flex:1;padding:10px 4px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
+
+  document.getElementById('proj-detail-body').innerHTML = `
+    <div style="padding:0 18px 12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px">
+        <div>
+          <div style="font-size:17px;font-weight:800;line-height:1.3">${p.name}</div>
+          ${p.description?`<div style="font-size:13px;color:var(--sub);margin-top:3px;line-height:1.4">${p.description}</div>`:''}
+        </div>
+        <span class="badge ${projStatusClass(p.status)}" style="flex-shrink:0">${projStatusLabel(p.status)}</span>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:10px">
+        <span>📍 ${bld?bld.name:'Alle gebouwen'}</span>
+        <span>👤 ${mgr?mgr.name:'—'}</span>
+        ${p.dateStart?`<span>🗓 ${fmtDateDDMMYYYY(p.dateStart)}</span>`:''}
+        ${p.dateDue?`<span style="color:${p.dateDue<today.toISOString().split('T')[0]&&p.status!=='Done'&&p.status!=='Closed'?'var(--red)':'inherit'}">⏱ ${fmtDateDDMMYYYY(p.dateDue)}</span>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${fillColor};border-radius:3px;transition:width .3s"></div>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:${fillColor}">${done}/${total}</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        ${can('canCreateTickets')||can('canEditAll')?`<button onclick="editProject('${p.id}')" style="padding:8px 14px;background:var(--blue);border-radius:var(--rs);font-size:13px;font-weight:700;color:#fff">Bewerken</button>`:''}
+        ${p.status!=='Done'&&p.status!=='Closed'?`<button onclick="quickCloseProject('${p.id}')" style="padding:8px 14px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:var(--rs);font-size:13px;font-weight:700;color:var(--green)">Afsluiten</button>`:''}
+        ${p.status==='Done'||p.status==='Closed'?`<button onclick="reopenProject('${p.id}')" style="padding:8px 14px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:var(--rs);font-size:13px;font-weight:700;color:var(--blue)">Heropenen</button>`:''}
+      </div>
+    </div>
+    <div style="display:flex;border-bottom:1px solid var(--border)">
+      <button id="pdt-tix"  style="${projDetailTab==='tickets'?tabOn:tabBase}" onclick="switchProjTab('tickets')">Meldingen <span style="font-size:11px;opacity:.7">(${total})</span></button>
+      <button id="pdt-log"  style="${projDetailTab==='log'?tabOn:tabBase}" onclick="switchProjTab('log')">Updates / log</button>
+    </div>
+    <div id="pdt-panel-tickets" style="${projDetailTab==='tickets'?'':'display:none'}">
+      ${tixRows}
+      <div style="padding:10px 14px;border-top:1px solid var(--border)">
+        <button onclick="openProjLinkModal('${p.id}')" style="width:100%;padding:11px;background:rgba(37,99,235,.07);border:1.5px dashed var(--blue);border-radius:var(--rs);font-size:13px;font-weight:700;color:var(--blue)">+ Melding koppelen</button>
+      </div>
+    </div>
+    <div id="pdt-panel-log" style="${projDetailTab==='log'?'':'display:none'}">
+      ${logRows}
+      <div style="padding:10px 14px;display:flex;gap:8px;border-top:1px solid var(--border)">
+        <input id="proj-log-inp" class="fi2" placeholder="Update toevoegen…" style="flex:1;font-size:13px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();saveProjectLog('${p.id}');}"/>
+        <button onclick="saveProjectLog('${p.id}')" style="padding:10px 14px;background:var(--blue);border-radius:var(--rs);font-weight:700;font-size:13px;color:#fff">Plaatsen</button>
+      </div>
+    </div>
+  `;
+  openMo('mo-proj-detail');
+}
+
+function switchProjTab(tab){
+  projDetailTab = tab;
+  const tabBase = 'flex:1;padding:10px 4px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:color .15s,border-color .15s';
+  const tabOn   = 'flex:1;padding:10px 4px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2px solid var(--blue);color:var(--blue);transition:color .15s,border-color .15s';
+  ['tickets','log'].forEach(t=>{
+    const btn   = document.getElementById('pdt-'+t);
+    const panel = document.getElementById('pdt-panel-'+t);
+    if(btn)   btn.style.cssText = t===tab ? tabOn : tabBase;
+    if(panel) panel.style.display = t===tab ? '' : 'none';
+  });
+}
+
+function openProjectModal(){
+  editingId.proj = null;
+  document.getElementById('proj-form-title').textContent = 'Nieuw project';
+  document.getElementById('pf-name').value = '';
+  document.getElementById('pf-desc').value = '';
+  document.getElementById('pf-status').value = 'Open';
+  document.getElementById('pf-start').value = today.toISOString().split('T')[0];
+  document.getElementById('pf-due').value = '';
+  const bSel = document.getElementById('pf-building');
+  bSel.innerHTML = '<option value="">— Alle gebouwen —</option>' + [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  const mSel = document.getElementById('pf-manager');
+  mSel.innerHTML = '<option value="">— Selecteer —</option>' + [...DB.users].sort((a,z)=>a.name.localeCompare(z.name)).map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+  document.getElementById('btn-proj-delete').style.display = 'none';
+  openMo('mo-proj-form');
+}
+
+function editProject(id){
+  const p = DB.projects.find(x=>x.id===id); if(!p) return;
+  editingId.proj = id;
+  document.getElementById('proj-form-title').textContent = 'Project bewerken';
+  document.getElementById('pf-name').value    = p.name||'';
+  document.getElementById('pf-desc').value    = p.description||'';
+  document.getElementById('pf-status').value  = p.status||'Open';
+  document.getElementById('pf-start').value   = p.dateStart||'';
+  document.getElementById('pf-due').value     = p.dateDue||'';
+  const bSel = document.getElementById('pf-building');
+  bSel.innerHTML = '<option value="">— Alle gebouwen —</option>' + [...DB.buildings].sort((a,z)=>a.name.localeCompare(z.name)).map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  bSel.value = p.buildingId||'';
+  const mSel = document.getElementById('pf-manager');
+  mSel.innerHTML = '<option value="">— Selecteer —</option>' + [...DB.users].sort((a,z)=>a.name.localeCompare(z.name)).map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+  mSel.value = p.managerId||'';
+  document.getElementById('btn-proj-delete').style.display = can('canEditAll') ? 'block' : 'none';
+  closeMo('mo-proj-detail');
+  openMo('mo-proj-form');
+}
+
+async function saveProject(){
+  const name = document.getElementById('pf-name').value.trim();
+  if(!name){ toast('Naam is verplicht','err'); return; }
+  if(editingId.proj){
+    const p = DB.projects.find(x=>x.id===editingId.proj); if(!p) return;
+    p.name        = name;
+    p.description = document.getElementById('pf-desc').value.trim();
+    p.status      = document.getElementById('pf-status').value;
+    p.buildingId  = document.getElementById('pf-building').value;
+    p.managerId   = document.getElementById('pf-manager').value;
+    p.dateStart   = document.getElementById('pf-start').value;
+    p.dateDue     = document.getElementById('pf-due').value;
+    if((p.status==='Done'||p.status==='Closed') && !p.dateClosed) p.dateClosed = today.toISOString().split('T')[0];
+  } else {
+    const newId = 'PRJ-' + String(DB.projects.length+1).padStart(3,'0');
+    DB.projects.push({
+      id: newId, name,
+      description : document.getElementById('pf-desc').value.trim(),
+      status      : document.getElementById('pf-status').value,
+      buildingId  : document.getElementById('pf-building').value,
+      managerId   : document.getElementById('pf-manager').value,
+      dateStart   : document.getElementById('pf-start').value,
+      dateDue     : document.getElementById('pf-due').value,
+      dateClosed  : '',
+      createdBy   : currentUser?.id||'',
+    });
+  }
+  closeMo('mo-proj-form');
+  await writeSheet('projects');
+  toast(editingId.proj ? 'Project bijgewerkt' : 'Project aangemaakt');
+  editingId.proj = null;
+  renderProjects();
+}
+
+function deleteProjConfirm(){
+  if(!editingId.proj) return;
+  if(!confirm('Project verwijderen? Gekoppelde meldingen en updates worden ook verwijderd.')) return;
+  deleteProject(editingId.proj);
+}
+
+async function deleteProject(id){
+  DB.projects       = DB.projects.filter(p=>p.id!==id);
+  DB.projectTickets = DB.projectTickets.filter(pt=>pt.projectId!==id);
+  DB.projectLog     = DB.projectLog.filter(l=>l.projectId!==id);
+  closeMo('mo-proj-form');
+  closeMo('mo-proj-detail');
+  projDetailId = null;
+  await Promise.all([writeSheet('projects'), writeSheet('projectTickets'), writeSheet('projectLog')]);
+  toast('Project verwijderd');
+  renderProjects();
+}
+
+async function quickCloseProject(id){
+  const p = DB.projects.find(x=>x.id===id); if(!p) return;
+  p.status = 'Done';
+  p.dateClosed = today.toISOString().split('T')[0];
+  await writeSheet('projects');
+  toast('Project afgesloten');
+  closeMo('mo-proj-detail');
+  projDetailId = null;
+  renderProjects();
+}
+
+async function reopenProject(id){
+  const p = DB.projects.find(x=>x.id===id); if(!p) return;
+  p.status = 'In Progress';
+  p.dateClosed = '';
+  await writeSheet('projects');
+  toast('Project heropend');
+  closeMo('mo-proj-detail');
+  openProjDetail(id);
+}
+
+// ── Log ─────────────────────────────────────────────────
+
+async function saveProjectLog(projId){
+  const inp = document.getElementById('proj-log-inp');
+  const note = (inp?.value||'').trim(); if(!note) return;
+  const newEntry = {
+    id        : 'PL-'+Date.now(),
+    projectId : projId,
+    note,
+    type      : 'update',
+    createdAt : new Date().toISOString().slice(0,16).replace('T',' '),
+    createdBy : currentUser?.id||'',
+  };
+  DB.projectLog.push(newEntry);
+  if(inp) inp.value='';
+  await writeSheet('projectLog');
+  toast('Update geplaatst');
+  openProjDetail(projId); // herlaad detailpaneel
+}
+
+async function deleteProjLog(logId){
+  if(!confirm('Update verwijderen?')) return;
+  const l = DB.projectLog.find(x=>x.id===logId);
+  if(!l) return;
+  const projId = l.projectId;
+  DB.projectLog = DB.projectLog.filter(x=>x.id!==logId);
+  await writeSheet('projectLog');
+  toast('Update verwijderd');
+  openProjDetail(projId);
+}
+
+// ── Meldingen koppelen ───────────────────────────────────
+
+let projLinkTargetId = null;
+
+function openProjLinkModal(projId){
+  projLinkTargetId = projId;
+  document.getElementById('proj-link-search').value='';
+  renderProjLinkList();
+  openMo('mo-proj-link');
+}
+
+function renderProjLinkList(){
+  const query = (document.getElementById('proj-link-search')?.value||'').toLowerCase().trim();
+  const linked = new Set(DB.projectTickets.filter(pt=>pt.projectId===projLinkTargetId).map(pt=>pt.ticketId));
+  let list = DB.tickets.filter(t=>t.status!=='Closed');
+  if(query) list = list.filter(t=>(t.id+' '+t.subject).toLowerCase().includes(query));
+  list = list.slice(0,30);
+  const c = document.getElementById('proj-link-list');
+  if(!list.length){ c.innerHTML=`<div style="padding:14px 18px;font-size:12px;color:var(--sub);text-align:center">Geen meldingen gevonden</div>`; return; }
+  c.innerHTML = list.map(t=>{
+    const isLinked = linked.has(t.id);
+    const stCls={Open:'b-open','In Progress':'b-prog',Planned:'b-planned',Requested:'b-requested',Ordered:'b-ordered'}[t.status]||'b-open';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject}</div>
+        <div style="font-size:11px;color:var(--muted)">${t.id} · ${t.building||'—'}</div>
+      </div>
+      <span class="badge ${stCls}" style="flex-shrink:0">${t.status}</span>
+      ${isLinked
+        ? `<button onclick="unlinkProjTicket('${projLinkTargetId}','${t.id}')" style="padding:5px 10px;font-size:12px;font-weight:700;border-radius:var(--rs);background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.2);color:var(--red)">Verwijder</button>`
+        : `<button onclick="linkProjTicket('${projLinkTargetId}','${t.id}')" style="padding:5px 10px;font-size:12px;font-weight:700;border-radius:var(--rs);background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);color:var(--blue)">Koppel</button>`}
+    </div>`;
+  }).join('');
+}
+
+async function linkProjTicket(projId, ticketId){
+  const exists = DB.projectTickets.find(pt=>pt.projectId===projId&&pt.ticketId===ticketId);
+  if(exists) return;
+  DB.projectTickets.push({
+    id        : 'PT-'+Date.now(),
+    projectId : projId,
+    ticketId,
+    addedAt   : today.toISOString().split('T')[0],
+    addedBy   : currentUser?.id||'',
+  });
+  await writeSheet('projectTickets');
+  toast('Melding gekoppeld');
+  renderProjLinkList();
+}
+
+async function unlinkProjTicket(projId, ticketId){
+  DB.projectTickets = DB.projectTickets.filter(pt=>!(pt.projectId===projId&&pt.ticketId===ticketId));
+  await writeSheet('projectTickets');
+  toast('Melding ontkoppeld');
+  renderProjLinkList();
+  if(projDetailId===projId) openProjDetail(projId);
 }
 </script>
 
