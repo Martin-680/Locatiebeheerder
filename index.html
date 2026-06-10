@@ -4917,6 +4917,16 @@ function renderAst(){
   const slice=list.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
   c.innerHTML='<div style="padding:0 14px 8px">'+slice.map(a=>astCardHTML(a,`openAstDetail('${a.id}')`)).join('')+'</div>'+renderPagination('ast',list.length,'goAstPage');
 }
+function getFailedInspForAsset(assetId){
+  return DB.inspections
+    .filter(r => r.status === 'Completed' && DB.inspectionItems.some(i => i.inspectionId === r.id && i.assetId === assetId && i.result === 'Failed'))
+    .sort((a,b) => (b.dateEnd||'').localeCompare(a.dateEnd||''))[0] || null;
+}
+function getFailedInspForUnit(unitId){
+  return DB.inspections
+    .filter(r => r.status === 'Completed' && DB.inspectionItems.some(i => i.inspectionId === r.id && i.unitId === unitId && i.result === 'Failed'))
+    .sort((a,b) => (b.dateEnd||'').localeCompare(a.dateEnd||''))[0] || null;
+}
 function openAstDetail(id){
   const a=DB.assets.find(x=>x.id===id); if(!a) return;
   const allTix=DB.tickets.filter(t=>t.assetId===a.id);
@@ -4968,6 +4978,7 @@ function openAstDetail(id){
       ${can('canEditAssets')?`<button onclick="editAst('${a.id}')" style="flex:1;padding:13px;background:linear-gradient(135deg,var(--blue),var(--indigo));border-radius:var(--rs);font-weight:700;font-size:14px;color:#fff">Bewerken</button>`:''}
       ${can('canEditAssets')?`<button onclick="duplicateAst()" style="flex:1;padding:13px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--indigo)">Dupliceren</button>`:''}
     </div>
+    ${can('canStartInspection') && getFailedInspForAsset(a.id) ? `<div style="padding:8px 18px 0"><button onclick="closeMo('mo-ast-detail');continueInspection('${getFailedInspForAsset(a.id)?.id}')" style="width:100%;padding:13px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--red)">Afgekeurde items herkeuren</button></div>` : ''}
     <div style="padding:8px 18px 0">
       <button onclick="closeMo('mo-ast-detail')" style="width:100%;padding:13px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--muted)">Annuleren</button>
     </div>
@@ -5561,6 +5572,10 @@ function openUnitDetail(id){
     ${can('canEditAssets') ? `
     <div style="padding:8px 18px 0">
       <button onclick="openNewAssetForUnit('${u.id}')" style="width:100%;padding:13px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--green)">Middel toevoegen</button>
+    </div>` : ''}
+    ${can('canStartInspection') && getFailedInspForUnit(u.id) ? `
+    <div style="padding:8px 18px 0">
+      <button onclick="closeMo('mo-unit-detail');continueInspection('${getFailedInspForUnit(u.id)?.id}')" style="width:100%;padding:13px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--red)">Afgekeurde items herkeuren</button>
     </div>` : ''}
     <div style="padding:8px 18px 0">
       <button onclick="closeMo('mo-unit-detail')" style="width:100%;padding:13px;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);font-weight:700;font-size:14px;color:var(--muted)">Annuleren</button>
