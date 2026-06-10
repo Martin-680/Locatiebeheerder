@@ -5070,6 +5070,8 @@ function editAst(id){
   document.getElementById('af-dim-h').value=a.dimHeight||'';
   document.getElementById('af-dim-d').value=a.dimDepth||'';
   openMo('mo-ast');
+  window._afPhotos = a.photos||'';
+  setTimeout(()=>renderPhotoEditor('af-photos-editor', a.photos||'', v=>{ window._afPhotos=v; }), 50);
 }
 async function saveAst(){
   const label=document.getElementById('af-name').value.trim();
